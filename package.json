@@ -1,0 +1,9 @@
+{
+  "name": "busa",
+  "version": "1.0.0",
+  "private": true,
+  "description": "BUSA Laundry Ops - Frontend",
+  "scripts": {
+    "build": "echo 'Static build ready'"
+  }
+}
