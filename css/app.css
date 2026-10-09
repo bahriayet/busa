@@ -284,6 +284,21 @@ body[data-theme="night"] .grain { mix-blend-mode: screen; opacity: .16; }
 
 .tb-sep { width: 1px; height: 26px; background: var(--line); }
 
+/* indikator koneksi server */
+.conn { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 10px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--r); cursor: pointer; font-family: var(--mono); font-size: 10px; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); transition: border-color .16s, background .16s; }
+.conn[hidden] { display: none; }
+.conn:hover { border-color: var(--line-2); background: var(--paper-2); }
+.conn-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); flex: none; }
+.conn[data-state="on"] { color: var(--mint); }
+.conn[data-state="on"] .conn-dot { background: var(--mint); }
+.conn[data-state="off"] { color: var(--amber); }
+.conn[data-state="off"] .conn-dot { background: var(--amber); animation: conn-pulse 1.6s ease-in-out infinite; }
+.conn[data-state="sync"] { color: var(--blue); }
+.conn[data-state="sync"] .conn-dot { background: var(--blue); animation: conn-pulse .9s ease-in-out infinite; }
+@keyframes conn-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+@media (prefers-reduced-motion: reduce) { .conn-dot { animation: none !important; } }
+@media (max-width: 720px) { #conn-label { display: none; } .conn { padding: 0 9px; } }
+
 .avatar { width: 34px; height: 34px; display: grid; place-items: center; background: var(--c, var(--lilac)); color: #fff; border-radius: 50%; font-family: var(--display); font-weight: 800; font-size: 13px; border: 2px solid var(--ink); cursor: pointer; }
 
 /* ticker */

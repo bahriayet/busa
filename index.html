@@ -7,6 +7,7 @@
   <title>BUSA — Laundry Ops</title>
   <meta name="description" content="Panel operasional laundry: lantai mesin real-time, order, lacak siklus, dompet, dan laporan.">
   <meta name="theme-color" content="#EBE4D6">
+  <meta name="busa-api-base" content="https://busa-api.onrender.com">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='12' cy='12' r='10' fill='%2316161A'/><circle cx='12' cy='12' r='5' fill='%23EE4E22'/></svg>">
   <link rel="stylesheet" href="./css/app.css">
 </head>
@@ -40,6 +41,9 @@
         </div>
         <div class="top-actions">
           <div id="portal-switch" class="psw" role="group" aria-label="Pilih panel"></div>
+          <button class="conn" id="conn-btn" data-act="reconnect" hidden aria-live="polite" aria-label="Status server — klik untuk sambung ulang">
+            <i class="conn-dot" aria-hidden="true"></i><b id="conn-label">Mode lokal</b>
+          </button>
           <time id="clock">--:--:--</time>
           <button class="tb-btn" id="search-btn" data-act="palette" title="Cari / perintah (Ctrl+K)" aria-label="Palet perintah">
             <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round">

@@ -7,8 +7,10 @@
 
 const API = {
   on: false,
+  busy: false,
   ws: null,
   wsTimer: null,
+  wsTries: 0,
   renderTimer: null,
 };
 
@@ -171,22 +173,28 @@ API.bootstrap = async function () {
     S.apiOn = true;
     API.wsConnect();
     save();
+    API.paintConn();
     return true;
   } catch (err) {
     API.on = false;
     S.apiOn = false;
     API.lastError = err;
+    API.paintConn();
     return false;
   }
 };
 
 API.init = async function () {
   if (!isAuthed()) return false;
+  API.busy = true;
+  API.paintConn();
   const ok = await API.bootstrap();
+  API.busy = false;
   if (ok) render();
   else if (!API.lastError || API.lastError.status !== 401) {
-    toast({ title: 'Mode lokal', msg: 'Server tidak terjangkau — data contoh dipakai.', tone: 'amber', icon: 'info', ms: 3600 });
+    toast({ title: 'Mode lokal', msg: 'Server tidak terjangkau — data contoh dipakai. Klik status di kanan atas untuk sambung ulang.', tone: 'amber', icon: 'info', ms: 5200 });
   }
+  API.paintConn();
   return ok;
 };
 
@@ -200,6 +208,39 @@ API.stop = function () {
     try { API.ws.close(); } catch { /* sudah tertutup */ }
     API.ws = null;
   }
+  API.paintConn();
+};
+
+/* ── STATUS KONEKSI & SAMBUNG ULANG ───────────────────── */
+
+API.paintConn = function () {
+  const el = (typeof qs === 'function') ? qs('#conn-btn') : null;
+  if (!el) return;
+  if (typeof isAuthed !== 'function' || !isAuthed()) { el.hidden = true; return; }
+  el.hidden = false;
+  const label = qs('#conn-label');
+  if (API.busy) {
+    el.dataset.state = 'sync';
+    el.title = 'Menghubungkan ke server…';
+    if (label) label.textContent = 'Menghubungkan…';
+  } else if (API.on) {
+    el.dataset.state = 'on';
+    el.title = 'Server aktif — data tersinkron. Klik untuk menyegarkan.';
+    if (label) label.textContent = 'Server aktif';
+  } else {
+    el.dataset.state = 'off';
+    el.title = 'Server tidak terjangkau — mode lokal. Klik untuk sambung ulang.';
+    if (label) label.textContent = 'Mode lokal · sambung';
+  }
+};
+
+/** Tombol status: bangunkan backend bila cold start, lalu bootstrap ulang. */
+API.reconnect = async function () {
+  if (API.busy) return false;
+  toast({ title: 'Menghubungkan…', msg: 'Server gratis bisa butuh sampai 1 menit untuk bangun.', tone: 'blue', icon: 'drum', ms: 5200 });
+  const ok = await API.init();
+  if (ok) toast({ title: 'Server tersambung', msg: 'Data disinkronkan dari backend.', tone: 'mint', icon: 'check' });
+  return ok;
 };
 
 /* ── WEBSOCKET /ws ────────────────────────────────────── */
@@ -220,14 +261,19 @@ API.wsConnect = function () {
     try { msg = JSON.parse(e.data); } catch { return; }
     apiWsHandle(msg);
   });
+  ws.addEventListener('open', () => { API.wsTries = 0; API.paintConn(); });
   ws.addEventListener('close', (e) => {
     API.ws = null;
     /* 4401 = token tidak valid/kedaluwarsa — jangan reconnect berulang. */
     if (e && e.code === 4401) return;
     if (isAuthed()) {
+      /* Backoff 4 dtk → 30 dtk: server gratis mungkin sedang bangun dari cold start. */
+      API.wsTries = Math.min((API.wsTries || 0) + 1, 5);
+      const delay = Math.min(4000 * Math.pow(1.7, API.wsTries - 1), 30000);
       clearTimeout(API.wsTimer);
-      API.wsTimer = setTimeout(API.wsConnect, 4000);
+      API.wsTimer = setTimeout(API.wsConnect, delay);
     }
+    API.paintConn();
   });
   ws.addEventListener('error', () => { /* close akan menangani reconnect */ });
 };

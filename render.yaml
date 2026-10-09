@@ -15,7 +15,9 @@ services:
         sync: false
       - key: BUSA_JWT_SECRET
         sync: false
+      # Domain frontend yang boleh memanggil API (CORS). Pisahkan dengan koma
+      # bila punya domain lain, mis. custom domain Vercel.
       - key: BUSA_CORS_ORIGINS
-        sync: false
+        value: https://busa-alpha.vercel.app
       - key: BUSA_SERVE_STATIC
         value: "false"

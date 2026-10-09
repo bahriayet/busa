@@ -348,6 +348,7 @@ function render(animate = true) {
   if (meta.wire) meta.wire();
   if (useGsap) MOTION.enter(S.portal, S.route, animate);
   document.body.dataset.route = S.route;
+  if (typeof API !== 'undefined' && API.paintConn) API.paintConn();
 }
 
 /* ── VIEW: LOGIN PELANGGAN ────────────────────────────── */
@@ -1505,6 +1506,7 @@ document.addEventListener('click', (e) => {
   if (a === 'theme') { toggleTheme(); return; }
   if (a === 'new-order') { S.cart = newCart(); go('order'); return; }
   if (a === 'logout') { doLogout(); return; }
+  if (a === 'reconnect') { if (typeof API !== 'undefined' && API.reconnect) API.reconnect(); return; }
   if (a === 'toast-close') { t.closest('.toast').remove(); return; }
   if (a === 'modal-close') { closeModal(); return; }
   if (a === 'drawer-close') { closeDrawer(); return; }
@@ -1680,7 +1682,7 @@ document.addEventListener('click', (e) => {
       const r = flushPending();
       toast(r.mode === 'api'
         ? { title: r.sent + ' event dikirim ulang', msg: apiBase() + '/scan', tone: 'mint', icon: 'scan' }
-        : { title: 'Mode lokal aktif', msg: 'Isi SCAN_API di data.js untuk mengirim ke POST /scan.', tone: 'amber', icon: 'info', ms: 5200 });
+        : { title: 'Mode lokal aktif', msg: 'Server tidak terjangkau — event tersimpan lokal dan terkirim saat tersambung.', tone: 'amber', icon: 'info', ms: 5200 });
       render(); break;
     }
     case 'scan-sim': {
