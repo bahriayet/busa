@@ -18,6 +18,6 @@ services:
       # Domain frontend yang boleh memanggil API (CORS). Pisahkan dengan koma
       # bila punya domain lain, mis. custom domain Vercel.
       - key: BUSA_CORS_ORIGINS
-        value: https://busa-alpha.vercel.app
+        value: https://busa-londry.vercel.app
       - key: BUSA_SERVE_STATIC
         value: "false"
