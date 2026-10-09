@@ -5,3 +5,4 @@ server/database-url.txt
 server/data/
 .commandcode/
 *.log
+poto/
