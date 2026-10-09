@@ -1,0 +1,21 @@
+# Blueprint Render — backend BUSA (Fastify + Neon).
+# Cara pakai: push repo ini ke GitHub, lalu di Render pilih "New → Blueprint".
+# Isi nilai rahasia lewat dashboard Render (sync: false).
+services:
+  - type: web
+    name: busa-api
+    runtime: node
+    rootDir: server
+    plan: free
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: BUSA_DATABASE_URL
+        sync: false
+      - key: BUSA_JWT_SECRET
+        sync: false
+      - key: BUSA_CORS_ORIGINS
+        sync: false
+      - key: BUSA_SERVE_STATIC
+        value: "false"

@@ -1,0 +1,9 @@
+# Hanya aset frontend yang boleh ikut deploy ke Vercel — folder server
+# (berisi .env, kunci JWT, kode) tidak pernah diunggah.
+server
+.commandcode
+scrollcraft
+render.yaml
+opencode.json
+.gitignore
+Dockerfile

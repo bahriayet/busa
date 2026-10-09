@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BUSA — Laundry Ops</title>
+  <meta name="description" content="Panel operasional laundry: lantai mesin real-time, order, lacak siklus, dompet, dan laporan.">
+  <meta name="theme-color" content="#EBE4D6">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='12' cy='12' r='10' fill='%2316161A'/><circle cx='12' cy='12' r='5' fill='%23EE4E22'/></svg>">
+  <link rel="stylesheet" href="./css/app.css">
+</head>
+
+<body data-theme="bone" data-route="floor">
+  <div class="grain" aria-hidden="true"></div>
+  <div id="suds" aria-hidden="true"></div>
+
+  <div class="shell">
+    <aside class="rail">
+      <a class="brand" href="#/" data-act="go" data-route="landing" aria-label="BUSA, ke halaman situs">
+        <svg class="brand-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+          <circle cx="12" cy="12" r="9.2" stroke="currentColor" stroke-width="2.4"></circle>
+          <circle cx="12" cy="12" r="4.4"></circle>
+          <path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2"></path>
+        </svg>
+        <b>BUSA</b>
+        <span>laundry ops</span>
+      </a>
+      <nav id="nav" aria-label="Navigasi utama"></nav>
+      <div class="rail-foot">
+        <button class="tb-btn" id="theme-btn" data-act="theme" title="Ganti tema (T)" aria-label="Ganti tema"></button>
+      </div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <div class="tb-title">
+          <b id="route-title">Lantai Mesin</b>
+          <span id="route-kicker">Siklus berjalan</span>
+        </div>
+        <div class="top-actions">
+          <div id="portal-switch" class="psw" role="group" aria-label="Pilih panel"></div>
+          <time id="clock">--:--:--</time>
+          <button class="tb-btn" id="search-btn" data-act="palette" title="Cari / perintah (Ctrl+K)" aria-label="Palet perintah">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round">
+              <circle cx="11" cy="11" r="6.6"></circle><path d="M15.8 15.8 20.4 20.4"></path>
+            </svg>
+          </button>
+          <span class="tb-sep"></span>
+          <button class="btn sm" data-act="new-order">+ Order</button>
+          <div class="bell-wrap">
+            <button class="tb-btn" id="bell-btn" data-act="notif" aria-label="Pemberitahuan">
+              <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round">
+                <path d="M6 16V10a6 6 0 1 1 12 0v6l2 2.6H4z"></path><path d="M9.8 21a2.4 2.4 0 0 0 4.4 0"></path>
+              </svg>
+              <span id="bell-dot" hidden>0</span>
+            </button>
+          </div>
+          <button class="avatar" data-act="go" data-route="setelan" aria-label="Akun Rania">RS</button>
+        </div>
+      </header>
+
+      <div class="ticker" role="marquee" aria-label="Status mesin dan pesanan">
+        <div id="ticker-track"></div>
+      </div>
+
+      <main id="view" tabindex="-1"></main>
+    </div>
+  </div>
+
+  <nav id="mnav" class="mnav" aria-label="Navigasi mobile"></nav>
+
+  <button class="tb-btn fab" id="chat-fab" data-act="chat" aria-label="Buka bantuan">
+    <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round">
+      <path d="M4 6.5h16v10H9.5L4 20.5z"></path><path d="M8 10h8M8 13h5"></path>
+    </svg>
+  </button>
+
+  <div id="notif-panel" role="dialog" aria-label="Pemberitahuan"></div>
+  <div id="toasts" aria-live="polite"></div>
+  <div id="modalRoot"></div>
+  <div id="drawerRoot"></div>
+
+  <div id="trace" class="dt" aria-hidden="true">
+    <div class="dt-porthole">
+      <div class="dt-water"><div class="dt-level"></div></div>
+      <div class="dt-rim"></div>
+    </div>
+    <div class="dt-mid">
+      <p class="dt-label mono">drum penampung <b class="dt-count">00/08</b></p>
+      <div class="dt-tags"></div>
+      <p class="dt-recap mono"></p>
+    </div>
+    <div class="dt-track"><i></i></div>
+  </div>
+
+  <script src="./js/vendor/gsap.min.js"></script>
+<script src="./js/vendor/ScrollTrigger.min.js"></script>
+<script src="./js/config.js"></script>
+<script src="./js/data.js"></script>
+  <script src="./js/ui.js"></script>
+  <script src="./js/app.js"></script>
+  <script src="./js/api.js"></script>
+  <script src="./js/views.customer.js"></script>
+  <script src="./js/views.admin.js"></script>
+  <script src="./js/scan.js"></script>
+  <script src="./js/papan.js"></script>
+  <script src="./js/landing.js"></script>
+  <script src="./js/motion.js"></script>
+</body>
+
+</html>
