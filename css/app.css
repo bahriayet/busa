@@ -2191,6 +2191,7 @@ body[data-theme="night"] .quote footer { color: var(--muted); }
   .con-r { border-left: 0; padding-left: 0; border-top: 1px dashed var(--line-2); padding-top: 16px; }
   .peak-stage { grid-template-columns: 1fr; min-height: auto; }
   .peak-inner, .peak-door { display: none; }
+  .peak-led, .peak-done { display: none; }
   .peak-i { opacity: 1; grid-template-columns: 30px 20px 1fr; }
   .peak-i i { display: none; }
   .ld-tabs { order: 3; width: 100%; }

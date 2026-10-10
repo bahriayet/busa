@@ -16,6 +16,7 @@ const MOTION = (function () {
   let reduce = mqReduce.matches;
   let fine = mqFine.matches;
   let ctx = null;
+  let peakMM = null;
   let lastKey = '';
 
   document.body.classList.add('gsap-on');
@@ -188,28 +189,34 @@ const MOTION = (function () {
 
     const peak = qs('[data-bc-act="peak"]');
     if (peak) {
-      const stages = U.toArray('.peak-i', peak);
-      const ptl = gsap.timeline({
-        defaults: { duration: 0.4, ease: 'none' },
-        scrollTrigger: {
-          trigger: peak, start: 'top top', end: () => '+=' + (window.innerHeight * 3.2),
-          pin: true, scrub: 0.9, anticipatePin: 1, invalidateOnRefresh: true,
-          onUpdate: (self) => peak.style.setProperty('--bc-p', self.progress.toFixed(3)),
-        },
+      /* Pin "babak tiga" hanya untuk layar besar. Di HP, pin + perubahan
+         tinggi viewport (address bar muncul/hilang) adalah sumber glitch
+         gulir — biarkan bagian ini mengalir normal di ponsel. */
+      peakMM = gsap.matchMedia();
+      peakMM.add('(min-width: 1001px)', () => {
+        const stages = U.toArray('.peak-i', peak);
+        const ptl = gsap.timeline({
+          defaults: { duration: 0.4, ease: 'none' },
+          scrollTrigger: {
+            trigger: peak, start: 'top top', end: () => '+=' + (window.innerHeight * 3.2),
+            pin: true, scrub: 0.9, anticipatePin: 1, invalidateOnRefresh: true,
+            onUpdate: (self) => peak.style.setProperty('--bc-p', self.progress.toFixed(3)),
+          },
+        });
+        ptl.addLabel('buka', 0);
+        ptl.to('.peak-door', { scale: 0.62, opacity: 0.1, rotation: 30 }, 'buka')
+          .to('.peak-inner', { rotation: 260, scale: 1.14 }, 'buka')
+          .from('.peak-copy', { opacity: 0, y: 20 }, 'buka')
+          .addLabel('bakar', '+=0.05');
+        stages.forEach((s, i) => {
+          ptl.fromTo(s, { opacity: 0.1, x: 26 }, { opacity: 1, x: 0 }, 'bakar+=' + (i * 0.3))
+            .to(s, { opacity: 0.18, x: -12 }, 'bakar+=' + (i * 0.3 + 0.42));
+        });
+        ptl.addLabel('tutup', '+=0.15');
+        ptl.to('.peak-led', { opacity: 1, scale: 1.2 }, 'tutup')
+          .from('.peak-done', { opacity: 0, y: 10 }, 'tutup+=0.1')
+          .add(() => foldOut(trailLine()), 'tutup+=0.2');
       });
-      ptl.addLabel('buka', 0);
-      ptl.to('.peak-door', { scale: 0.62, opacity: 0.1, rotation: 30 }, 'buka')
-        .to('.peak-inner', { rotation: 260, scale: 1.14 }, 'buka')
-        .from('.peak-copy', { opacity: 0, y: 20 }, 'buka')
-        .addLabel('bakar', '+=0.05');
-      stages.forEach((s, i) => {
-        ptl.fromTo(s, { opacity: 0.1, x: 26 }, { opacity: 1, x: 0 }, 'bakar+=' + (i * 0.3))
-          .to(s, { opacity: 0.18, x: -12 }, 'bakar+=' + (i * 0.3 + 0.42));
-      });
-      ptl.addLabel('tutup', '+=0.15');
-      ptl.to('.peak-led', { opacity: 1, scale: 1.2 }, 'tutup')
-        .from('.peak-done', { opacity: 0, y: 10 }, 'tutup+=0.1')
-        .add(() => foldOut(trailLine()), 'tutup+=0.2');
     }
 
     gsap.to(document.documentElement, {
@@ -241,6 +248,7 @@ const MOTION = (function () {
     }
 
     if (ctx) { ctx.revert(); ctx = null; }
+    if (peakMM) { peakMM.revert(); peakMM = null; }
     unbindTilt();
 
     ctx = gsap.context(() => {
