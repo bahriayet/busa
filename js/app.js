@@ -334,7 +334,7 @@ function go(route, portal) {
   if (typeof API !== 'undefined' && API.on && (route === 'floor' || route === 'laporan')) {
     API.refreshDashboard().then((changed) => { if (changed && S.route === route) render(); }).catch(() => {});
   }
-  if (route === 'landing' && !isAuthed() && typeof API !== 'undefined' && API.loadLive) API.loadLive();
+  if (route === 'landing' && typeof API !== 'undefined' && API.loadLive) API.loadLive();
 }
 
 function switchPortal(p) {
@@ -2264,8 +2264,8 @@ function boot() {
   if (typeof API !== 'undefined') API.init();
   if (typeof API !== 'undefined' && API.loadLive) {
     API.loadLive();
-    /* Halaman situs milik pengunjung anonim: segarkan papan publik berkala. */
-    setInterval(() => { if (S.portal === 'landing' && !isAuthed()) API.loadLive(); }, 30000);
+    /* Halaman situs: segarkan papan publik berkala (login atau tidak). */
+    setInterval(() => { if (S.portal === 'landing') API.loadLive(); }, 30000);
   }
   setTimeout(() => {
     if (!REDUCED) bubbles(8);

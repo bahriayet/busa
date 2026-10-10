@@ -77,7 +77,9 @@ function ldcPrice() {
 VIEWS.landing = {
   title: 'BUSA — Laundry Ops', kicker: 'Panel berjalan · data contoh',
   render() {
-    const serverLive = (typeof API !== 'undefined' && !isAuthed() && API.live
+    /* Papan publik selalu memakai /api/live agar tampilan sama di semua
+       perangkat — baik pengunjung anonim maupun yang sedang login. */
+    const serverLive = (typeof API !== 'undefined' && API.live
       && Array.isArray(API.live.orders) && API.live.orders.length) ? API.live.orders : null;
     const live = serverLive
       ? serverLive.filter((o) => o.stage > 0 && o.stage < 8).slice(0, 5)
