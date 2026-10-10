@@ -164,7 +164,8 @@ export function buildApp({ db, cfg }: BuildOpts): FastifyInstance {
        */
       const frontendAsset = (pathname: string): boolean =>
         pathname === '/' || pathname === '/index.html'
-        || pathname.startsWith('/css/') || pathname.startsWith('/js/');
+        || pathname.startsWith('/css/') || pathname.startsWith('/js/')
+        || pathname.startsWith('/img/');
       void app.register(staticPlugin, {
         root: cfg.staticRoot,
         allowedPath: frontendAsset,

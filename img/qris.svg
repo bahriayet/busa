@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" role="img" aria-label="Placeholder QRIS">
+  <rect width="240" height="240" fill="#ffffff"/>
+  <rect x="10" y="10" width="220" height="220" fill="none" stroke="#EE4E22" stroke-width="3" stroke-dasharray="10 7" rx="10"/>
+  <g fill="#16161A" font-family="Arial, Helvetica, sans-serif" text-anchor="middle">
+    <text x="120" y="86" font-size="30" font-weight="700" letter-spacing="6">QRIS</text>
+    <text x="120" y="122" font-size="14">Ganti dengan gambar QR milik Anda</text>
+    <text x="120" y="146" font-size="13" fill="#8A8474">simpan sebagai</text>
+    <text x="120" y="168" font-size="15" font-weight="700" fill="#EE4E22">img/qris.png</text>
+    <text x="120" y="196" font-size="12" fill="#8A8474">(gambar QRIS dari bank / e-wallet Anda)</text>
+  </g>
+</svg>

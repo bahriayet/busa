@@ -161,7 +161,7 @@ function newCart() {
   return {
     step: 0, items: {}, addons: {}, pieces: { kering: 0 },
     weight: 5, mode: 'pickup', addr: (S.addresses[0] || {}).id, date: todayISO(), slot: SLOTS[2],
-    code: '', notes: '', pay: 'wallet', protect: false, created: null,
+    code: '', notes: '', pay: 'qris', protect: false, created: null,
   };
 }
 
@@ -825,7 +825,6 @@ function orderStep1() {
 function orderStep2() {
   const c = S.cart;
   const r = calc();
-  const short = r.total > S.wallet.balance;
   return `
     <h2 class="display xl">Kode promo & bayar</h2>
     <div class="promo-row">
@@ -838,14 +837,20 @@ function orderStep2() {
 
     <div class="field"><p class="mono lbl">Metode pembayaran</p>
       <div class="pay-rows">
-        <label class="pay ${c.pay === 'wallet' ? 'on' : ''}"><input type="radio" name="pay" hidden data-act="pay" data-v="wallet" ${c.pay === 'wallet' ? 'checked' : ''}>
-          ${icon('wallet')}<div><b>Dompet BUSA</b><p class="mono">Saldo ${rp(S.wallet.balance)}</p></div></label>
         <label class="pay ${c.pay === 'qris' ? 'on' : ''}"><input type="radio" name="pay" hidden data-act="pay" data-v="qris" ${c.pay === 'qris' ? 'checked' : ''}>
-          ${icon('grid')}<div><b>QRIS / e-wallet</b><p class="mono">Dipindai kasir saat penjemputan</p></div></label>
+          ${icon('grid')}<div><b>QRIS / e-wallet</b><p class="mono">Pindai QR, bayar sekarang</p></div></label>
         <label class="pay ${c.pay === 'cash' ? 'on' : ''}"><input type="radio" name="pay" hidden data-act="pay" data-v="cash" ${c.pay === 'cash' ? 'checked' : ''}>
-          ${icon('tag')}<div><b>Tunai di lokasi</b><p class="mono">Bayar saat cucian kembali</p></div></label>
+          ${icon('tag')}<div><b>Tunai</b><p class="mono">Bayar saat cucian diserahkan</p></div></label>
       </div>
-      ${c.pay === 'wallet' && short ? `<p class="hint err">${icon('alert')} Saldo kurang ${rp(r.total - S.wallet.balance)}. <button class="lnk" data-act="topup">Top up dulu</button>.</p>` : ''}
+      ${c.pay === 'qris' ? `
+        <div class="qris-box">
+          <img src="./img/qris.png" alt="Kode QRIS BUSA" onerror="this.onerror=null;this.src='./img/qris.svg';">
+          <div>
+            <b class="display lg">Scan & bayar ${rp(r.total)}</b>
+            <p>Buka aplikasi e-wallet atau m-banking, pindai QR di samping, lalu masukkan nominal <b>${rp(r.total)}</b>. Tunjukkan bukti pembayaran ke kurir atau kasir saat penjemputan.</p>
+          </div>
+        </div>` : `
+        <p class="hint">${icon('tag')} Siapkan uang tunai <b>${rp(r.total)}</b> — dibayarkan saat kurir atau kasir menyerahkan cucian Anda.</p>`}
     </div>
 
     <label class="protect ${c.protect ? 'on' : ''}">
@@ -857,7 +862,8 @@ function orderStep2() {
 }
 
 function orderSuccess() {
-  const o = S.orders.find((x) => x.code === S.cart.created) || S.orders[0];
+  const o = S.orders.find((x) => x.code === S.cart.created) || S.orders[0]
+    || { code: S.cart.created || 'BUSA-0000', stage: 0, weight: 0, mode: 'pickup', slot: { date: '—', time: '—' } };
   return `
   <div class="success" data-reveal>
     <div class="ok-drums">
@@ -1460,10 +1466,6 @@ function submitOrder() {
   const c = S.cart, r = calc();
   if (!r.lines.length) { toast({ title: 'Belum ada layanan', msg: 'Centang minimal satu layanan.', tone: 'red', icon: 'alert' }); return; }
   if (kgTotal() > 0 && kgTotal() < 3) { toast({ title: 'Di bawah minimum', msg: 'Cucian per kg minimal 3 kg.', tone: 'red', icon: 'alert' }); return; }
-  if (c.pay === 'wallet' && r.total > S.wallet.balance) {
-    toast({ title: 'Dompet kurang', msg: 'Kurang ' + rp(r.total - S.wallet.balance) + '. Top up atau ganti metode.', tone: 'red', icon: 'wallet' });
-    return;
-  }
   if (typeof API !== 'undefined' && API.on && isAuthed()) { apiSubmitOrder(c, r); return; }
   const code = 'BUSA-' + S.seq++;
   const items = Object.entries(c.items).filter(([, q]) => q > 0).map(([id, qty]) => ({ id, qty }));
@@ -1475,10 +1477,6 @@ function submitOrder() {
     machine: '—', notes: c.notes, created: 'Hari ini ' + nowClock(),
   };
   S.orders.unshift(o);
-  if (c.pay === 'wallet') {
-    S.wallet.balance -= r.total;
-    S.wallet.txns.unshift({ id: 'TX-' + (9922 + Math.floor(Math.random() * 40)), type: 'pay', label: 'Bayar ' + code, amount: -r.total, at: 'Hari ini ' + nowClock(), status: 'sukses' });
-  }
   S.notifs.unshift({ id: uid('n'), tone: 'orange', icon: 'basket', title: 'Order ' + code + ' dibuat', msg: (c.mode === 'pickup' ? 'Dijemput ' : 'Titip toko ') + c.slot + ' · ' + rp(r.total), at: nowClock(), read: false });
   S.cart = newCart();
   S.cart.step = 3;
@@ -1486,7 +1484,7 @@ function submitOrder() {
   save();
   render();
   bubbles(22);
-  toast({ title: code + ' masuk antrean', msg: 'Total ' + rp(r.total) + ' · ' + (c.pay === 'wallet' ? 'dibayar dari dompet' : c.pay === 'qris' ? 'QRIS saat jemput' : 'tunai di lokasi'), tone: 'orange', icon: 'check', ms: 5200 });
+  toast({ title: code + ' masuk antrean', msg: 'Total ' + rp(r.total) + ' · ' + (c.pay === 'qris' ? 'QRIS saat jemput' : 'tunai di lokasi'), tone: 'orange', icon: 'check', ms: 5200 });
 }
 
 /** Checkout lewat API — server menghitung ulang tagihan dan menyimpan ke DB. */
@@ -1509,13 +1507,14 @@ async function apiSubmitOrder(c, r) {
       : await API.submitWalkin(Object.assign({}, payload, { customer: S.persona.name, phone: S.persona.phone }));
     const fresh = data.order || {};
     const code = fresh.code || '';
+    apiPatchOrder(fresh);
     S.cart = newCart();
     S.cart.step = 3;
     S.cart.created = code;
     save();
     render();
     bubbles(22);
-    toast({ title: code + ' masuk antrean', msg: 'Total ' + rp(fresh.total || r.total) + ' · ' + (c.pay === 'wallet' ? 'dibayar dari dompet' : c.pay === 'qris' ? 'QRIS saat jemput' : 'tunai di lokasi'), tone: 'orange', icon: 'check', ms: 5200 });
+    toast({ title: code + ' masuk antrean', msg: 'Total ' + rp(fresh.total || r.total) + ' · ' + (c.pay === 'qris' ? 'QRIS saat jemput' : 'tunai di lokasi'), tone: 'orange', icon: 'check', ms: 5200 });
   } catch (err) {
     apiToastErr(err, 'Order ditolak');
   }
