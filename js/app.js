@@ -34,7 +34,7 @@ const PORTALS = {
       { id: 'pengguna', label: 'Pengguna', icon: 'key' },
       { id: 'layanan', label: 'Layanan', icon: 'tag' },
       { id: 'laporan', label: 'Laporan', icon: 'chart' },
-      { id: 'setelan', label: 'Setelan', icon: 'sliders' },
+      { id: 'setelan', label: 'Profil', icon: 'user' },
     ],
   },
 };
@@ -283,14 +283,18 @@ function renderNav() {
   if (avatar) {
     if (loggedIn) {
       avatar.textContent = initials(user.name);
-      avatar.dataset.act = 'logout';
-      avatar.removeAttribute('data-route');
-      avatar.setAttribute('aria-label', 'Keluar: ' + user.name);
-      avatar.title = 'Keluar (' + user.name + ')';
+      avatar.dataset.act = 'go';
+      avatar.dataset.route = 'setelan';
+      avatar.dataset.portal = S.portal === 'a' ? 'a' : 'c';
+      delete avatar.dataset.v;
+      avatar.setAttribute('aria-label', 'Profil: ' + user.name);
+      avatar.title = 'Profil (' + user.name + ')';
     } else {
       avatar.textContent = '?';
       avatar.dataset.act = 'portal';
       avatar.dataset.v = S.portal === 'a' ? 'a' : 'c';
+      delete avatar.dataset.route;
+      delete avatar.dataset.portal;
       avatar.setAttribute('aria-label', 'Masuk');
       avatar.title = 'Masuk';
     }
@@ -576,7 +580,7 @@ VIEWS.changePassword = {
           <button class="btn primary big" type="submit">${icon('check')} Ganti Password</button>
         </form>
         <div class="login-foot">
-          <button class="lnk" data-act="go" data-route="setelan">Kembali ke setelan →</button>
+          <button class="lnk" data-act="go" data-route="setelan" data-portal="${S.portal}">Kembali ke setelan →</button>
         </div>
       </div>
     </section>`;
@@ -1255,8 +1259,22 @@ VIEWS.setelan = {
   title: () => (S.portal === 'c' ? 'Profil' : 'Setelan'),
   kicker: () => (S.portal === 'c' ? 'Alamat, notifikasi, tema' : 'Preferensi operasional'),
   render() {
+    const u = (S.auth && S.auth.user) || null;
+    const roleLabel = u ? ((typeof ROLE_LABEL !== 'undefined' && ROLE_LABEL[u.role]) || u.role) : '';
+    const ident = u ? (u.username || u.phone || u.id || '') : '';
+    const profilPanel = (isAuthed() && u) ? `
+      <div class="panel" data-reveal>
+        <header class="p-head"><h3 class="display">Profil</h3><span class="mono note">${esc(roleLabel)}</span></header>
+        <div class="who"><i class="av">${esc(initials(u.name))}</i><div><b>${esc(u.name)}</b>
+          <p class="mono fine">${esc(ident)}${S.portal === 'c' && S.persona && S.persona.since ? ' · sejak ' + esc(S.persona.since) : ''}</p></div></div>
+        <div class="data-acts mt">
+          <button class="btn ghost sm" data-act="go" data-route="changePassword" data-portal="${S.portal}">${icon('key')} Ganti password</button>
+          <button class="btn danger sm" data-act="logout">${icon('lock')} Keluar</button>
+        </div>
+      </div>` : '';
     return `
     <section class="set-grid">
+      ${profilPanel}
       <div class="panel" data-reveal>
         <header class="p-head"><h3 class="display">Wajah aplikasi</h3><span class="mono note">tersimpan di perangkat</span></header>
         <div class="theme-pick">
@@ -1286,7 +1304,7 @@ VIEWS.setelan = {
           ${[['⌘/Ctrl + K', 'Palet perintah'], ['/ atau F', 'Cari pesanan'], ['N', 'Order baru'], ['S', 'Layar pindai operator'], ['T', 'Ganti tema'], ['Esc', 'Tutup panel']].map(([k, l]) => `<div class="kbd-row"><kbd class="mono">${k}</kbd><span>${l}</span></div>`).join('')}
         </div>
         <div class="data-acts">
-          ${isAuthed() ? `<button class="btn ghost sm" data-act="go" data-route="changePassword">${icon('key')} Ganti password</button>` : ''}
+          ${isAuthed() ? `<button class="btn ghost sm" data-act="go" data-route="changePassword" data-portal="${S.portal}">${icon('key')} Ganti password</button>` : ''}
           <button class="btn ghost sm" data-act="export">${icon('download')} Ekspor pesanan CSV</button>
           <button class="btn ghost sm" data-act="export-json">${icon('box')} Cadangkan JSON</button>
           <button class="btn danger sm" data-act="reset-all">${icon('alert')} Reset ke data contoh</button>
