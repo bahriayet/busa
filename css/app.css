@@ -2206,7 +2206,8 @@ body[data-theme="night"] .quote footer { color: var(--muted); }
   .dt { width: calc(100vw - 20px); gap: 10px; }
   .dt-tags { max-height: 22px; overflow: hidden; }
   .rail-wrap .rail-i { width: 264px; }
-  .ld-cta .btn:not(.primary) { display: none; }
+  .ld-cta { flex-wrap: wrap; }
+  .ld-badge { display: none; }
   .ld-clock { display: none; }
   .ld-tabs { display: none; }
 }
