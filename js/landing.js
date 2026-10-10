@@ -20,7 +20,7 @@ function quickOut(r) {
   const box = qs('#ldtk-out');
   if (!box) return;
   box.hidden = false;
-  if (r.state === 'empty') { box.className = 'quick-out warn'; box.innerHTML = `<p>${icon('alert')} Tulis dulu kodenya. Contoh yang benar: <b class="mono">${esc(S.orders[0].code)}</b></p>`; return; }
+  if (r.state === 'empty') { box.className = 'quick-out warn'; box.innerHTML = `<p>${icon('alert')} Tulis dulu kodenya. Contoh yang benar: <b class="mono">${esc((S.orders[0] || { code: 'BUSA-0000' }).code)}</b></p>`; return; }
   if (r.state === 'none') {
     box.className = 'quick-out err';
     box.innerHTML = `<p>${icon('x')} <b>${esc(r.q)}</b> tidak kami temukan. Cek lagi angkanya, atau tanyakan lewat ${'<button class="lnk" data-act="chat">bantuan</button>'}.</p>`;
@@ -64,7 +64,7 @@ VIEWS.landing = {
   render() {
     const live = S.orders.filter((o) => o.stage > 0 && o.stage < 8).slice(0, 5);
     const doneToday = S.orders.filter((o) => o.stage === 8).length;
-    const stuck = S.orders.find((o) => o.stage === 0) || S.orders[0];
+    const stuck = S.orders.find((o) => o.stage === 0) || S.orders[0] || { code: 'BUSA-0000', stage: 0 };
     return `
     <header class="ld-nav">
       <a class="ld-brand" href="#/" data-act="go" data-route="landing" aria-label="BUSA, halaman awal">

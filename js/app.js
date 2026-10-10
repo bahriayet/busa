@@ -180,7 +180,24 @@ function load() {
     const raw = localStorage.getItem(KEY);
     if (!raw) return;
     const d = JSON.parse(raw);
-    Object.assign(S, d);
+    if (!d || typeof d !== 'object') return;
+    /* Data lama/rusak tidak boleh mematikan boot: salin hanya bidang yang
+       bentuknya valid, sisanya biarkan dari seed. */
+    const clean = {};
+    ['orders', 'machines', 'addresses', 'notifs', 'chat', 'events'].forEach((k) => {
+      if (Array.isArray(d[k])) clean[k] = d[k];
+    });
+    if (d.wallet && typeof d.wallet === 'object' && Array.isArray(d.wallet.txns)) {
+      clean.wallet = d.wallet;
+      if (typeof d.wallet.balance !== 'number') clean.wallet.balance = 0;
+    }
+    if (d.settings && typeof d.settings === 'object') clean.settings = d.settings;
+    if (d.theme === 'bone' || d.theme === 'night') clean.theme = d.theme;
+    if (typeof d.stamps === 'number') clean.stamps = d.stamps;
+    if (typeof d.seq === 'number') clean.seq = d.seq;
+    if (d.svc && typeof d.svc === 'object') clean.svc = d.svc;
+    if (d.sub && typeof d.sub === 'object') clean.sub = d.sub;
+    Object.assign(S, clean);
     S.cart = newCart();
   } catch (e) { /* data rusak, pakai seed */ }
 }
@@ -2177,6 +2194,50 @@ function boot() {
   load();
   loadAuth();
   applySvc();
+  /* Lapis kedua: data lama/rusak tidak boleh mematikan render — isi ulang
+     bidang yang hilang/rusak dengan nilai aman, dan kembalikan seed bila
+     kosong. */
+  const padCode = (n) => String(n).padStart(4, '0');
+  if (!Array.isArray(S.orders)) S.orders = SEED.orders.map((o) => ({ ...o }));
+  S.orders = S.orders.filter((o) => o && typeof o === 'object').map((o, i) => Object.assign({
+    code: 'BUSA-' + padCode(1000 + i),
+    customer: 'Pelanggan',
+    stage: 0,
+    total: 0,
+    weight: 1,
+    items: [],
+    machine: '—',
+    priority: 'reguler',
+    mode: 'pickup',
+    slot: { date: todayISO(), time: SLOTS[2] },
+    created: 'Hari ini',
+    courier: '—',
+    notes: '',
+    stageAt: Date.now(),
+    collected: false,
+    scanned: true,
+    pay: 'cash',
+    addons: {},
+    protect: false,
+  }, o));
+  if (!S.orders.length) S.orders = SEED.orders.map((o) => ({ ...o }));
+
+  if (!Array.isArray(S.machines)) S.machines = SEED.machines.map((m) => ({ ...m }));
+  S.machines = S.machines.filter((m) => m && typeof m === 'object').map((m, i) => Object.assign({
+    id: 'M-0' + ((i % 8) + 1),
+    model: 'Front Load 8 kg',
+    state: 'idle',
+    stage: 0,
+    left: 0,
+    temp: 30,
+    rpm: 0,
+    load: 0,
+    kind: 'wash',
+    cap: 8,
+    ticket: '—',
+  }, m));
+  if (!S.machines.length) S.machines = SEED.machines.map((m) => ({ ...m }));
+
   const base = nowMs();
   S.orders.forEach((o, i) => { if (!o.stageAt) o.stageAt = base - (i + 1) * 4 * 60000; });
   if (!Array.isArray(S.events)) S.events = [];
