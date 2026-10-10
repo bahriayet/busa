@@ -211,6 +211,36 @@ API.stop = function () {
   API.paintConn();
 };
 
+/* ── PAPAN PUBLIK /api/live (halaman situs) ───────────── */
+
+API.live = { at: 0, doneToday: null, orders: [] };
+
+/** Segarkan daftar "sedang dikerjakan" publik agar halaman situs menampilkan
+ *  data nyata server (bukan contoh lokal), walau pengunjung belum login. */
+API.loadLive = async function () {
+  if (typeof S === 'undefined' || S.portal !== 'landing') return false;
+  try {
+    const res = await fetch(apiOrigin() + '/api/live');
+    if (!res.ok) return false;
+    const data = await res.json();
+    if (!data || data.ok !== true || !Array.isArray(data.orders)) return false;
+    API.live = {
+      at: Date.now(),
+      doneToday: typeof data.doneToday === 'number' ? data.doneToday : null,
+      orders: data.orders,
+    };
+    const sig = JSON.stringify(API.live.orders.map((o) => [o.code, o.stage, o.etaLabel])) + '|' + API.live.doneToday;
+    const changed = sig !== API.liveSig;
+    API.liveSig = sig;
+    const ae = document.activeElement;
+    const typing = !!(ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA'));
+    if (changed && !typing && S.portal === 'landing' && S.route === 'landing') render();
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 /* ── STATUS KONEKSI & SAMBUNG ULANG ───────────────────── */
 
 API.paintConn = function () {

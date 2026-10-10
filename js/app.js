@@ -334,6 +334,7 @@ function go(route, portal) {
   if (typeof API !== 'undefined' && API.on && (route === 'floor' || route === 'laporan')) {
     API.refreshDashboard().then((changed) => { if (changed && S.route === route) render(); }).catch(() => {});
   }
+  if (route === 'landing' && !isAuthed() && typeof API !== 'undefined' && API.loadLive) API.loadLive();
 }
 
 function switchPortal(p) {
@@ -2261,6 +2262,11 @@ function boot() {
   startClock();
   setInterval(tick, 7000);
   if (typeof API !== 'undefined') API.init();
+  if (typeof API !== 'undefined' && API.loadLive) {
+    API.loadLive();
+    /* Halaman situs milik pengunjung anonim: segarkan papan publik berkala. */
+    setInterval(() => { if (S.portal === 'landing' && !isAuthed()) API.loadLive(); }, 30000);
+  }
   setTimeout(() => {
     if (!REDUCED) bubbles(8);
     if (S.portal === 'a' && isAdminAuthed()) toast({ title: 'Lantai siap', msg: S.machines.filter((m) => m.state !== 'idle').length + ' mesin berjalan · ' + S.orders.length + ' pesanan aktif', tone: 'blue', icon: 'drum', ms: 5000 });

@@ -84,4 +84,38 @@ export function registerPublicRoutes(app: FastifyInstance, db: Db): void {
       },
     };
   });
+
+  /*
+   * Papan publik "sedang dikerjakan" untuk halaman situs: pengunjung tanpa
+   * login melihat data nyata dari server (nama disamarkan ke nama depan,
+   * tanpa total/harga/telepon). Tanpa endpoint ini halaman situs hanya bisa
+   * menampilkan data contoh lokal sehingga tidak sinkron dengan lantai.
+   */
+  app.get('/api/live', async () => {
+    const orders = await R.listOrders(db);
+    const machines = await R.listMachines(db);
+    const services = await R.listServices(db);
+    const active = orders.filter((o) => o.stage > 0 && o.stage < STAGES.length - 1);
+    const list = active.slice(0, 8).map((o) => {
+      const queueDepth = active.filter((x) => x.code !== o.code && x.stage === o.stage).length;
+      const eta = etaMinutes(o, machines, queueDepth);
+      const first = o.items[0];
+      const service = first ? services.find((s) => s.id === first.id) : undefined;
+      return {
+        code: o.code,
+        customer: (o.customer || '').split(' ')[0],
+        weight: o.weight,
+        stage: o.stage,
+        machine: o.machine === '—' ? null : o.machine,
+        serviceName: service?.name ?? '',
+        etaLabel: eta.label,
+      };
+    });
+    return {
+      ok: true,
+      at: Date.now(),
+      doneToday: orders.filter((o) => o.stage === STAGES.length - 1).length,
+      orders: list,
+    };
+  });
 }

@@ -26,8 +26,8 @@ function quickOut(r) {
     box.innerHTML = `<p>${icon('x')} <b>${esc(r.q)}</b> tidak kami temukan. Cek lagi angkanya, atau tanyakan lewat ${'<button class="lnk" data-act="chat">bantuan</button>'}.</p>`;
     return; }
   const o = r.o;
-  const e = orderEta(o);
-  const items = o.items.map((x) => (CATALOG.find((c) => c.id === x.id) || { name: 'cucian' }).name).join(', ');
+  const e = o.etaLabel ? { label: o.etaLabel } : orderEta(o);
+  const items = o.items.map((x) => (CATALOG.find((c) => c.id === x.id) || { name: x.name || 'cucian' }).name).join(', ');
   box.className = 'quick-out ' + (r.state === 'done' ? 'ok' : 'found');
   box.innerHTML = `
     <div class="qo-head">
@@ -38,17 +38,32 @@ function quickOut(r) {
     ${r.state === 'done'
       ? `<p class="qo-line">${esc(o.customer.split(' ')[0])} · ${kg(o.weight)} kg · ${esc(o.created)}. Ambil di cabang sebelum 21.00, atau kami antar kalau mode Anda jemputan.</p>`
       : `<p class="qo-line">${esc(o.customer.split(' ')[0])} · ${kg(o.weight)} kg · ${esc(items)}</p>
-         <p class="qo-stage"><span class="stage-pill s-${o.stage}" data-live="order" data-id="${o.code}">${esc(STAGES[o.stage].label)}</span>
-            <b class="mono">siap sekitar <span data-live="eta" data-id="${o.code}">${esc(e.label)}</span></b>
+         <p class="qo-stage"><span class="stage-pill s-${o.stage}"${o.live ? '' : ` data-live="order" data-id="${o.code}"`}>${esc(STAGES[o.stage].label)}</span>
+            <b class="mono">siap sekitar <span${o.live ? '' : ` data-live="eta" data-id="${o.code}"`}>${esc(e.label)}</span></b>
             <i class="mono">${esc(o.machine !== '—' ? 'di ' + o.machine : 'menunggu drum')}</i></p>`}
     <button class="btn sm ghost" data-act="go" data-portal="c" data-route="lacak">${icon('truck')} Buka halaman lacak</button>`;
+}
+
+function liveAsOrder(l) {
+  return {
+    code: l.code, customer: l.customer || 'Pelanggan', weight: l.weight || 0,
+    stage: l.stage, machine: l.machine || '—', priority: 'reguler',
+    items: l.serviceName ? [{ id: '__live', name: l.serviceName }] : [],
+    etaLabel: l.etaLabel, live: true,
+  };
 }
 
 function ldTrack(preset) {
   const inp = qs('#ldtk');
   const val = preset !== undefined ? preset : (inp ? inp.value : '');
   if (inp && preset !== undefined) inp.value = preset;
-  quickOut(quickFind(val));
+  let r = quickFind(val);
+  if (r.state === 'none' && typeof API !== 'undefined' && API.live && API.live.orders.length) {
+    const q = String(val || '').trim().toUpperCase().replace(/\s+/g, '');
+    const hit = API.live.orders.find((o) => String(o.code || '').toUpperCase() === q);
+    if (hit) r = { state: 'live', o: liveAsOrder(hit) };
+  }
+  quickOut(r);
   if (inp && preset === undefined) inp.focus();
 }
 
@@ -62,8 +77,14 @@ function ldcPrice() {
 VIEWS.landing = {
   title: 'BUSA — Laundry Ops', kicker: 'Panel berjalan · data contoh',
   render() {
-    const live = S.orders.filter((o) => o.stage > 0 && o.stage < 8).slice(0, 5);
-    const doneToday = S.orders.filter((o) => o.stage === 8).length;
+    const serverLive = (typeof API !== 'undefined' && !isAuthed() && API.live
+      && Array.isArray(API.live.orders) && API.live.orders.length) ? API.live.orders : null;
+    const live = serverLive
+      ? serverLive.filter((o) => o.stage > 0 && o.stage < 8).slice(0, 5)
+      : S.orders.filter((o) => o.stage > 0 && o.stage < 8).slice(0, 5);
+    const doneToday = (serverLive && typeof API.live.doneToday === 'number')
+      ? API.live.doneToday
+      : S.orders.filter((o) => o.stage === 8).length;
     const stuck = S.orders.find((o) => o.stage === 0) || S.orders[0] || { code: 'BUSA-0000', stage: 0 };
     return `
     <header class="ld-nav">
@@ -99,10 +120,10 @@ VIEWS.landing = {
                 <span class="ll-drum">${drumMarkup({ rpm: (o.stage >= 7 ? 8 : 3.4) + 's', size: 36, state: o.stage >= 7 ? 'vent' : 'run', rags: 4, screws: false })}</span>
                 <div class="ll-b">
                   <b class="mono ll-c">${esc(o.code)}</b>
-                  <p>${esc(o.customer.split(' ')[0])} · ${kg(o.weight)} kg · ${esc((CATALOG.find((c) => c.id === (o.items[0] || {}).id) || { name: 'cucian' }).name)}</p>
+                  <p>${esc(o.customer.split(' ')[0])} · ${kg(o.weight)} kg · ${esc(o.serviceName || (CATALOG.find((c) => c.id === (o.items[0] || {}).id) || { name: 'cucian' }).name)}</p>
                 </div>
-                <span class="stage-pill s-${o.stage}" data-live="order" data-id="${o.code}">${esc(STAGES[o.stage].label)}</span>
-                <span class="ll-eta mono">siap <b data-live="eta" data-id="${o.code}">${esc(orderEta(o).label)}</b></span>
+                <span class="stage-pill s-${o.stage}"${serverLive ? '' : ` data-live="order" data-id="${o.code}"`}>${esc(STAGES[o.stage].label)}</span>
+                <span class="ll-eta mono">siap <b${serverLive ? '' : ` data-live="eta" data-id="${o.code}"`}>${esc(o.etaLabel || orderEta(o).label)}</b></span>
               </li>`).join('') || `<li class="empty">${icon('drum')} Semua cucian sudah keluar. Lantai sedang bersih.</li>`}
           </ul>
           <p class="mono fine">Nama disamarkan sebagian. Anda boleh meniru angka ini lewat portal pelanggan dengan kode yang sama.</p>
