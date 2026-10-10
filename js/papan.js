@@ -166,15 +166,23 @@ VIEWS.papan = {
                 <div class="pb-id"><b class="mono">${m.id}</b><p class="mono fine">${esc(m.model)}</p><span class="pb-cap mono">${machineCap(m)} kg</span></div>
                 <div class="pb-bar" data-m="${m.id}">
                   <div class="pb-track">
-                    ${bs.map((b) => `<span class="pb-blk t-${b.kind}" style="left:${(b.start / DAY_MIN * 100).toFixed(2)}%;width:${((Math.min(b.end, DAY_MIN) - b.start) / DAY_MIN * 100).toFixed(2)}%" title="${esc(b.code)} · ${clockOf(b.start)}–${clockOf(b.end)} · ${esc(b.label)}">
-                      <b class="mono">${esc(b.code.replace('BUSA-', ''))}</b></span>`).join('')}
-                    ${gs.map((g) => `<button class="pb-free ${PAP.pick ? 'aim' : ''}" style="left:${(g.start / DAY_MIN * 100).toFixed(2)}%;width:${((g.end - g.start) / DAY_MIN * 100).toFixed(2)}%" data-act="gap-pick" data-m="${m.id}" data-s="${g.start}" data-e="${g.end}"${PAP.pick ? '' : ' disabled'} title="${m.id} bebas ${clockOf(g.start)}–${clockOf(g.end)} · klik untuk memuat">
-                      <span class="mono">${durText(g.end - g.start)}</span></button>`).join('')}
+                    ${bs.map((b) => {
+        const s0 = Math.max(0, Math.min(b.start, DAY_MIN));
+        const e0 = Math.max(s0, Math.min(b.end, DAY_MIN));
+        return `<span class="pb-blk t-${b.kind}" style="left:${(s0 / DAY_MIN * 100).toFixed(2)}%;width:${((e0 - s0) / DAY_MIN * 100).toFixed(2)}%" title="${esc(b.code)} · ${clockOf(b.start)}–${clockOf(b.end)} · ${esc(b.label)}">
+                      <b class="mono">${esc(b.code.replace('BUSA-', ''))}</b></span>`;
+      }).join('')}
+                    ${gs.map((g) => {
+        const s0 = Math.max(0, Math.min(g.start, DAY_MIN));
+        const e0 = Math.max(s0, Math.min(g.end, DAY_MIN));
+        return `<button class="pb-free ${PAP.pick ? 'aim' : ''}" style="left:${(s0 / DAY_MIN * 100).toFixed(2)}%;width:${((e0 - s0) / DAY_MIN * 100).toFixed(2)}%" data-act="gap-pick" data-m="${m.id}" data-s="${g.start}" data-e="${g.end}"${PAP.pick ? '' : ' disabled'} title="${m.id} bebas ${clockOf(g.start)}–${clockOf(g.end)} · klik untuk memuat">
+                      <span class="mono">${durText(g.end - g.start)}</span></button>`;
+      }).join('')}
                   </div>
-                  <span class="pb-now" style="left:${(now / DAY_MIN * 100).toFixed(2)}%"><i></i><b class="mono">${clockOf(now)}</b></span>
+                  <span class="pb-now" style="left:${(Math.max(0, Math.min(now, DAY_MIN)) / DAY_MIN * 100).toFixed(2)}%"><i></i><b class="mono">${clockOf(now)}</b></span>
                 </div>
                 <div class="pb-side">
-                  ${bs.length ? `<p class="pb-busy"><b class="mono">${esc(bs[bs.length - 1].code)}</b><span class="mono fine">sampai ${clockOf(bs[bs.length - 1].end)}</span></p>` : '<p class="pb-idle mono">kosong seharian</p>'}
+                  ${bs.length ? `<p class="pb-busy"><b class="mono">${esc(bs[bs.length - 1].code)}</b> <span class="mono fine">sampai ${clockOf(bs[bs.length - 1].end)}</span></p>` : '<p class="pb-idle mono">kosong seharian</p>'}
                   ${nextFree !== null ? `<p class="mono nxt">bebas ${clockOf(nextFree)}</p>` : '<p class="mono nxt">padat</p>'}
                   <p class="mono fine">${durText(free)} ruang</p>
                 </div>

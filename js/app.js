@@ -302,7 +302,7 @@ function renderTicker() {
   const live = S.orders.filter((o) => o.stage < 8);
   const items = [];
   S.machines.forEach((m) => {
-    if (m.state !== 'idle') items.push(`<span class="tk"><b>${m.id}</b> ${esc(STAGES[m.stage].label)} <i class="led ${m.state}"></i> ${clockStr(m.left)} <small>${m.temp}°C</small></span>`);
+    if (m.state !== 'idle') items.push(`<span class="tk"><b>${m.id}</b> ${esc(STAGES[m.stage].label)} <i class="led ${m.state}"></i> ${clockStr(m.left)} <small>${Math.round(m.temp)}°C</small></span>`);
   });
   live.slice(0, 5).forEach((o) => items.push(`<span class="tk"><b>${esc(o.code)}</b> ${esc(STAGES[o.stage].label)} <small>${esc(o.customer)}</small></span>`));
   const row = items.join('<span class="tk-sep">•</span>');
@@ -1156,12 +1156,12 @@ VIEWS.dompet = {
     </section>
     <section class="panel txn" data-reveal>
       <header class="p-head"><h3 class="display">Mutasi</h3><span class="mono note">${S.wallet.txns.length} transaksi</span></header>
-      <table class="tbl"><thead><tr><th>Kode</th><th>Keterangan</th><th>Tipe</th><th class="r">Jumlah</th><th>Waktu</th></tr></thead>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Kode</th><th>Keterangan</th><th>Tipe</th><th class="r">Jumlah</th><th>Waktu</th></tr></thead>
       <tbody>${S.wallet.txns.map((t, i) => `<tr style="--i:${i}">
         <td class="mono">${esc(t.id)}</td><td>${esc(t.label)}</td>
         <td><span class="stage-pill t-${t.type}">${esc(t.type)}</span></td>
         <td class="r mono num ${t.amount > 0 ? 'pos' : 'neg'}">${t.amount > 0 ? '+' : '−'}${rp(Math.abs(t.amount))}</td>
-        <td class="mono fine">${esc(t.at)} · ${esc(t.status)}</td></tr>`).join('')}</tbody></table>
+        <td class="mono fine">${esc(t.at)} · ${esc(t.status)}</td></tr>`).join('')}</tbody></table></div>
     </section>`;
   },
 };

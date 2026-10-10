@@ -146,7 +146,7 @@ VIEWS.langganan = {
     </section>
     <section class="panel cmp" data-reveal>
       <header class="p-head"><h3 class="display">Bandingkan detail</h3><span class="mono note">tanpa biaya tersembunyi</span></header>
-      <table class="tbl cmp-tbl">
+      <div class="tbl-wrap"><table class="tbl cmp-tbl">
         <thead><tr><th>Yang Anda dapat</th>${allTiers().map((t) => `<th class="${t.id === cur.id ? 'act' : ''}">${esc(t.name)}</th>`).join('')}</tr></thead>
         <tbody>
           ${[['Harga per kg', ['Rp 8.000', 'Rp 6.900', 'Rp 6.200']],
@@ -156,7 +156,7 @@ VIEWS.langganan = {
     ['Klaim proteksi', ['Rp 500rb / item', 'Rp 750rb / item', 'Nilai kontrak 100%']],
     ['Laporan pemakaian', ['Riwayat order', 'Grafik bulanan', 'Dashboard per cabang']]].map((r, i) => `<tr style="--i:${i}"><td>${esc(r[0])}</td>${r[1].map((c) => `<td>${esc(c)}</td>`).join('')}</tr>`).join('')}
         </tbody>
-      </table>
+      </table></div>
       <p class="mono fine mt">Paket dipotong otomatis dari Dompet BUSA setiap tanggal 1. Batalkan lewat Profil, tagihan berhenti di akhir periode.</p>
     </section>`;
   },
