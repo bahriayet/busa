@@ -1966,10 +1966,12 @@ document.addEventListener('submit', async (e) => {
     const errEl = qs('#login-c-err');
     if (errEl) { errEl.hidden = true; errEl.textContent = ''; }
     try {
+      const hashAtSubmit = location.hash;
       const data = await doLogin(login, password);
       if (data.user.role !== 'customer') { clearAuth(); if (errEl) { errEl.hidden = false; errEl.textContent = 'Akun ini bukan pelanggan. Gunakan portal admin.'; } return; }
       toast({ title: 'Selamat datang, ' + data.user.name, msg: 'Anda masuk sebagai pelanggan', tone: 'mint', icon: 'user', ms: 3000 });
-      go('beranda', 'c');
+      /* Bila pengguna sudah menavigasi sendiri selama menunggu server, hormati tujuannya. */
+      if (location.hash === hashAtSubmit) go('beranda', 'c');
     } catch (err) { if (errEl) { errEl.hidden = false; errEl.textContent = err.message; } }
     return;
   }
@@ -1980,10 +1982,12 @@ document.addEventListener('submit', async (e) => {
     const errEl = qs('#login-a-err');
     if (errEl) { errEl.hidden = true; errEl.textContent = ''; }
     try {
+      const hashAtSubmit = location.hash;
       const data = await doLogin(login, password);
       if (data.user.role !== 'admin' && data.user.role !== 'staff') { clearAuth(); if (errEl) { errEl.hidden = false; errEl.textContent = 'Akun ini bukan admin/staf. Gunakan portal pelanggan.'; } return; }
       toast({ title: 'Selamat datang, ' + data.user.name, msg: 'Anda masuk sebagai ' + data.user.role, tone: 'blue', icon: 'sliders', ms: 3000 });
-      go('floor', 'a');
+      /* Bila pengguna sudah menavigasi sendiri selama menunggu server, hormati tujuannya. */
+      if (location.hash === hashAtSubmit) go('floor', 'a');
     } catch (err) { if (errEl) { errEl.hidden = false; errEl.textContent = err.message; } }
     return;
   }
@@ -2001,11 +2005,13 @@ document.addEventListener('submit', async (e) => {
       });
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || 'Pendaftaran gagal.');
+      const hashAtSubmit = location.hash;
       S.auth = { token: data.token, user: data.user, loggedIn: true };
       saveAuth();
       await API.bootstrap();
       toast({ title: 'Akun berhasil dibuat', msg: 'Selamat datang, ' + data.user.name, tone: 'mint', icon: 'check', ms: 3000 });
-      go('beranda', 'c');
+      /* Bila pengguna sudah menavigasi sendiri selama menunggu server, hormati tujuannya. */
+      if (location.hash === hashAtSubmit) go('beranda', 'c');
     } catch (err) { if (errEl) { errEl.hidden = false; errEl.textContent = err.message; } }
     return;
   }

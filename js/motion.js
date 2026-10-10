@@ -23,10 +23,13 @@ const MOTION = (function () {
   /* ── 1. kecepatan gulir menaikkan RPM drum (satu properti turunan) ───── */
   const toMul = U.pipe(U.normalize(0, 1300), U.clamp(0, 1), U.mapRange(1, 0.34));
   let mul = 1, want = 1;
+  /* Vendor ScrollTrigger lama tidak punya getVelocity (muncul sejak 3.11) —
+     tanpa pengawal ini ticker melempar exception setiap frame. */
+  const getVel = (typeof ScrollTrigger.getVelocity === 'function') ? ScrollTrigger.getVelocity : () => 0;
 
   mm.add('(prefers-reduced-motion: no-preference)', () => {
     const step = () => {
-      want = toMul(Math.abs(ScrollTrigger.getVelocity()));
+      want = toMul(Math.abs(getVel()));
       mul += (want - mul) * 0.09;
       if (Math.abs(mul - want) < 0.002) mul = want;
       document.documentElement.style.setProperty('--spinmul', mul.toFixed(3));
