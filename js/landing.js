@@ -107,7 +107,7 @@ VIEWS.landing = {
       </div>
     </header>
 
-    <section class="act act-live" id="a1" data-bc-tag="cucian berjalan · ${live.length}">
+    <section class="act act-live" id="a1">
       <div class="act-head">
         <p class="mono act-name">Babak satu · sekarang</p>
         <h2 class="display hero">Ini yang sedang terjadi<br>di dalam, detik ini.</h2>
@@ -154,7 +154,7 @@ VIEWS.landing = {
       </ul>
     </section>
 
-    <section class="act act-quiet" id="a2" data-bc-reveal data-bc-tag="1 pesanan tanpa jejak">
+    <section class="act act-quiet" id="a2" data-bc-reveal>
       <div class="quiet-strip">
         <span class="mono">${esc(stuck.code)}</span>
         <span class="stage-pill s-${stuck.stage}">${esc(STAGES[stuck.stage].label)}</span>
@@ -164,7 +164,7 @@ VIEWS.landing = {
       <p class="lede">Kami membuat panel ini karena pertanyaan terbesar pelanggan selalu sama, dan jawaban laundry pada umumnya selalu sama: nanti ya, Mbak, tinggal setrika.</p>
     </section>
 
-    <section class="act act-peak" id="a3" data-bc-act="peak" data-bc-tag="9 tahap dibakar">
+    <section class="act act-peak" id="a3" data-bc-act="peak">
       <div class="peak-stage">
         <div class="peak-inner">
           ${Array.from({ length: 12 }).map((_, i) => `<i class="rag r${i % 4}" style="--a:${i * 30}deg;--r:${24 + (i % 4) * 7}%;--s:${14 + (i % 3) * 8}px"></i>`)}
@@ -183,7 +183,7 @@ VIEWS.landing = {
       </div>
     </section>
 
-    <section class="act act-control" id="a4" data-bc-tag="harga & slot dicoba">
+    <section class="act act-control" id="a4">
       <div class="act-head">
         <p class="mono act-name">Babak empat · kendalikan</p>
         <h2 class="display xl">Geser, dan permukaannya menjawab.</h2>
@@ -218,7 +218,7 @@ VIEWS.landing = {
       </div>
     </section>
 
-    <section class="act act-proof" id="a5" data-bc-tag="bukti & angka">
+    <section class="act act-proof" id="a5">
       <div class="proof-grid">
         <figure class="kb" data-bc-parallax="-0.14" data-reveal>
           <img src="https://picsum.photos/seed/laundry-drum-interior/900/1100" alt="Drum mesin front-load sedang berputar" width="900" height="1100">
@@ -242,7 +242,7 @@ VIEWS.landing = {
       </div>
     </section>
 
-    <section class="act act-close" id="a6" data-bc-tag="form terbuka">
+    <section class="act act-close" id="a6">
       <div class="close-grid">
         <div>
           <p class="mono act-name">Babak enam · jadwalkan</p>

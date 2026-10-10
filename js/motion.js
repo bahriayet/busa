@@ -4,7 +4,7 @@
 
 const MOTION = (function () {
   const ok = typeof window.gsap !== 'undefined' && typeof window.ScrollTrigger !== 'undefined';
-  if (!ok) return { ok: false, enter() { }, refresh() { }, stampTag() { } };
+  if (!ok) return { ok: false, enter() { }, refresh() { } };
 
   gsap.registerPlugin(ScrollTrigger);
   gsap.defaults({ duration: 0.55, ease: 'power3.out', overwrite: 'auto' });
@@ -74,61 +74,6 @@ const MOTION = (function () {
     });
   }
 
-  /* ── 3. signature move: "drum penampung" di chrome bawah ──────────────── */
-  const trace = { built: false, folds: 0 };
-
-  function buildTrace() {
-    if (trace.built) return;
-    const root = qs('#trace');
-    if (!root) return;
-    trace.built = true;
-    trace.el = root;
-    trace.level = qs('.dt-level', root);
-    trace.tags = qs('.dt-tags', root);
-    trace.count = qs('.dt-count', root);
-    trace.recap = qs('.dt-recap', root);
-    if (reduce) { gsap.set(trace.level, { scaleY: 0.5 }); return; }
-
-    gsap.to(trace.level, {
-      scaleY: 1, ease: 'none',
-      scrollTrigger: { trigger: document.body, start: 'top top', end: 'bottom bottom', scrub: 0.5 },
-    });
-    gsap.from(root, { yPercent: 110, duration: 0.7, ease: 'power3.out', delay: 0.35 });
-  }
-
-  function stampTag(html) {
-    if (!trace.built || reduce || !html) return;
-    while (trace.tags.children.length > 7) trace.tags.removeChild(trace.tags.firstChild);
-    const chip = document.createElement('span');
-    chip.className = 'dt-tag';
-    chip.innerHTML = html;
-    trace.tags.appendChild(chip);
-    const spin = U.random(-9, 9, true);
-    gsap.fromTo(chip, { opacity: 0, y: -16, rotation: spin(), scale: 0.84 },
-      { opacity: 1, y: 0, rotation: spin(), scale: 1, duration: 0.55, ease: 'back.out(1.9)' });
-    gsap.fromTo(trace.el, { '--pulse': '1' }, { '--pulse': '0', duration: 0.8, ease: 'power2.out' });
-    trace.folds = trace.tags.children.length;
-    if (trace.count) {
-      const total = U.toArray('[data-bc-tag]', qs('#view') || document).length || 8;
-      trace.count.textContent = pad(trace.folds) + '/' + pad(total);
-    }
-  }
-
-  function foldOut(line) {
-    if (!trace.built || reduce) return;
-    const tl = gsap.timeline();
-    tl.to(trace.tags, { rotation: 7, duration: 0.28, ease: 'power1.inOut' })
-      .to(trace.tags, { opacity: 0, y: 12, duration: 0.34, ease: 'power2.in' })
-      .add(() => { if (trace.recap) trace.recap.textContent = line; })
-      .fromTo(trace.recap, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' })
-      .to(trace.tags, { opacity: 1, y: 0, rotation: 0, duration: 0.45, ease: 'power3.out' }, '+=0.12');
-  }
-
-  function trailLine() {
-    const d = new Date();
-    return trace.folds + ' babak dilewati · 9 tahap dibakar · ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
-  }
-
   /* ── 4. entrance per rute: satu timeline berlabel ─────────────────────── */
   function enterChrome(portal, route) {
     const tl = gsap.timeline({ defaults: { duration: 0.45, ease: 'power3.out' } });
@@ -148,10 +93,6 @@ const MOTION = (function () {
 
   /* ── 5. perangkat halaman publik (flow/in, reveal, pin, pan, count) ───── */
   function landingDevices() {
-    U.toArray('[data-bc-tag]').forEach((el) => {
-      ScrollTrigger.create({ trigger: el, start: 'top 62%', once: true, onEnter: () => stampTag(el.getAttribute('data-bc-tag')) });
-    });
-
     U.toArray('[data-bc-reveal]').forEach((el) => {
       gsap.fromTo(el, { clipPath: 'circle(8% at 50% 50%)' }, {
         clipPath: 'circle(76% at 50% 50%)', duration: 0.9, ease: 'power2.inOut',
@@ -214,8 +155,7 @@ const MOTION = (function () {
         });
         ptl.addLabel('tutup', '+=0.15');
         ptl.to('.peak-led', { opacity: 1, scale: 1.2 }, 'tutup')
-          .from('.peak-done', { opacity: 0, y: 10 }, 'tutup+=0.1')
-          .add(() => foldOut(trailLine()), 'tutup+=0.2');
+          .from('.peak-done', { opacity: 0, y: 10 }, 'tutup+=0.1');
       });
     }
 
@@ -240,7 +180,6 @@ const MOTION = (function () {
   function enter(portal, route, animate = true) {
     reduce = mqReduce.matches;
     fine = mqFine.matches;
-    buildTrace();
     if (animate) {
       const key = portal + '/' + route;
       if (!reduce && key !== lastKey) enterChrome(portal, route);
@@ -265,5 +204,5 @@ const MOTION = (function () {
 
   mqReduce.addEventListener('change', () => { lastKey = ''; });
 
-  return { ok: true, enter, stampTag, refresh: () => ScrollTrigger.refresh() };
+  return { ok: true, enter, refresh: () => ScrollTrigger.refresh() };
 })();
