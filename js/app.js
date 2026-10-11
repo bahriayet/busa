@@ -25,7 +25,6 @@ const PORTALS = {
     label: 'Admin', home: 'floor',
     nav: [
       { id: 'floor', label: 'Lantai', icon: 'drum' },
-      { id: 'papan', label: 'Papan', icon: 'calendar' },
       { id: 'scan', label: 'Pindai', icon: 'scan' },
       { id: 'antrean', label: 'Antrean', icon: 'grid' },
       { id: 'pesanan', label: 'Pesanan', icon: 'basket' },
@@ -1839,21 +1838,7 @@ document.addEventListener('click', (e) => {
     case 'ld-track-set': ldTrack(t.dataset.v); break;
     case 'ld-use': ldSubmit(); break;
     case 'scan-mode': { SCAN.mode = t.dataset.v; render(); break; }
-    case 'basket-pick': { pickBasket(code); break; }
-    case 'gap-pick': {
-      if (!PAP.pick) { setHint('Ketuk salah satu keranjang yang menunggu lebih dulu, baru ketuk bagian terang pada baris mesin.'); render(); break; }
-      placeAt(t.dataset.m, +t.dataset.s, +t.dataset.e);
-      break;
-    }
-    case 'papan-recompute': {
-      const p = buildDayPlan();
-      setHint('Jadwal dihitung ulang dari ' + S.orders.length + ' pesanan · ' + p.gaps.length + ' waktu kosong tersisa hari ini.');
-      render();
-      toast({ title: 'Papan diperbarui', msg: durText(p.gaps.reduce((a, g) => a + g.end - g.start, 0)) + ' ruang drum masih ada hari ini', tone: 'blue', icon: 'calendar', ms: 2600 });
-      break;
-    }
     case 'scan-advance': recordEvent({ code, action: 'tahap' }); break;
-    case 'scan-assign': { if (t.dataset.code) recordEvent({ code: t.dataset.code, action: 'muat', machine: t.dataset.id }); break; }
     case 'scan-focus': {
       SCAN.draft = code; SCAN.mode = code && findOrder(code) && findOrder(code).stage < 2 ? 'muat' : SCAN.mode;
       render();

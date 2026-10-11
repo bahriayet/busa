@@ -341,7 +341,7 @@ function apiScheduleRender() {
   API.renderTimer = setTimeout(() => {
     if (!VIEWS[S.route]) return;
     if (qs('#modalRoot.on') || qs('#drawerRoot.on')) return;
-    if (!['antrean', 'papan', 'scan'].includes(S.route)) return;
+    if (!['antrean', 'scan'].includes(S.route)) return;
     const ae = document.activeElement;
     if (ae && ae !== document.body && qs('#view').contains(ae)
         && ['INPUT', 'TEXTAREA', 'SELECT'].includes(ae.tagName)) return;

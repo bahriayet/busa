@@ -207,8 +207,7 @@ VIEWS.scan = {
   kicker: () => (typeof API !== 'undefined' && API.on) ? 'sinkron realtime ke server' : apiBase() ? 'sinkron ke ' + apiBase() : 'mode lokal, belum ada API',
   render() {
     const late = bottlenecks();
-    const busy = S.machines.filter((m) => m.ticket !== '—');
-    const idle = S.machines.filter((m) => m.ticket === '—');
+    const aktif = S.orders.filter((o) => o.stage > 0 && o.stage < STAGES.length - 1).length;
     const recent = S.events.slice(0, 14);
     return `
     <div class="sc-top">
@@ -216,13 +215,13 @@ VIEWS.scan = {
         ${late.length ? late.map((x) => `
           <div class="alert t-red" data-reveal>${icon('alert')}
             <div><b>${esc(x.o.code)} macet di ${esc(STAGES[x.o.stage].label)}</b>
-              <p>${x.dwell} menit di tahap ini, target ${x.target} menit${x.machine ? ' · ' + x.machine + ' sisa ' + clockStr(x.left || 0) : ''}.</p></div>
+              <p>${x.dwell} menit di tahap ini, target ${x.target} menit.</p></div>
             <button class="btn sm" data-act="scan-focus" data-code="${x.o.code}">${icon('scan')} Pindai</button>
             <button class="btn sm ghost" data-act="scan-advance" data-code="${x.o.code}">${icon('chev')} Naik tahap</button></div>`).join('')
-        : `<div class="alert ok t-mint" data-reveal>${icon('check')}<div><b>Tidak ada yang macet</b><p>Sembilan tahap berjalan di bawah target, ${busy.length} drum terisi.</p></div></div>`}
+        : `<div class="alert ok t-mint" data-reveal>${icon('check')}<div><b>Tidak ada yang macet</b><p>Sembilan tahap berjalan di bawah target, ${aktif} pesanan diproses.</p></div></div>`}
       </div>
       <div class="sc-modes" role="group" aria-label="Mode pindai">
-        ${[['terima', 'Terima'], ['muat', 'Muat drum'], ['tahap', 'Selesai tahap'], ['lepas', 'Kosongkan drum'], ['qc', 'QC gagal'], ['selesai', 'Serahkan']]
+        ${[['terima', 'Terima'], ['muat', 'Mulai proses'], ['tahap', 'Naik tahap'], ['lepas', 'Selesai proses'], ['qc', 'QC gagal'], ['selesai', 'Serahkan']]
         .map(([m, l]) => `<button class="mode ${SCAN.mode === m ? 'on' : ''}" data-act="scan-mode" data-v="${m}">${esc(l)}</button>`).join('')}
         <button class="mode sim ${S.settings.pindaiSaja ? 'on' : ''}" data-act="scan-sim" title="Kalau aktif, tahap hanya bergerak lewat pindai">
           ${icon(S.settings.pindaiSaja ? 'lock' : 'bolt')} ${S.settings.pindaiSaja ? 'hanya pindai' : 'simulasi lantai'}
@@ -237,10 +236,6 @@ VIEWS.scan = {
         <input id="scanq" class="mono" value="${esc(SCAN.draft)}" placeholder="BUSA-4471" autocomplete="off" spellcheck="false" aria-label="Nomor label">
       </label>
       <label class="scan-in slim">
-        <span class="mono lbl">Mesin (opsional)</span>
-        <input id="scanm" class="mono" placeholder="M-03" autocomplete="off" aria-label="Kode mesin">
-      </label>
-      <label class="scan-in slim">
         <span class="mono lbl">Operator</span>
         <select id="scanby" class="in mono">
           ${[SCAN.operator].concat(SEED.staff.map((s) => s.name)).filter((v, i, a) => a.indexOf(v) === i).map((n) => `<option ${n === SCAN.operator ? 'selected' : ''}>${esc(n)}</option>`).join('')}
@@ -250,33 +245,11 @@ VIEWS.scan = {
       <p class="scan-hint mono">${esc(suggestion())}</p>
     </form>
 
-    <div class="sc-grid">
-      <section class="panel sc-log" data-reveal>
-        <header class="p-head"><h2 class="display">Jejak lantai</h2>
-          <span class="mono note">${S.events.length} event · <button class="lnk" data-act="scan-flush">set ulang sinkron</button></span></header>
-        <div id="sc-log-body">${logRows(recent)}</div>
-      </section>
-
-      <section class="panel sc-drums" data-reveal>
-        <header class="p-head"><h2 class="display">Drum</h2><span class="mono note">${busy.length}/6 terisi</span></header>
-        <ul class="drum-rows">
-          ${S.machines.map((m) => {
-      const o = S.orders.find((x) => x.code === m.ticket);
-      const pct = Math.round((m.left / Math.max(1, STAGE_MIN[m.stage] || 30)) * 100);
-      return `<li class="drow t-${m.state === 'idle' ? 'muted' : m.state === 'hot' ? 'orange' : 'blue'}" data-id="${m.id}">
-              ${drumMarkup({ rpm: Math.max(1.8, 12 - m.rpm) + 's', size: 44, state: m.state, rags: m.load > 40 ? 6 : 3, screws: false })}
-              <div class="dr-b"><b class="mono">${m.id}</b><p class="mono fine">${esc(m.model)} · ${machineCap(m)} kg</p></div>
-              <div class="dr-mid">${m.ticket === '—'
-        ? `<span class="mono free">kosong</span>`
-        : `<b class="mono tk">${esc(m.ticket)}</b><span class="mono fine">${kg(o ? o.weight : 0)} kg · ${esc(STAGES[m.stage].label)}</span>`}</div>
-              <div class="dr-bar"><i style="--w:${pct}%"></i><time class="mono">${m.ticket === '—' ? '−00:00' : '−' + clockStr(m.left)}</time></div>
-              <button class="btn-icon dim" data-act="scan-assign" data-code="${o ? o.code : ''}" data-id="${m.id}" title="Muat ke ${m.id}"${o ? '' : ' disabled'}>${icon('plus')}</button>
-            </li>`;
-    }).join('')}
-        </ul>
-        <p class="mono fine mt">${idle.length} drum kosong · muatan besar (bedcover, gorden) wajib ${esc((machineFor('wash').find((m) => machineCap(m) >= 15) || { id: 'M-02' }).id)}</p>
-      </section>
-    </div>`;
+    <section class="panel sc-log mt" data-reveal>
+      <header class="p-head"><h2 class="display">Jejak lantai</h2>
+        <span class="mono note">${S.events.length} event · <button class="lnk" data-act="scan-flush">set ulang sinkron</button></span></header>
+      <div id="sc-log-body">${logRows(recent)}</div>
+    </section>`;
   },
   wire() {
     const q = qs('#scanq');
@@ -289,8 +262,7 @@ function suggestion() {
   if (!o) return 'Belum ada label dikenali. Coba ' + S.orders[0].code + ' lalu tekan Enter.';
   if (SCAN.mode === 'muat') {
     const need = needsOf(o);
-    const m = suggestMachine(need.weight, 'wash');
-    return m ? 'Usulan: ' + m.id + ' (' + machineCap(m) + ' kg, beban ' + m.load + '%) · ' + need.weight + ' kg' : 'Semua drum penuh, tahan di antrean';
+    return o.code + ' · ' + need.weight + ' kg siap diproses — unit dipilih otomatis oleh sistem.';
   }
   const e = orderEta(o);
   return o.code + ' · ' + STAGES[o.stage].label + (o.stageAt ? ' · ' + dwellMin(o) + ' menit di tahap ini' : '') + ' · ETA ' + e.label;
@@ -298,12 +270,12 @@ function suggestion() {
 
 function logRows(list) {
   if (!list.length) return `<p class="mono fine">Belum ada event. Pindai satu label untuk memulai jejak.</p>`;
-  return `<table class="tbl ev"><thead><tr><th>Jam</th><th>Event</th><th>Label</th><th>Aksi</th><th>Drum</th><th>Operator</th><th>Sinkron</th></tr></thead><tbody>` +
+  return `<table class="tbl ev"><thead><tr><th>Jam</th><th>Event</th><th>Label</th><th>Aksi</th><th>Operator</th><th>Sinkron</th></tr></thead><tbody>` +
     list.map((e, i) => `<tr style="--i:${i}">
       <td class="mono">${esc(e.clock)}</td><td class="mono ev-id">${esc(e.id)}</td>
       <td><button class="lnk mono" data-act="scan-focus" data-code="${esc(e.code)}">${esc(e.code)}</button></td>
       <td>${esc(labelAction(e.action))}${e.note ? `<p class="mono fine">${esc(e.note)}</p>` : ''}</td>
-      <td class="mono">${esc(e.machine || '—')}</td><td>${esc(e.by)}</td>
+      <td>${esc(e.by)}</td>
       <td><span class="sync s-${esc(e.sync)}">${esc(e.sync)}</span></td></tr>`).join('') + `</tbody></table>`;
 }
 
@@ -319,19 +291,16 @@ function patchScanHint() {
   if (lamp) lamp.classList.toggle('bad', SCAN.mode === 'qc');
 }
 
-function scanSubmit(rawCode, rawMachine, by) {
+function scanSubmit(rawCode, by) {
   const q = qs('#scanq');
-  const mEl = qs('#scanm');
   const bEl = qs('#scanby');
   const code = String(rawCode !== undefined ? rawCode : (q ? q.value : '')).trim();
-  const machine = String(rawMachine !== undefined ? rawMachine : (mEl ? mEl.value : '')).trim().toUpperCase();
   const operator = by || (bEl ? bEl.value : SCAN.operator) || SCAN.operator;
   if (!code) { toast({ title: 'Label kosong', msg: 'Pindai atau ketik nomor label lebih dulu.', tone: 'red', icon: 'alert', ms: 2400 }); if (q) q.focus(); return null; }
-  const ev = recordEvent({ code, action: SCAN.mode, machine: machine || null, by: operator });
+  const ev = recordEvent({ code, action: SCAN.mode, by: operator });
   if (ev) {
     SCAN.draft = '';
     if (q) q.value = '';
-    if (mEl) mEl.value = '';
     patchScanLog();
     render();
     const nq = qs('#scanq'); if (nq && !REDUCED) nq.focus();
