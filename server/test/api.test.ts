@@ -229,17 +229,16 @@ test('batalkan hanya sebelum masuk lantai', async () => {
   assert.equal(early.statusCode, 409);
 });
 
-test('top up menambah saldo dan bonus di ambang 500 ribu', async () => {
+test('top up dompet dihapus: endpoint menolak dengan 404', async () => {
   const token = await login('0812-7781-4402');
   const res = await app.inject({
     method: 'POST', url: '/api/me/topup',
     headers: { authorization: `Bearer ${token}` },
     payload: { amount: 500_000 },
   });
-  assert.equal(res.statusCode, 200);
-  const body = res.json() as { balance: number; bonus: number };
-  assert.equal(body.bonus, 25_000);
-  assert.equal(body.balance, 412_500 + 525_000);
+  assert.equal(res.statusCode, 404);
+  const me = await app.inject({ method: 'GET', url: '/api/me', headers: { authorization: `Bearer ${token}` } });
+  assert.equal((me.json() as { customer: { balance: number } }).customer.balance, 412_500);
 });
 
 test('peran pelanggan tidak bisa melihat mesin', async () => {

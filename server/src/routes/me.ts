@@ -1,7 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import type { Db } from '../db/client.ts';
 import * as R from '../db/repo.ts';
-import { TOPUP_BONUS, TOPUP_BONUS_THRESHOLD } from '../domain/constants.ts';
 import type { Address, ChatMessage, WalletTx } from '../domain/types.ts';
 import { badRequest, notFound } from '../lib/http.ts';
 import { uid } from '../lib/ids.ts';
@@ -11,9 +10,12 @@ import { makeRequireRole } from '../plugins/auth.ts';
  * Portal pelanggan. Semua jalur butuh peran customer dan dipatok ke baris
  * customers yang tertaut ke akun login — pelanggan tidak bisa menyentuh
  * data pelanggan lain.
+ *
+ * Top up dompet tidak lagi tersedia: saldo hanya bergerak dari refund/bonus
+ * yang dicatat server, bukan dari aksi klien. Karena itu tidak ada endpoint
+ * penambah saldo di sini.
  */
 
-interface TopupBody { amount: number }
 interface AddressBody { tag: string; label: string; def?: boolean }
 interface ChatBody { text: string }
 
@@ -47,36 +49,6 @@ export function registerMeRoutes(app: FastifyInstance, db: Db): void {
       chat,
       orders,
     };
-  });
-
-  app.post('/api/me/topup', { preHandler: me }, async (req) => {
-    const amount = Math.round(Number((req.body as TopupBody | undefined)?.amount));
-    if (!Number.isFinite(amount) || amount < 10_000) {
-      throw badRequest('Top up minimal Rp 10.000.');
-    }
-    const customer = (await R.listCustomers(db)).find((c) => c.userId === req.auth!.userId);
-    if (!customer) throw notFound('Akun belum tertaut ke profil pelanggan.');
-
-    let bonus = 0;
-    const rows = await db.tx(async () => {
-      const b = amount >= TOPUP_BONUS_THRESHOLD ? TOPUP_BONUS : 0;
-      await R.adjustBalance(db, customer.id, amount + b);
-      const tx = await R.insertTx(db, {
-        customerId: customer.id, type: 'topup',
-        label: `Top up Rp ${amount.toLocaleString('id-ID')} via QRIS`,
-        amount, status: 'sukses', atMs: Date.now(),
-      });
-      if (b) {
-        await R.insertTx(db, {
-          customerId: customer.id, type: 'cashback',
-          label: `Bonus top up Rp ${TOPUP_BONUS.toLocaleString('id-ID')}`,
-          amount: b, status: 'sukses', atMs: Date.now(),
-        });
-      }
-      return { tx, b };
-    });
-
-    return { ok: true, bonus: rows.b, tx: rows.tx, balance: (await R.getCustomer(db, customer.id))?.balance };
   });
 
   app.post('/api/me/addresses', { preHandler: me }, async (req) => {

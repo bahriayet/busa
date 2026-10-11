@@ -12,6 +12,7 @@ VIEWS.beranda = {
     const siap = mine.filter((o) => o.stage >= 7 && o.stage < 8);
     const lalu = mine.filter((o) => o.stage === 8).slice(0, 3);
     const tier = myTier();
+    const spend = mine.reduce((a, o) => a + (o.total || 0), 0);
     const slotKg = tier.price > 0 ? (tier.kgQuota || Math.round(Number((tier.perks[0].match(/\d+/) || [0])[0]))) : 0;
     const nextPick = mine.find((o) => o.stage < 2 && o.mode === 'pickup');
     return `
@@ -45,7 +46,7 @@ VIEWS.beranda = {
             <button class="btn primary" data-act="new-order">${icon('plus')} Buat order</button></div></article>`}
         <div class="hi-mini">
           <div class="hm t-orange"><b class="num lg">${S.stamps}/7</b><p class="mono lbl">Stempel loyalti</p></div>
-          <div class="hm t-blue"><b class="num lg">${rp(S.wallet.balance)}</b><p class="mono lbl">Dompet BUSA</p></div>
+          <div class="hm t-blue"><b class="num lg">${rp(spend)}</b><p class="mono lbl">Total belanja</p></div>
           <div class="hm t-mint"><b class="num lg">${kg(myKg())}</b><p class="mono lbl">kg bulan ini</p></div>
         </div>
       </div>

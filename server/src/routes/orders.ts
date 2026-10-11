@@ -294,7 +294,7 @@ async function createOrder(db: Db, input: {
           if (balance < q.total) {
             throw conflict('Saldo dompet tidak cukup.', {
               balance, needed: q.total,
-              hint: 'Top up dulu, atau pilih QRIS/tunai.',
+              hint: 'Pilih QRIS atau tunai saat penjemputan.',
             });
           }
           await R.adjustBalance(db, input.customerId, -q.total);

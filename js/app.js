@@ -17,7 +17,7 @@ const PORTALS = {
       { id: 'lacak', label: 'Lacak', icon: 'truck' },
       { id: 'harga', label: 'Harga', icon: 'tag' },
       { id: 'langganan', label: 'Langganan', icon: 'star' },
-      { id: 'dompet', label: 'Dompet', icon: 'wallet' },
+      { id: 'statistik', label: 'Statistik', icon: 'chart' },
       { id: 'setelan', label: 'Profil', icon: 'user' },
     ],
   },
@@ -1171,27 +1171,24 @@ function paintEst() {
 
 /* ── VIEW: DOMPET ─────────────────────────────────────── */
 
-VIEWS.dompet = {
-  title: 'Dompet & Loyalti', kicker: 'Saldo, stempel, promo',
+VIEWS.statistik = {
+  title: 'Statistik', kicker: 'Pesanan & pengeluaran Anda',
   render() {
-    const spend = S.wallet.txns.filter((t) => t.amount < 0).reduce((a, t) => a - t.amount, 0);
+    const mine = visibleOrders();
+    const count = mine.length;
+    const spend = mine.reduce((a, o) => a + (o.total || 0), 0);
+    const kgSum = mine.reduce((a, o) => a + (o.weight || 0), 0);
+    const avg = count ? spend / count : 0;
+    const bonus = S.wallet.txns.filter((t) => t.type === 'cashback' || t.type === 'refund');
     return `
-    <section class="wallet-grid">
-      <article class="bal t-blue" data-reveal>
-        <div class="bal-water">${drumMarkup({ rpm: '14s', size: 220, state: 'idle', rags: 5 })}</div>
-        <p class="mono lbl">Saldo Dompet BUSA</p>
-        <b class="num hero-num" data-scramble="${rp(S.wallet.balance)}">${rp(S.wallet.balance)}</b>
-        <p class="mono fine">Terakhir ${esc(S.wallet.txns[0] ? S.wallet.txns[0].at : '—')}</p>
-        <div class="bal-acts">
-          <button class="btn primary" data-act="topup">${icon('plus')} Top up</button>
-          <button class="btn ghost" data-act="go" data-route="order">${icon('basket')} Belanja</button>
-        </div>
-        <div class="bal-mini">
-          <div><p class="mono lbl">Pengeluaran 30 hari</p><b class="num lg">${rp(spend)}</b></div>
-          <div><p class="mono lbl">Cashback terkumpul</p><b class="num lg">${rp(S.wallet.txns.filter((t) => t.type === 'cashback').reduce((a, t) => a + t.amount, 0))}</b></div>
-        </div>
-      </article>
-      <article class="stamps" data-reveal>
+    <section class="cust-stats" data-reveal>
+      <div class="cst t-blue"><p class="mono lbl">Total pesanan</p><b class="num xl">${count}</b><p class="mono fine">sejak bergabung</p></div>
+      <div class="cst t-orange"><p class="mono lbl">Total pengeluaran</p><b class="num xl">${rp(spend)}</b><p class="mono fine">semua pesanan Anda</p></div>
+      <div class="cst t-mint"><p class="mono lbl">Total berat</p><b class="num xl">${kg(kgSum)} kg</b><p class="mono fine">dicuci & disetrika</p></div>
+      <div class="cst t-lilac"><p class="mono lbl">Rata-rata / pesanan</p><b class="num xl">${rp(avg)}</b><p class="mono fine">${count ? kg(kgSum / count) + ' kg per pesanan' : 'belum ada pesanan'}</p></div>
+    </section>
+    <section class="wallet-grid mt">
+      <article class="panel stamps" data-reveal>
         <header class="p-head"><h3 class="display">Kartu stempel</h3><span class="mono note">${S.stamps}/7</span></header>
         <div class="stamp-grid">
           ${Array.from({ length: 7 }).map((_, i) => `<div class="stm ${i < S.stamps ? 'on' : ''}">${icon('drum')}<b class="mono">${pad(i + 1)}</b></div>`).join('')}
@@ -1203,6 +1200,17 @@ VIEWS.dompet = {
           <p class="mono fine">Teman mendapat Rp 25.000, Anda dapat 1 stempel.</p>
         </div>
       </article>
+      <article class="panel" data-reveal>
+        <header class="p-head"><h3 class="display">Bonus & refund</h3><span class="mono note">${bonus.length} catatan</span></header>
+        ${bonus.length ? `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Keterangan</th><th>Tipe</th><th class="r">Jumlah</th><th>Waktu</th></tr></thead>
+          <tbody>${bonus.map((t, i) => `<tr style="--i:${i}">
+            <td>${esc(t.label)}</td>
+            <td><span class="stage-pill t-${t.type}">${esc(t.type)}</span></td>
+            <td class="r mono num ${t.amount > 0 ? 'pos' : 'neg'}">${t.amount > 0 ? '+' : '−'}${rp(Math.abs(t.amount))}</td>
+            <td class="mono fine">${esc(t.at)}</td></tr>`).join('')}</tbody></table></div>`
+          : `<p class="mono fine">Belum ada bonus atau refund.</p>`}
+        ${S.wallet.balance > 0 ? `<p class="hint mt">${icon('wallet')} Saldo refund/bonus tersimpan <b>${rp(S.wallet.balance)}</b> — bisa diuangkan lewat kasir.</p>` : ''}
+      </article>
     </section>
     <section class="promo-strip" data-reveal>
       <h3 class="display">Promo aktif</h3>
@@ -1210,28 +1218,9 @@ VIEWS.dompet = {
         <button class="promo-card big t-${p.kind === 'pct' ? 'orange' : 'mint'}" style="--i:${i}" data-act="promo-set" data-code="${p.code}">
           <span class="pc-cut"></span><b class="display">${esc(p.label)}</b><span class="mono">kode ${esc(p.code)}</span>
           <p>${esc(p.terms)}</p><i class="mono">${p.kind === 'pct' ? p.value + '%' : rp(p.value)}</i></button>`).join('')}</div>
-    </section>
-    <section class="panel txn" data-reveal>
-      <header class="p-head"><h3 class="display">Mutasi</h3><span class="mono note">${S.wallet.txns.length} transaksi</span></header>
-      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Kode</th><th>Keterangan</th><th>Tipe</th><th class="r">Jumlah</th><th>Waktu</th></tr></thead>
-      <tbody>${S.wallet.txns.map((t, i) => `<tr style="--i:${i}">
-        <td class="mono">${esc(t.id)}</td><td>${esc(t.label)}</td>
-        <td><span class="stage-pill t-${t.type}">${esc(t.type)}</span></td>
-        <td class="r mono num ${t.amount > 0 ? 'pos' : 'neg'}">${t.amount > 0 ? '+' : '−'}${rp(Math.abs(t.amount))}</td>
-        <td class="mono fine">${esc(t.at)} · ${esc(t.status)}</td></tr>`).join('')}</tbody></table></div>
     </section>`;
   },
 };
-
-function topupModal() {
-  openModal(`
-    <p class="mono kicker">Top up saldo</p><h2 class="display lg">Isi Dompet BUSA</h2>
-    <div class="topup-opts">${[100000, 250000, 500000, 1000000].map((v) => `<button class="tbtn num" data-act="topup-set" data-v="${v}">${rp(v)}</button>`).join('')}</div>
-    <label class="field"><p class="mono lbl">Nominal lain</p><input id="tp" class="in mono" type="number" min="20000" step="5000" value="200000"></label>
-    <div class="bonus t-mint">${icon('spark')} <span>Top up ≥ Rp 500.000 dapat bonus saldo Rp 25.000 + 1 stempel.</span></div>
-    <div class="m-acts"><button class="btn primary big" data-act="topup-do">${icon('wallet')} Konfirmasi top up</button>
-      <button class="btn ghost" data-act="modal-close">Nanti saja</button></div>`);
-}
 
 /* ── VIEW: LAPORAN ────────────────────────────────────── */
 
@@ -1399,7 +1388,6 @@ function openPalette() {
     { t: 'Buka halaman situs', i: 'store', run: () => go('landing') },
     { t: 'Order baru', i: 'plus', run: () => { S.cart = newCart(); go('order', 'c'); } },
     { t: 'Pindai label lantai', i: 'scan', run: () => go('scan', 'a') },
-    { t: 'Top up dompet', i: 'wallet', run: topupModal },
     { t: 'Ganti tema bone/night', i: 'moon', run: toggleTheme },
     { t: 'Buka bantuan', i: 'mail', run: openChat },
     { t: 'Unduh CSV pesanan', i: 'download', run: exportCSV },
@@ -1866,24 +1854,6 @@ document.addEventListener('click', (e) => {
     case 'submit': submitOrder(); break;
     case 'reset-cart': S.cart = newCart(); go('order'); break;
     case 'pick-svc': S.cart = newCart(); S.cart.items[t.dataset.id] = CATALOG.find((s) => s.id === t.dataset.id).unit === 'kg' ? 5 : 1; S.cart.weight = kgTotal() || 5; go('order'); break;
-    case 'topup': topupModal(); break;
-    case 'topup-do': {
-      const v = clamp(+(qs('#tp') || {}).value || 200000, 20000, 5000000);
-      if (typeof API !== 'undefined' && API.on && isCustomerAuthed()) {
-        API.topup(v).then((data) => {
-          closeModal(); render(); bubbles(14);
-          toast({ title: 'Saldo bertambah ' + rp(v + (data.bonus || 0)), msg: 'Total ' + rp(S.wallet.balance), tone: 'mint', icon: 'wallet' });
-        }).catch((err) => apiToastErr(err, 'Top up gagal'));
-        break;
-      }
-      const bonus = v >= 500000 ? 25000 : 0;
-      S.wallet.balance += v + bonus;
-      S.wallet.txns.unshift({ id: 'TX-' + (9923 + Math.floor(Math.random() * 60)), type: 'topup', label: 'Top up ' + rp(v) + (bonus ? ' + bonus' : ''), amount: v + bonus, at: 'Hari ini ' + nowClock(), status: 'sukses' });
-      if (bonus && S.stamps < 7) S.stamps++;
-      closeModal(); render(); bubbles(14);
-      toast({ title: 'Saldo bertambah ' + rp(v + bonus), msg: 'Total ' + rp(S.wallet.balance), tone: 'mint', icon: 'wallet' });
-      break;
-    }
     case 'theme-pick': if (S.theme !== t.dataset.v) toggleTheme(); break;
     case 'notif-read':
       if (typeof API !== 'undefined' && API.on && isCustomerAuthed()) {
@@ -1944,11 +1914,6 @@ document.addEventListener('click', (e) => {
       S.chat.push({ from: 'me', text: t.textContent });
       S.chat.push({ from: 'bot', text: CHAT_REPLIES[k] });
       save(); paintChat(); break;
-    }
-    case 'topup-set': {
-      const box = qs('#tp'); if (box) box.value = t.dataset.v;
-      qsa('.tbtn').forEach((b) => b.classList.toggle('on', b === t));
-      break;
     }
     case 'chat-add':
       S.cart = newCart(); S.cart.items.bedcover = 2; S.cart.step = 1; closeDrawer(); go('order');

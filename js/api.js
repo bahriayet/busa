@@ -371,12 +371,6 @@ API.submitWalkin = async function (payload) {
   return data;
 };
 
-API.topup = async function (amount) {
-  const data = await apiReq('POST', '/api/me/topup', { amount });
-  await apiRefreshMe();
-  return data;
-};
-
 API.addAddress = async function (tag, label) {
   const data = await apiReq('POST', '/api/me/addresses', { tag, label });
   if (Array.isArray(data.addresses)) S.addresses = data.addresses;
