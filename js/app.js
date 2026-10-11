@@ -1005,6 +1005,18 @@ function orderRow(o, i) {
 }
 
 function orderDrawer(o) {
+  /* Drawer ini dipakai bersama admin & pelanggan: aksi lantai (majukan,
+     ambil, label) hanya untuk staf/admin. Pelanggan hanya boleh membatalkan
+     pesanannya sendiri selama belum masuk lantai — sama seperti aturan server. */
+  const staff = isAdminAuthed();
+  const acts = [];
+  if (staff) {
+    acts.push(o.stage < 8
+      ? `<button class="btn primary" data-act="advance" data-code="${o.code}">${icon('bolt')} Majukan siklus</button>`
+      : `<button class="btn" data-act="collect" data-code="${o.code}">${icon('check')} Tandai diambil</button>`);
+    acts.push(`<button class="btn ghost" data-act="label" data-code="${o.code}">${icon('tag')} Cetak label</button>`);
+  }
+  if (o.stage === 0) acts.push(`<button class="btn danger" data-act="cancel" data-code="${o.code}">${icon('x')} Batalkan</button>`);
   openDrawer(`
     <header class="dr-head"><div><p class="mono kicker">${esc(o.created)}</p><h2 class="display" data-scramble="${esc(o.code)}">${esc(o.code)}</h2></div>
       <button class="btn-icon" data-act="drawer-close" aria-label="Tutup">${icon('x')}</button></header>
@@ -1024,12 +1036,7 @@ function orderDrawer(o) {
       ${timelineMarkup(o.stage, o.code)}
       <div class="dr-total"><span class="mono">Ditagih</span><b class="num lg">${rp(o.total)}</b></div>
     </div>
-    <footer class="dr-acts">
-      ${o.stage < 8 ? `<button class="btn primary" data-act="advance" data-code="${o.code}">${icon('bolt')} Majukan siklus</button>`
-        : `<button class="btn" data-act="collect" data-code="${o.code}">${icon('check')} Tandai diambil</button>`}
-      <button class="btn ghost" data-act="label" data-code="${o.code}">${icon('tag')} Cetak label</button>
-      ${o.stage < 8 ? `<button class="btn danger" data-act="cancel" data-code="${o.code}">${icon('x')} Batalkan</button>` : ''}
-    </footer>`);
+    ${acts.length ? `<footer class="dr-acts">${acts.join('')}</footer>` : ''}`);
 }
 
 /* ── VIEW: LACAK ──────────────────────────────────────── */
@@ -1078,7 +1085,7 @@ VIEWS.lacak = {
             ${o.courier !== '—' ? `<span class="chip">${icon('truck')} ${esc(o.courier)}</span>` : ''}
           </div>
           <div class="tl-acts">
-            ${o.stage < 8 ? `<button class="btn primary" data-act="advance" data-code="${o.code}">${icon('bolt')} Simulasikan siklus</button>` : ''}
+            ${isAdminAuthed() && o.stage < 8 ? `<button class="btn primary" data-act="advance" data-code="${o.code}">${icon('bolt')} Simulasikan siklus</button>` : ''}
             <button class="btn ghost" data-act="go" data-route="pesanan">${icon('basket')} Semua pesanan</button>
           </div>
         </div>
