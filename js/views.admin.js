@@ -43,44 +43,6 @@ VIEWS.antrean = {
   },
 };
 
-VIEWS.mesin = {
-  title: 'Kelola Mesin', kicker: 'Enam unit',
-  render() {
-    return `
-    <div class="rep-top">
-      <div><p class="mono kicker">Papan kendali mesin</p><h1 class="display xl">Ubah siklus, pantau suhu, jeda unit</h1></div>
-      <div class="kan-sum">
-        <span class="chip t-mint">${S.machines.filter((m) => m.state !== 'idle').length} berjalan</span>
-        <span class="chip t-amber">${Math.round(S.machines.reduce((a, m) => a + m.load, 0) / S.machines.length)}% beban rata-rata</span>
-      </div>
-    </div>
-    <div class="mc-grid">
-      ${S.machines.map((m, i) => `
-        <article class="mc-card t-${m.state === 'idle' ? 'muted' : m.state === 'hot' ? 'orange' : 'blue'}" style="--i:${i}" data-reveal>
-          <div class="mcc-top">${drumMarkup({ rpm: Math.max(1.6, 12 - m.rpm) + 's', size: 74, state: m.state })}
-            <div><b class="mono mid">${m.id}</b><p class="mc-model" style="text-align:left">${esc(m.model)}</p>
-              <p class="mono fine" data-live="left" data-id="${m.id}">−${clockStr(m.left)}</p></div></div>
-          <div class="mcc-fields">
-            <label class="fld"><span class="mono lbl">Tahap</span>
-              <select class="in sm" data-act="m-field" data-k="stage" data-id="${m.id}">${STAGES.map((s, k) => `<option value="${k}" ${k === m.stage ? 'selected' : ''}>${pad(k + 1)}. ${esc(s.label)}</option>`).join('')}</select></label>
-            <label class="fld"><span class="mono lbl">Status</span>
-              <select class="in sm" data-act="m-field" data-k="state" data-id="${m.id}">${['run', 'hot', 'vent', 'idle'].map((v) => `<option value="${v}" ${v === m.state ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
-            <label class="fld"><span class="mono lbl">RPM</span>
-              <input class="in sm mono" type="number" min="0" max="14" value="${m.rpm}" data-act="m-field" data-k="rpm" data-id="${m.id}"></label>
-            <label class="fld"><span class="mono lbl">Suhu °C</span>
-              <input class="in sm mono" type="number" min="20" max="140" value="${Math.round(m.temp)}" data-act="m-field" data-k="temp" data-id="${m.id}"></label>
-            <label class="fld wide"><span class="mono lbl">Beban ${m.load}%</span>
-              <input class="slider thin" type="range" min="0" max="100" value="${m.load}" data-act="m-field" data-k="load" data-id="${m.id}"></label>
-            <label class="fld wide"><span class="mono lbl">Sisa menit</span>
-              <input class="in sm mono" type="number" min="0" max="240" value="${m.left}" data-act="m-field" data-k="left" data-id="${m.id}"></label>
-          </div>
-          <div class="mcc-foot"><span class="mono">${esc(m.ticket)}</span>
-            <button class="btn sm ghost" data-act="machine" data-id="${m.id}">${icon('grid')} Detail</button></div>
-        </article>`).join('')}
-    </div>`;
-  },
-};
-
 function customerRows() {
   const map = {};
   S.orders.forEach((o) => {

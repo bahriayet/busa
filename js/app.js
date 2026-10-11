@@ -29,7 +29,6 @@ const PORTALS = {
       { id: 'scan', label: 'Pindai', icon: 'scan' },
       { id: 'antrean', label: 'Antrean', icon: 'grid' },
       { id: 'pesanan', label: 'Pesanan', icon: 'basket' },
-      { id: 'mesin', label: 'Mesin', icon: 'gear' },
       { id: 'pelanggan', label: 'Pelanggan', icon: 'user' },
       { id: 'pengguna', label: 'Pengguna', icon: 'key' },
       { id: 'layanan', label: 'Layanan', icon: 'tag' },
@@ -793,7 +792,7 @@ VIEWS.floor = {
 function machineTile(m, i) {
   const st = STAGES[m.stage];
   const tone = m.state === 'idle' ? 'muted' : m.state === 'hot' ? 'orange' : m.state === 'vent' ? 'amber' : 'blue';
-  return `<article class="machine t-${tone} ${m.state}" data-act="machine" data-id="${m.id}" data-live="tile" data-tilt="7" data-tilt-lift="12" style="--i:${i}" data-reveal tabindex="0" role="button" aria-label="Mesin ${m.id}">
+  return `<article class="machine t-${tone} ${m.state}" data-live="tile" data-id="${m.id}" data-tilt="7" data-tilt-lift="12" style="--i:${i}" data-reveal aria-label="Mesin ${m.id}">
     <div class="mc-top"><b class="mono mid">${m.id}</b><span class="state-chip" data-live="state">${esc(m.state === 'run' ? 'berjalan' : m.state === 'hot' ? 'panas' : m.state === 'vent' ? 'venting' : 'siaga')}</span></div>
     ${drumMarkup({ rpm: Math.max(1.6, 12 - m.rpm) + 's', size: 132, state: m.state, rags: 6 + (m.load > 60 ? 3 : 0), heat: m.state === 'hot' ? 1 : 0 })}
     <p class="mc-model">${esc(m.model)}</p>
@@ -804,25 +803,6 @@ function machineTile(m, i) {
     </div>
     <p class="mc-tk mono">${esc(m.ticket)}</p>
   </article>`;
-}
-
-function machineModal(m) {
-  openModal(`
-    <div class="m-head"><div><p class="mono kicker">${esc(m.model)}</p><h2 class="display">${m.id}</h2></div>
-      ${drumMarkup({ rpm: Math.max(1.6, 12 - m.rpm) + 's', size: 88, state: m.state })}</div>
-    <div class="m-grid">
-      <div><p class="mono lbl">Siklus</p><b>${esc(STAGES[m.stage].label)}</b></div>
-      <div><p class="mono lbl">Tersisa</p><b class="mono">${clockStr(m.left)}</b></div>
-      <div><p class="mono lbl">Suhu</p><b class="mono">${m.temp}°C</b></div>
-      <div><p class="mono lbl">RPM drum</p><b class="mono">${m.rpm}</b></div>
-      <div><p class="mono lbl">Beban</p><b class="mono">${m.load}%</b></div>
-      <div><p class="mono lbl">Pesanan</p><b class="mono">${esc(m.ticket)}</b></div>
-    </div>
-    <div class="m-cycle">${STAGES.map((s, i) => `<span class="cy ${i < m.stage ? 'done' : i === m.stage ? 'now' : ''}" title="${esc(s.label)}"><i style="--w:${i <= m.stage ? 100 : 0}%"></i></span>`).join('')}</div>
-    <div class="m-acts">
-      <button class="btn ghost" data-act="machine-toggle" data-id="${m.id}">${icon(m.state === 'idle' ? 'play' : 'pause')} ${m.state === 'idle' ? 'Jalankan siklus' : 'Jeda siklus'}</button>
-      <button class="btn primary" data-act="go" data-route="pesanan">${icon('basket')} Lihat pesanan terkait</button>
-    </div>`, { wide: true });
 }
 
 /* ── VIEW: ORDER BARU ─────────────────────────────────── */
@@ -1671,25 +1651,6 @@ document.addEventListener('click', (e) => {
 
   const code = t.dataset.code;
   switch (a) {
-    case 'machine': machineModal(S.machines.find((m) => m.id === t.dataset.id)); break;
-    case 'machine-toggle': {
-      const m = S.machines.find((x) => x.id === t.dataset.id);
-      if (typeof API !== 'undefined' && API.on && isAdminAuthed()) {
-        const state = m.state === 'idle' ? 'run' : 'idle';
-        const patch = state === 'run'
-          ? { state, rpm: 7, load: Math.max(20, m.load), left: Math.max(6, m.left || 35) }
-          : { state, rpm: 0 };
-        API.patchMachine(m.id, patch)
-          .then(() => { closeModal(); render(); toast({ title: m.id + (state === 'idle' ? ' dijeda' : ' berjalan'), tone: state === 'idle' ? 'amber' : 'mint', icon: state === 'idle' ? 'pause' : 'play', ms: 2000 }); })
-          .catch((err) => apiToastErr(err, 'Mesin tidak bisa diubah'));
-        break;
-      }
-      if (m.state === 'idle') { m.state = 'run'; m.left = Math.max(6, m.left || 35); m.rpm = 7; m.load = Math.max(20, m.load); }
-      else { m.state = 'idle'; m.rpm = 0; }
-      save(); closeModal(); render();
-      toast({ title: m.id + (m.state === 'idle' ? ' dijeda' : ' berjalan'), tone: m.state === 'idle' ? 'amber' : 'mint', icon: m.state === 'idle' ? 'pause' : 'play', ms: 2000 });
-      break;
-    }
     case 'detail': { const o = S.orders.find((x) => x.code === code); if (o) orderDrawer(o); break; }
     case 'advance': advanceStage(code); break;
     case 'collect': {
@@ -2110,38 +2071,6 @@ document.addEventListener('change', (e) => {
     case 'pay': S.cart.pay = t.dataset.v; render(); break;
     case 'protect': S.cart.protect = on; render(); break;
     case 'setting': S.settings[t.dataset.k] = on; save(); render(); break;
-    case 'm-field': {
-      const m = S.machines.find((x) => x.id === t.dataset.id); if (!m) break;
-      const k = t.dataset.k, v = t.value;
-      if (typeof API !== 'undefined' && API.on && isAdminAuthed()) {
-        const patch = {};
-        if (k === 'state') patch.state = v;
-        else if (k === 'stage') patch.stage = clamp(+v, 0, STAGES.length - 1);
-        else if (k === 'load') patch.load = clamp(Math.round(+v), 0, 100);
-        else if (k === 'temp') patch.temp = clamp(+v, 15, 140);
-        else if (k === 'rpm') patch.rpm = clamp(Math.round(+v), 0, 14);
-        else if (k === 'left') patch.left = clamp(Math.round(+v), 0, 1440);
-        if (v === 'idle') patch.rpm = 0;
-        API.patchMachine(m.id, patch)
-          .then((data) => {
-            render();
-            const fresh = (data && data.machine) || m;
-            toast({ title: fresh.id + ' diperbarui', msg: STAGES[fresh.stage].label + ' · ' + fresh.load + '% · ' + Math.round(fresh.temp) + '°C · ' + clockStr(fresh.left), tone: 'blue', icon: 'gear', ms: 2200 });
-          })
-          .catch((err) => { apiToastErr(err, 'Mesin gagal diperbarui'); render(); });
-        break;
-      }
-      if (k === 'state') m.state = v;
-      else if (k === 'stage') m.stage = clamp(+v, 0, STAGES.length - 1);
-      else if (k === 'load') m.load = clamp(Math.round(+v), 0, 100);
-      else if (k === 'temp') m.temp = clamp(+v, 20, 140);
-      else if (k === 'rpm') m.rpm = clamp(Math.round(+v), 0, 14);
-      else if (k === 'left') m.left = clamp(Math.round(+v), 0, 240);
-      if (m.state === 'idle') m.rpm = 0;
-      save(); render();
-      toast({ title: m.id + ' diperbarui', msg: STAGES[m.stage].label + ' · ' + m.load + '% · ' + Math.round(m.temp) + '°C · ' + clockStr(m.left), tone: 'blue', icon: 'gear', ms: 2200 });
-      break;
-    }
     case 'svc-field': {
       const s = CATALOG.find((x) => x.id === t.dataset.id); if (!s) break;
       const val = clamp(Math.round(+t.value), t.dataset.k === 'price' ? 0 : 1, t.dataset.k === 'price' ? 900000 : 168);

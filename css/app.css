@@ -539,7 +539,7 @@ body[data-theme="night"] .stat-hero .num { color: var(--ink); }
 
 .floor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(228px, 1fr)); gap: 14px; }
 
-.machine { position: relative; --c: var(--blue); background: var(--paper); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; cursor: pointer; clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 0 100%); transition: transform .3s cubic-bezier(.2, .8, .2, 1), border-color .3s, box-shadow .3s; }
+.machine { position: relative; --c: var(--blue); background: var(--paper); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 0 100%); transition: transform .3s cubic-bezier(.2, .8, .2, 1), border-color .3s, box-shadow .3s; }
 
 .machine:hover, .machine:focus-visible { transform: translateY(-4px); border-color: var(--c); box-shadow: 0 20px 34px -24px color-mix(in oklab, var(--c) 80%, transparent); }
 

@@ -86,13 +86,6 @@ function apiPatchOrder(patch) {
   S.orders[i] = Object.assign({}, S.orders[i], patch);
 }
 
-function apiPatchMachineLocal(fresh) {
-  if (!fresh || !fresh.id) return;
-  const i = S.machines.findIndex((m) => m.id === fresh.id);
-  if (i < 0) S.machines.push(fresh);
-  else S.machines[i] = Object.assign({}, S.machines[i], fresh);
-}
-
 function apiApplyMe(me) {
   if (!me || !me.customer) return;
   const c = me.customer;
@@ -483,12 +476,6 @@ API.patchService = async function (id, patch) {
 API.patchAddon = async function (id, patch) {
   const data = await apiReq('PATCH', '/api/addons/' + encodeURIComponent(id), patch);
   if (data.addon) apiMergeCatalog({ addons: [data.addon] });
-  return data;
-};
-
-API.patchMachine = async function (id, patch) {
-  const data = await apiReq('PATCH', '/api/machines/' + encodeURIComponent(id), patch);
-  if (data.machine) apiPatchMachineLocal(data.machine);
   return data;
 };
 
