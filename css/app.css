@@ -342,10 +342,6 @@ body[data-theme="night"] .grain { mix-blend-mode: screen; opacity: .16; }
 
 .tk-sep { color: var(--blue); }
 
-.led { width: 6px; height: 6px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 7px var(--mint); animation: blink 1.6s steps(2, end) infinite; }
-
-.led.hot { background: var(--orange); box-shadow: 0 0 7px var(--orange); }
-
 .led.idle { background: var(--muted); box-shadow: none; animation: none; }
 
 @keyframes blink { 50% { opacity: .35; } }

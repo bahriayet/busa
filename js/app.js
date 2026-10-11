@@ -416,7 +416,7 @@ function renderTicker() {
   const live = S.orders.filter((o) => o.stage < 8);
   const items = [];
   S.machines.forEach((m) => {
-    if (m.state !== 'idle') items.push(`<span class="tk"><b>${m.id}</b> ${esc(STAGES[m.stage].label)} <i class="led ${m.state}"></i> ${clockStr(m.left)} <small>${Math.round(m.temp)}°C</small></span>`);
+    if (m.state !== 'idle') items.push(`<span class="tk"><b>${m.id}</b> ${esc(STAGES[m.stage].label)} ${clockStr(m.left)} <small>${Math.round(m.temp)}°C</small></span>`);
   });
   live.slice(0, 5).forEach((o) => items.push(`<span class="tk"><b>${esc(o.code)}</b> ${esc(STAGES[o.stage].label)} <small>${esc(o.customer)}</small></span>`));
   const row = items.join('<span class="tk-sep">•</span>');
