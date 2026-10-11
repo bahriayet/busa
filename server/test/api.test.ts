@@ -155,7 +155,7 @@ test('pelanggan: profil, dompet, dan checkout server-side', async () => {
   assert.equal(coBody.quote.sub, 44_000);
   assert.equal(coBody.quote.ship, 12_000);
   assert.equal(coBody.order.total, 56_000);
-  assert.equal(coBody.order.payStatus, 'lunas');
+  assert.equal(coBody.order.payStatus, 'belum'); // QRIS menunggu verifikasi bukti bayar
   assert.ok(coBody.order.code.startsWith('BUSA-'));
 
   /* Promo dengan syarat yang dilanggar → alasan dalam bahasa Indonesia. */
@@ -201,7 +201,9 @@ test('walk-in kasir menciptakan pelanggan dan order dalam satu langkah', async (
   const dash = await app.inject({ method: 'GET', url: '/api/dashboard', headers: { authorization: `Bearer ${token}` } });
   const dashBody = dash.json() as { today: { v: number; source: string } };
   assert.equal(dashBody.today.source, 'live');
-  assert.equal(dashBody.today.v, beforeToday.v + 80); // dalam ribuan
+  /* Pembayaran live pertama hari ini mengganti angka seed (bukan menambah). */
+  const expectedToday = beforeToday.source === 'seed' ? 80 : beforeToday.v + 80;
+  assert.equal(dashBody.today.v, expectedToday); // dalam ribuan
 });
 
 test('batalkan hanya sebelum masuk lantai', async () => {
@@ -295,6 +297,76 @@ test('bayar hanya untuk staf: pelanggan tidak bisa menandai lunas sendiri', asyn
   });
   assert.equal(paid.statusCode, 200, paid.body);
   assert.equal((paid.json() as { order: { payStatus: string } }).order.payStatus, 'lunas');
+});
+
+test('bukti bayar QRIS: pelanggan mengunggah, admin memverifikasi', async () => {
+  const token = await login('0812-7781-4402');
+  const co = await app.inject({
+    method: 'POST', url: '/api/orders',
+    headers: { authorization: `Bearer ${token}` },
+    payload: {
+      items: [{ id: 'setrika', qty: 3 }], addons: [], mode: 'pickup',
+      slotDate: '2026-10-12', slotTime: '14:00–16:00', pay: 'qris',
+    },
+  });
+  assert.equal(co.statusCode, 200, co.body);
+  const code = (co.json() as { order: { code: string; hasProof: boolean } }).order.code;
+  assert.equal((co.json() as { order: { hasProof: boolean } }).order.hasProof, false);
+
+  const png = 'data:image/png;base64,' + Buffer.from('bukti-uji').toString('base64');
+  const bad = await app.inject({
+    method: 'POST', url: `/api/orders/${code}/proof`,
+    headers: { authorization: `Bearer ${token}` },
+    payload: { dataUrl: 'bukan-gambar' },
+  });
+  assert.equal(bad.statusCode, 400);
+
+  const up = await app.inject({
+    method: 'POST', url: `/api/orders/${code}/proof`,
+    headers: { authorization: `Bearer ${token}` },
+    payload: { dataUrl: png },
+  });
+  assert.equal(up.statusCode, 200, up.body);
+  const upBody = up.json() as { order: { payStatus: string; hasProof: boolean }; proof: string };
+  assert.equal(upBody.order.payStatus, 'belum'); // tetap belum sampai kasir verifikasi
+  assert.equal(upBody.order.hasProof, true);
+  assert.equal(upBody.proof, png);
+
+  /* Staf melihat bukti lalu menandai lunas. */
+  const staff = await login('dodo');
+  const seen = await app.inject({
+    method: 'GET', url: `/api/orders/${code}/proof`,
+    headers: { authorization: `Bearer ${staff}` },
+  });
+  assert.equal(seen.statusCode, 200);
+  assert.equal((seen.json() as { proof: string }).proof, png);
+
+  const paid = await app.inject({
+    method: 'POST', url: `/api/orders/${code}/pay`,
+    headers: { authorization: `Bearer ${staff}` },
+    payload: { method: 'qris' },
+  });
+  assert.equal(paid.statusCode, 200, paid.body);
+  assert.equal((paid.json() as { order: { payStatus: string } }).order.payStatus, 'lunas');
+});
+
+test('staf boleh membatalkan pesanan yang sudah masuk lantai', async () => {
+  const staff = await login('dodo');
+  /* BUSA-4467 sedang di lantai; pelanggan ditolak, staf boleh. */
+  const token = await login('0812-7781-4402');
+  const denied = await app.inject({
+    method: 'POST', url: '/api/orders/BUSA-4467/cancel',
+    headers: { authorization: `Bearer ${token}` },
+  });
+  /* Bukan milik pelanggan ini — ditolak sebelum aturan tahap pun berlaku. */
+  assert.equal(denied.statusCode, 403);
+
+  const ok = await app.inject({
+    method: 'POST', url: '/api/orders/BUSA-4467/cancel',
+    headers: { authorization: `Bearer ${staff}` },
+  });
+  assert.equal(ok.statusCode, 200, ok.body);
+  assert.equal((ok.json() as { order: { cancelled: boolean } }).order.cancelled, true);
 });
 
 test('top up dompet dihapus: endpoint menolak dengan 404', async () => {

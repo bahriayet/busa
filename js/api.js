@@ -451,6 +451,22 @@ API.reslot = async function (code, slotTime) {
   return data;
 };
 
+/** Unggah bukti bayar QRIS — status lunas tetap menunggu verifikasi kasir. */
+API.proof = async function (code, dataUrl) {
+  const data = await apiReq('POST', '/api/orders/' + encodeURIComponent(code) + '/proof', { dataUrl });
+  if (data.order) apiPatchOrder(data.order);
+  if (data.proof) { S.proofs = S.proofs || {}; S.proofs[code] = data.proof; }
+  return data;
+};
+
+/** Baca bukti bayar tersimpan (kasir memeriksa sebelum menandai lunas). */
+API.loadProof = async function (code) {
+  const data = await apiReq('GET', '/api/orders/' + encodeURIComponent(code) + '/proof');
+  S.proofs = S.proofs || {};
+  S.proofs[code] = data.proof || null;
+  return data.proof || null;
+};
+
 API.cancel = async function (code) {
   const data = await apiReq('POST', '/api/orders/' + encodeURIComponent(code) + '/cancel');
   S.orders = S.orders.filter((o) => o.code !== code);

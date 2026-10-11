@@ -88,6 +88,8 @@ export interface Order {
   promoCode: string | null;
   pay: PayMethod;
   payStatus: PayStatus;
+  /** Ada bukti bayar tersimpan (mis. screenshot QRIS dari pelanggan). */
+  hasProof: boolean;
   priority: Priority;
   slot: OrderSlot;
   courier: string;

@@ -1,10 +1,11 @@
 import type { FastifyInstance } from 'fastify';
 import type { Db } from '../db/client.ts';
 import * as R from '../db/repo.ts';
-import { SLOTS } from '../domain/constants.ts';
+import { LAST_STAGE, SLOTS } from '../domain/constants.ts';
 import { quote, quoteErrors } from '../domain/pricing.ts';
 import type { Order, OrderItem, OrderMode, PayMethod, Priority } from '../domain/types.ts';
 import { badRequest, conflict, forbidden, notFound } from '../lib/http.ts';
+import { IMAGE_DATA_URL, IMAGE_MAX_BYTES, IMAGE_MAX_UPLOAD_BYTES, imageBytes } from '../lib/images.ts';
 import { uid } from '../lib/ids.ts';
 import { makeRequireRole } from '../plugins/auth.ts';
 
@@ -35,6 +36,7 @@ interface WalkinBody extends CheckoutBody {
 
 interface PayBody { method?: string }
 interface ReslotBody { slotTime?: string }
+interface ProofBody { dataUrl?: string }
 
 function parseCheckout(body: CheckoutBody) {
   const items: OrderItem[] = (body.items ?? [])
@@ -227,6 +229,53 @@ export function registerOrderRoutes(app: FastifyInstance, db: Db): void {
     },
   );
 
+  /* ── Bukti bayar QRIS ───────────────────────────────── */
+
+  /* Pelanggan mengunggah screenshot transfer; status tetap 'belum' sampai
+     kasir menekan "Tandai lunas". Bukti disimpan terpisah dari daftar order
+     agar payload daftar tidak membengkak. */
+  app.post(
+    '/api/orders/:code/proof',
+    { preHandler: anyUser, bodyLimit: IMAGE_MAX_UPLOAD_BYTES },
+    async (req) => {
+      const code = (req.params as { code: string }).code;
+      const order = await R.findOrderByCode(db, code);
+      if (!order) throw notFound(`Order ${code} tidak ditemukan.`);
+      if (req.auth!.role === 'customer') {
+        const customer = (await R.listCustomers(db)).find((c) => c.userId === req.auth!.userId);
+        if (order.customerId !== customer?.id) throw forbidden('Order ini milik pelanggan lain.');
+      }
+      if (order.cancelled) throw conflict(`${order.code} sudah dibatalkan.`);
+      if (order.payStatus === 'lunas') throw conflict(`${order.code} sudah lunas.`);
+      if (order.pay !== 'qris') throw badRequest('Bukti bayar hanya untuk pembayaran QRIS.');
+
+      const dataUrl = String((req.body as ProofBody | undefined)?.dataUrl ?? '');
+      if (!IMAGE_DATA_URL.test(dataUrl)) {
+        throw badRequest('Bukti harus gambar PNG, JPG, WEBP, atau GIF (data URL base64).');
+      }
+      if (imageBytes(dataUrl) > IMAGE_MAX_BYTES) {
+        throw badRequest('Ukuran bukti maksimal 2 MB.');
+      }
+      await R.setOrderProof(db, order.code, dataUrl);
+      return { ok: true, order: await R.getOrder(db, order.code), proof: dataUrl };
+    },
+  );
+
+  app.get(
+    '/api/orders/:code/proof',
+    { preHandler: anyUser },
+    async (req) => {
+      const code = (req.params as { code: string }).code;
+      const order = await R.findOrderByCode(db, code);
+      if (!order) throw notFound(`Order ${code} tidak ditemukan.`);
+      if (req.auth!.role === 'customer') {
+        const customer = (await R.listCustomers(db)).find((c) => c.userId === req.auth!.userId);
+        if (order.customerId !== customer?.id) throw forbidden('Order ini milik pelanggan lain.');
+      }
+      return { ok: true, proof: await R.getOrderProof(db, order.code) };
+    },
+  );
+
   /* ── Ambil ──────────────────────────────────────────── */
 
   app.post(
@@ -262,9 +311,12 @@ export function registerOrderRoutes(app: FastifyInstance, db: Db): void {
         if (order.customerId !== customer?.id) throw forbidden('Order ini milik pelanggan lain.');
       }
       if (order.cancelled) throw conflict(`${order.code} sudah dibatalkan.`);
-      if (order.stage > 0) throw conflict(
-        `${order.code} sudah masuk lantai (tahap ${order.stage}) — batalkan lewat kasir.`,
-      );
+      if (req.auth!.role === 'customer' && order.stage > 0) {
+        throw conflict(`${order.code} sudah masuk lantai (tahap ${order.stage}) — batalkan lewat kasir.`);
+      }
+      if (req.auth!.role !== 'customer' && order.stage >= LAST_STAGE) {
+        throw conflict(`${order.code} sudah selesai — tidak bisa dibatalkan.`);
+      }
 
       return await db.tx(async () => {
         let refund: number | null = null;
@@ -308,7 +360,9 @@ async function createOrder(db: Db, input: {
   const q = input.quote;
   return await db.tx(async () => {
     const code = await R.nextOrderCode(db);
-    const paid = input.pay === 'wallet' || input.pay === 'qris';
+    /* Hanya dompet yang lunas seketika. QRIS menunggu verifikasi bukti bayar
+       oleh kasir — status 'belum' sampai /pay dipanggil staf. */
+    const paid = input.pay === 'wallet';
     await R.insertOrder(db, {
       code,
       customerId: input.customerId, customer: input.customer, phone: input.phone,

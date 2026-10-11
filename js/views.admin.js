@@ -299,8 +299,6 @@ async function userSave(id) {
 
 /* ── QRIS PEMBAYARAN (ADMIN) ──────────────────────── */
 
-const QRIS_MAX_BYTES = 2 * 1024 * 1024;
-
 VIEWS.pembayaran = {
   title: 'Pembayaran', kicker: 'QRIS untuk pelanggan',
   render() {
@@ -377,60 +375,9 @@ async function qrisApplyFile(file) {
     return;
   }
   try {
-    const dataUrl = await qrisPrepareImage(file);
+    const dataUrl = await prepareImageDataUrl(file);
     await API.uploadQris(dataUrl);
     render();
     toast({ title: 'QRIS diperbarui', msg: 'Pelanggan langsung melihat gambar baru.', tone: 'mint', icon: 'check' });
   } catch (err) { apiToastErr(err, 'QRIS gagal diunggah'); }
-}
-
-function qrisReadFile(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ''));
-    reader.onerror = () => reject(new Error('File tidak bisa dibaca.'));
-    reader.readAsDataURL(file);
-  });
-}
-
-function qrisLoadImage(src) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error('File bukan gambar yang bisa dibaca.'));
-    img.src = src;
-  });
-}
-
-function qrisDataUrlBytes(dataUrl) {
-  const b64 = dataUrl.slice(dataUrl.indexOf(',') + 1);
-  return Math.floor((b64.length * 3) / 4);
-}
-
-/**
- * Siapkan gambar untuk diunggah: pakai apa adanya bila sudah kecil & format
- * standar; selain itu perkecil/konversi lewat canvas agar screenshot besar
- * atau format lain (BMP, AVIF, …) tetap bisa dipakai.
- */
-async function qrisPrepareImage(file) {
-  const source = await qrisReadFile(file);
-  const supported = /^image\/(png|jpe?g|webp|gif)$/.test(file.type || '');
-  if (supported && file.size <= QRIS_MAX_BYTES) return source;
-
-  const img = await qrisLoadImage(source);
-  const w0 = img.naturalWidth || img.width;
-  const h0 = img.naturalHeight || img.height;
-  if (!w0 || !h0) throw new Error('Ukuran gambar tidak terbaca.');
-  const scale = Math.min(1, 1400 / Math.max(w0, h0));
-  const w = Math.max(1, Math.round(w0 * scale));
-  const h = Math.max(1, Math.round(h0 * scale));
-  const canvas = document.createElement('canvas');
-  canvas.width = w;
-  canvas.height = h;
-  canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-
-  let out = canvas.toDataURL('image/png');
-  if (qrisDataUrlBytes(out) > QRIS_MAX_BYTES) out = canvas.toDataURL('image/jpeg', 0.92);
-  if (qrisDataUrlBytes(out) > QRIS_MAX_BYTES) throw new Error('Gambar terlalu besar bahkan setelah dikompres — coba potong area QR saja.');
-  return out;
 }

@@ -18,7 +18,7 @@ function order(over: Partial<Order> = {}): Order {
     code: 'BUSA-9998', customerId: 'c1', customer: 'Tes', phone: '08', stage: 0,
     weight: 4, mode: 'pickup', items: [{ id: 'setrika', qty: 4 }], addons: [],
     subtotal: 0, ship: 0, disc: 0, protect: 0, total: 0, promoCode: null,
-    pay: 'cash', payStatus: 'lunas', priority: 'reguler',
+    pay: 'cash', payStatus: 'lunas', hasProof: false, priority: 'reguler',
     slot: { date: '2026-10-08', time: '' }, courier: '—', machine: '—', rack: null, notes: '',
     collected: false, cancelled: false, scanned: true,
     created: 'Hari ini 08:00', createdAt: '2026-10-08T08:00:00.000Z',

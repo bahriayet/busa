@@ -64,7 +64,7 @@ interface OrderRow {
   pay: string; pay_status: string; priority: string; slot_date: string; slot_time: string;
   courier: string; machine: string; rack: string | null; notes: string; collected: number;
   cancelled: number; scanned: number; created_ms: number; created_label: string;
-  stage_at_ms: number | null; source: string;
+  stage_at_ms: number | null; source: string; has_proof: boolean | number;
 }
 
 function toOrder(r: OrderRow): Order {
@@ -74,6 +74,7 @@ function toOrder(r: OrderRow): Order {
     items: jparse<OrderItem[]>(r.items_json, []), addons: jparse<string[]>(r.addons_json, []),
     subtotal: r.subtotal, ship: r.ship, disc: r.disc, protect: r.protect_fee, total: r.total,
     promoCode: r.promo_code, pay: r.pay as PayMethod, payStatus: r.pay_status as PayStatus,
+    hasProof: unb(r.has_proof),
     priority: r.priority as Order['priority'], slot: { date: r.slot_date, time: r.slot_time },
     courier: r.courier, machine: r.machine, rack: r.rack, notes: r.notes,
     collected: unb(r.collected), cancelled: unb(r.cancelled), scanned: unb(r.scanned),
@@ -85,7 +86,8 @@ function toOrder(r: OrderRow): Order {
 
 const ORDER_COLS = `code, customer_id, customer, phone, stage, weight, mode, items_json, addons_json,
   subtotal, ship, disc, protect_fee, total, promo_code, pay, pay_status, priority, slot_date, slot_time,
-  courier, machine, rack, notes, collected, cancelled, scanned, created_ms, created_label, stage_at_ms, source`;
+  courier, machine, rack, notes, collected, cancelled, scanned, created_ms, created_label, stage_at_ms, source,
+  (pay_proof IS NOT NULL AND pay_proof <> '') AS has_proof`;
 
 interface EventRow {
   seq: number; id: string; client_id: string | null; order_code: string; action: string;
@@ -363,6 +365,16 @@ export async function patchOrder(db: Db, code: string, patch: Record<string, unk
 
 export async function nextOrderCode(db: Db): Promise<string> {
   return `BUSA-${await nextCounter(db, 'order_seq')}`;
+}
+
+/** Simpan bukti bayar (data URL). Tidak ikut di ORDER_COLS agar daftar tidak bengkak. */
+export async function setOrderProof(db: Db, code: string, dataUrl: string): Promise<void> {
+  await db.run('UPDATE orders SET pay_proof = ? WHERE code = ?', dataUrl, code);
+}
+
+export async function getOrderProof(db: Db, code: string): Promise<string | null> {
+  const r = await db.get<{ pay_proof: string | null }>('SELECT pay_proof FROM orders WHERE code = ?', code);
+  return r?.pay_proof ?? null;
 }
 
 export async function peekOrderSeq(db: Db): Promise<number> {

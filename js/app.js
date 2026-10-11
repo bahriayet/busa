@@ -92,6 +92,7 @@ let S = {
   usersLoaded: false,
   usersLoading: false,
   qris: null,
+  proofs: {},
   revenue: null,
   mix: null,
   activity: null,
@@ -281,6 +282,84 @@ function qrisDownload() {
   a.click();
   a.remove();
   toast({ title: 'QRIS diunduh', msg: 'Pindai dari galeri aplikasi bank/e-wallet Anda.', tone: 'mint', icon: 'download' });
+}
+
+/* ── GAMBAR LOKAL (QRIS & bukti bayar) ────────────────── */
+
+const IMAGE_MAX_BYTES = 2 * 1024 * 1024;
+
+function readFileAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(new Error('File tidak bisa dibaca.'));
+    reader.readAsDataURL(file);
+  });
+}
+
+function loadImageElement(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('File bukan gambar yang bisa dibaca.'));
+    img.src = src;
+  });
+}
+
+function dataUrlBytes(dataUrl) {
+  const b64 = dataUrl.slice(dataUrl.indexOf(',') + 1);
+  return Math.floor((b64.length * 3) / 4);
+}
+
+/**
+ * Siapkan gambar untuk diunggah: pakai apa adanya bila sudah kecil & format
+ * standar; selain itu perkecil/konversi lewat canvas agar screenshot besar
+ * atau format lain (BMP, AVIF, …) tetap bisa dipakai.
+ */
+async function prepareImageDataUrl(file, maxBytes = IMAGE_MAX_BYTES) {
+  const source = await readFileAsDataURL(file);
+  const supported = /^image\/(png|jpe?g|webp|gif)$/.test(file.type || '');
+  if (supported && file.size <= maxBytes) return source;
+
+  const img = await loadImageElement(source);
+  const w0 = img.naturalWidth || img.width;
+  const h0 = img.naturalHeight || img.height;
+  if (!w0 || !h0) throw new Error('Ukuran gambar tidak terbaca.');
+  const scale = Math.min(1, 1400 / Math.max(w0, h0));
+  const w = Math.max(1, Math.round(w0 * scale));
+  const h = Math.max(1, Math.round(h0 * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+
+  let out = canvas.toDataURL('image/png');
+  if (dataUrlBytes(out) > maxBytes) out = canvas.toDataURL('image/jpeg', 0.92);
+  if (dataUrlBytes(out) > maxBytes) throw new Error('Gambar terlalu besar bahkan setelah dikompres.');
+  return out;
+}
+
+/** Kirim bukti bayar QRIS dari pelanggan — kasir yang memutuskan lunas. */
+async function submitProof(code, file) {
+  const o = S.orders.find((x) => x.code === code);
+  if (!o) return;
+  if (!/^image\//.test(file.type || '')) {
+    toast({ title: 'Bukan berkas gambar', msg: 'Pilih screenshot bukti transfer.', tone: 'red', icon: 'alert' });
+    return;
+  }
+  try {
+    const dataUrl = await prepareImageDataUrl(file);
+    if (typeof API !== 'undefined' && API.on && isCustomerAuthed()) {
+      await API.proof(code, dataUrl);
+    } else {
+      o.proof = dataUrl; o.hasProof = true; save();
+    }
+    S.proofs[code] = dataUrl;
+    const fresh = S.orders.find((x) => x.code === code) || o;
+    if (qs('#drawerRoot.on')) orderDrawer(fresh);
+    render();
+    toast({ title: 'Bukti terkirim', msg: 'Menunggu verifikasi kasir — status berubah setelah dicek.', tone: 'mint', icon: 'upload' });
+  } catch (err) { apiToastErr(err, 'Bukti gagal diunggah'); }
 }
 
 /* ── SHELL ─────────────────────────────────────────────── */
@@ -1009,6 +1088,7 @@ function orderDrawer(o) {
      ambil, label) hanya untuk staf/admin. Pelanggan hanya boleh membatalkan
      pesanannya sendiri selama belum masuk lantai — sama seperti aturan server. */
   const staff = isAdminAuthed();
+  const customer = isCustomerAuthed();
   const acts = [];
   if (staff) {
     if (o.payStatus && o.payStatus !== 'lunas') {
@@ -1019,7 +1099,11 @@ function orderDrawer(o) {
       : `<button class="btn" data-act="collect" data-code="${o.code}">${icon('check')} Tandai diambil</button>`);
     acts.push(`<button class="btn ghost" data-act="label" data-code="${o.code}">${icon('tag')} Cetak label</button>`);
   }
-  if (o.stage === 0) acts.push(`<button class="btn danger" data-act="cancel" data-code="${o.code}">${icon('x')} Batalkan</button>`);
+  if (staff ? o.stage < 8 : o.stage === 0) {
+    acts.push(`<button class="btn danger" data-act="cancel" data-code="${o.code}">${icon('x')} Batalkan</button>`);
+  }
+  const payLabel = o.payStatus === 'lunas' ? 'Lunas' : o.hasProof ? 'Menunggu verifikasi' : 'Belum lunas';
+  const canProve = customer && o.pay === 'qris' && o.payStatus !== 'lunas' && !o.cancelled;
   openDrawer(`
     <header class="dr-head"><div><p class="mono kicker">${esc(o.created)}</p><h2 class="display" data-scramble="${esc(o.code)}">${esc(o.code)}</h2></div>
       <button class="btn-icon" data-act="drawer-close" aria-label="Tutup">${icon('x')}</button></header>
@@ -1033,8 +1117,22 @@ function orderDrawer(o) {
         <div><p class="mono lbl">Prioritas</p><b>${esc(o.priority)}</b></div>
         <div><p class="mono lbl">Jadwal</p><b>${esc(o.slot.date)}</b><p class="mono fine">${esc(o.slot.time)}</p></div>
         <div><p class="mono lbl">Kurir</p><b>${esc(o.courier)}</b></div>
-        <div><p class="mono lbl">Pembayaran</p><b>${o.payStatus === 'lunas' ? 'Lunas' : 'Belum lunas'}</b><p class="mono fine">${esc(o.pay === 'wallet' ? 'dompet' : o.pay || '—')}</p></div>
+        <div><p class="mono lbl">Pembayaran</p><b>${payLabel}</b><p class="mono fine">${esc(o.pay === 'wallet' ? 'dompet' : o.pay || '—')}</p></div>
       </div>
+      ${canProve ? `
+        <div class="proof-box">
+          <b class="display">${o.hasProof ? icon('clock') + ' Menunggu verifikasi kasir' : icon('grid') + ' Bayar, lalu unggah bukti'}</b>
+          <p>${o.hasProof
+            ? 'Bukti bayar sudah terkirim untuk tagihan ' + rp(o.total) + '. Kasir menandai lunas setelah memeriksa.'
+            : 'Pindai QRIS di langkah Pembayaran, lalu unggah screenshot bukti transfer di sini.'}</p>
+          ${o.hasProof ? '' : `<button class="btn primary sm" data-act="proof-pick" data-code="${o.code}">${icon('upload')} Unggah bukti bayar</button>`}
+        </div>` : ''}
+      ${staff && o.hasProof ? `
+        <div class="proof-box">
+          <b class="display">${icon('eye')} Ada bukti bayar</b>
+          <p>Pelanggan mengirim bukti untuk tagihan ${rp(o.total)} — periksa sebelum menandai lunas.</p>
+          <button class="btn ghost sm" data-act="proof-view" data-code="${o.code}">${icon('eye')} Lihat bukti bayar</button>
+        </div>` : ''}
       ${o.notes ? `<div class="note-box">${icon('mail')}<p>${esc(o.notes)}</p></div>` : ''}
       <p class="mono lbl mt">Riwayat siklus</p>
       ${timelineMarkup(o.stage, o.code)}
@@ -1508,7 +1606,7 @@ function submitOrder() {
   save();
   render();
   bubbles(22);
-  toast({ title: code + ' masuk antrean', msg: 'Total ' + rp(r.total) + ' · ' + (c.pay === 'qris' ? 'QRIS saat jemput' : 'tunai di lokasi'), tone: 'orange', icon: 'check', ms: 5200 });
+  toast({ title: code + ' masuk antrean', msg: 'Total ' + rp(r.total) + ' · ' + (c.pay === 'qris' ? 'QRIS — unggah bukti bayar di detail pesanan' : 'tunai di lokasi'), tone: 'orange', icon: 'check', ms: 5200 });
 }
 
 /** Checkout lewat API — server menghitung ulang tagihan dan menyimpan ke DB. */
@@ -1538,7 +1636,7 @@ async function apiSubmitOrder(c, r) {
     save();
     render();
     bubbles(22);
-    toast({ title: code + ' masuk antrean', msg: 'Total ' + rp(fresh.total || r.total) + ' · ' + (c.pay === 'qris' ? 'QRIS saat jemput' : 'tunai di lokasi'), tone: 'orange', icon: 'check', ms: 5200 });
+    toast({ title: code + ' masuk antrean', msg: 'Total ' + rp(fresh.total || r.total) + ' · ' + (c.pay === 'qris' ? 'QRIS — unggah bukti bayar di detail pesanan' : 'tunai di lokasi'), tone: 'orange', icon: 'check', ms: 5200 });
   } catch (err) {
     apiToastErr(err, 'Order ditolak');
   }
@@ -1615,29 +1713,74 @@ document.addEventListener('click', (e) => {
         API.pay(code, o.pay)
           .then((data) => {
             const fresh = (data && data.order) || o;
-            render();
+            closeModal(); render();
             if (qs('#drawerRoot.on')) orderDrawer(fresh);
             toast({ title: fresh.code + ' lunas', msg: 'Pembayaran ' + (fresh.pay === 'wallet' ? 'dompet' : fresh.pay) + ' tercatat.', tone: 'mint', icon: 'check' });
           })
           .catch((err) => apiToastErr(err, 'Gagal mencatat pembayaran'));
         break;
       }
-      o.payStatus = 'lunas'; save(); render();
+      o.payStatus = 'lunas'; save(); closeModal(); render();
       if (qs('#drawerRoot.on')) orderDrawer(o);
       toast({ title: o.code + ' lunas', msg: 'Pembayaran ' + (o.pay === 'wallet' ? 'dompet' : o.pay) + ' tercatat.', tone: 'mint', icon: 'check' });
+      break;
+    }
+    case 'proof-pick': {
+      const o = S.orders.find((x) => x.code === code);
+      if (!o) break;
+      const inp = document.createElement('input');
+      inp.type = 'file';
+      inp.accept = 'image/*';
+      inp.addEventListener('change', () => {
+        const f = inp.files && inp.files[0];
+        if (f) submitProof(o.code, f);
+      });
+      inp.click();
+      break;
+    }
+    case 'proof-view': {
+      const o = S.orders.find((x) => x.code === code);
+      if (!o) break;
+      const show = (src) => openModal(`<p class="mono kicker">Bukti bayar · ${esc(o.code)}</p><h2 class="display lg">${rp(o.total)}</h2>
+        <img class="proof-img" src="${src}" alt="Bukti pembayaran ${esc(o.code)}">
+        <div class="m-acts"><button class="btn primary" data-act="pay-mark" data-code="${o.code}">${icon('check')} Tandai lunas</button>
+        <button class="btn ghost" data-act="modal-close">Tutup</button></div>`);
+      const cached = S.proofs[o.code] || o.proof;
+      if (cached) { show(cached); break; }
+      if (typeof API !== 'undefined' && API.on && isAuthed()) {
+        API.loadProof(code)
+          .then((src) => { if (src) show(src); else toast({ title: 'Bukti tidak ditemukan', tone: 'amber', icon: 'alert' }); })
+          .catch((err) => apiToastErr(err, 'Gagal memuat bukti'));
+        break;
+      }
+      toast({ title: 'Bukti tidak tersedia', msg: 'Mode lokal tidak menyimpan gambar bukti.', tone: 'amber', icon: 'info' });
       break;
     }
     case 'cancel': {
       const o = S.orders.find((x) => x.code === code);
       if (!o) break;
+      const refund = o.payStatus === 'lunas'
+        ? (o.pay === 'wallet'
+          ? 'Saldo ' + rp(o.total) + ' dikembalikan ke dompet pelanggan.'
+          : 'Tagihan ditandai dikembalikan — refund diproses di kasir.')
+        : 'Pesanan ditandai batal tanpa tagihan.';
+      openModal(`<p class="mono kicker">${esc(o.code)} · ${esc(STAGES[o.stage].label)}</p><h2 class="display lg">Batalkan pesanan?</h2>
+        <p class="lede sm">${refund}</p>
+        <div class="m-acts"><button class="btn danger" data-act="cancel-yes" data-code="${o.code}">${icon('x')} Ya, batalkan</button>
+        <button class="btn ghost" data-act="modal-close">Tidak jadi</button></div>`);
+      break;
+    }
+    case 'cancel-yes': {
+      const o = S.orders.find((x) => x.code === code);
+      if (!o) break;
       if (typeof API !== 'undefined' && API.on && isAuthed()) {
         API.cancel(code)
-          .then(() => { closeDrawer(); render(); toast({ title: o.code + ' dibatalkan', msg: o.pay === 'wallet' ? rp(o.total) + ' dikembalikan ke Dompet' : 'Pesanan ditandai batal', tone: 'red', icon: 'x' }); })
-          .catch((err) => apiToastErr(err, 'Tidak bisa dibatalkan'));
+          .then(() => { closeModal(); closeDrawer(); render(); toast({ title: o.code + ' dibatalkan', msg: o.pay === 'wallet' ? rp(o.total) + ' dikembalikan ke Dompet' : 'Pesanan ditandai batal', tone: 'red', icon: 'x' }); })
+          .catch((err) => { closeModal(); apiToastErr(err, 'Tidak bisa dibatalkan'); });
         break;
       }
       S.orders = S.orders.filter((x) => x.code !== code);
-      closeDrawer(); render();
+      closeModal(); closeDrawer(); render();
       toast({ title: o.code + ' dibatalkan', msg: rp(o.total) + ' dikembalikan ke Dompet', tone: 'red', icon: 'x' });
       break;
     }

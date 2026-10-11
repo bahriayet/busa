@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import type { Db } from '../db/client.ts';
 import * as R from '../db/repo.ts';
 import { badRequest, notFound, conflict } from '../lib/http.ts';
+import { IMAGE_DATA_URL, IMAGE_MAX_BYTES, IMAGE_MAX_UPLOAD_BYTES, imageBytes } from '../lib/images.ts';
 import { makeRequireRole } from '../plugins/auth.ts';
 import { hashPassword } from '../lib/password.ts';
 import { uid } from '../lib/ids.ts';
@@ -20,18 +21,6 @@ interface MachinePatch {
 interface ContentPatch { value: unknown }
 interface CreateUserBody { name: string; username?: string; phone?: string; password: string; role: 'admin' | 'staff' | 'customer' }
 interface PatchUserBody { name?: string; role?: 'admin' | 'staff' | 'customer'; active?: boolean; newPassword?: string }
-
-/* Batas gambar QRIS: cukup untuk screenshot bank/e-wallet, tapi tidak boleh
-   jadi tempat menyimpan file sembarangan. bodyLimit > max karena base64 ~4/3. */
-const QRIS_DATA_URL = /^data:image\/(png|jpe?g|webp|gif);base64,[A-Za-z0-9+/=]+$/;
-const QRIS_MAX_IMAGE_BYTES = 2 * 1024 * 1024;
-const QRIS_MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
-
-/** Perkiraan ukuran byte gambar dari panjang base64 (tanpa decode penuh). */
-function qrisImageBytes(dataUrl: string): number {
-  const b64 = dataUrl.slice(dataUrl.indexOf(',') + 1);
-  return Math.floor((b64.length * 3) / 4);
-}
 
 export function registerAdminRoutes(app: FastifyInstance, db: Db): void {
   const requireRole = makeRequireRole(db);
@@ -145,13 +134,13 @@ export function registerAdminRoutes(app: FastifyInstance, db: Db): void {
   /* ── QRIS pembayaran ─────────────────────────────────────── */
 
   /** Unggah/ganti gambar QRIS yang tampil di langkah pembayaran pelanggan. */
-  app.put('/api/qris', { preHandler: admin, bodyLimit: QRIS_MAX_UPLOAD_BYTES }, async (req) => {
+  app.put('/api/qris', { preHandler: admin, bodyLimit: IMAGE_MAX_UPLOAD_BYTES }, async (req) => {
     const body = (req.body ?? {}) as { dataUrl?: unknown };
     const dataUrl = typeof body.dataUrl === 'string' ? body.dataUrl : '';
-    if (!QRIS_DATA_URL.test(dataUrl)) {
+    if (!IMAGE_DATA_URL.test(dataUrl)) {
       throw badRequest('Gambar QRIS harus PNG, JPG, WEBP, atau GIF (data URL base64).');
     }
-    if (qrisImageBytes(dataUrl) > QRIS_MAX_IMAGE_BYTES) {
+    if (imageBytes(dataUrl) > IMAGE_MAX_BYTES) {
       throw badRequest('Ukuran gambar QRIS maksimal 2 MB.');
     }
     const qris = await R.setQrisImage(db, { dataUrl, updatedAt: Date.now() });

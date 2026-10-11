@@ -108,6 +108,7 @@ CREATE TABLE IF NOT EXISTS orders (
   promo_code    TEXT,
   pay           TEXT NOT NULL DEFAULT 'cash' CHECK (pay IN ('wallet','qris','cash')),
   pay_status    TEXT NOT NULL DEFAULT 'belum' CHECK (pay_status IN ('lunas','belum','sebagian','dikembalikan')),
+  pay_proof     TEXT,
   priority      TEXT NOT NULL DEFAULT 'reguler' CHECK (priority IN ('reguler','express')),
   slot_date     TEXT NOT NULL DEFAULT '',
   slot_time     TEXT NOT NULL DEFAULT '',
@@ -126,6 +127,9 @@ CREATE TABLE IF NOT EXISTS orders (
 CREATE INDEX IF NOT EXISTS idx_orders_stage ON orders(stage);
 CREATE INDEX IF NOT EXISTS idx_orders_cust ON orders(customer_id);
 CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_ms DESC);
+
+-- Migrasi idempoten: database yang sudah ada sebelum kolom bukti bayar.
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS pay_proof TEXT;
 
 -- Log event lantai. Append-only: tidak ada UPDATE kecuali kolom idempotensi.
 -- `seq` diisi eksplisit oleh counter aplikasi, bukan identity PostgreSQL.
