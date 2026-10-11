@@ -711,17 +711,16 @@ VIEWS.floor = {
     const feed = (S.activity && S.activity.length) ? S.activity : SEED.activity;
     const mix = (S.mix && S.mix.length) ? S.mix : SEED.mix;
     const today = rev[rev.length - 1];
-    const load = S.machines.reduce((a, m) => a + m.load, 0) / S.machines.length;
     const pickups = S.orders.filter((o) => o.mode === 'pickup' && o.stage >= 6).slice(0, 4);
     const runs = S.orders.filter((o) => o.mode === 'delivery' && o.stage >= 5 && o.stage < 8).slice(0, 4);
     return `
     <section class="board-head" data-reveal>
       <div class="bh-left">
         <p class="mono kicker">${esc(todayDateLabel())} · shift pagi · operator Wulan A.</p>
-        <h1 class="display huge">Enam mesin<br><span class="ink-slash">sedang berputar</span></h1>
-        <p class="lede">Setiap keranjang punya wajah. Beginilah cucian Anda bergerak detik ini — bukan angka di dashboardkosong.</p>
+        <h1 class="display huge">Antrean berjalan<br><span class="ink-slash">di lantai hari ini</span></h1>
+        <p class="lede">Pesanan bergerak dari timbangan sampai siap diambil — pantau semuanya dari satu layar.</p>
         <div class="bh-chips">
-          <span class="chip live">${icon('bolt')} ${S.machines.filter((m) => m.state === 'run' || m.state === 'hot').length} siklus aktif</span>
+          <span class="chip live">${icon('bolt')} ${proses} pesanan diproses</span>
           <span class="chip">${icon('ruler')} ${kg(S.orders.reduce((a, o) => a + o.weight, 0))} kg di lantai</span>
           <span class="chip">${icon('star')} ${done} selesai hari ini</span>
         </div>
@@ -736,18 +735,11 @@ VIEWS.floor = {
         <div class="stat-duo">
           <div class="stat-s"><b class="num lg">${proses}</b><p class="mono lbl">Dalam proses</p></div>
           <div class="stat-s"><b class="num lg">${siap}</b><p class="mono lbl">Siap diambil</p></div>
-          <div class="stat-s wide">
-            <p class="mono lbl">Beban rata-rata</p>${gaugeSVG(load, 'mint')}
-          </div>
         </div>
       </div>
     </section>
 
     <div class="tiles" data-reveal aria-hidden="true"></div>
-
-    <section class="floor-grid" aria-label="Peta mesin">
-      ${S.machines.map((m, i) => machineTile(m, i)).join('')}
-    </section>
 
     <section class="floor-lower">
       <div class="panel flow" data-reveal>
@@ -788,22 +780,6 @@ VIEWS.floor = {
     </section>`;
   },
 };
-
-function machineTile(m, i) {
-  const st = STAGES[m.stage];
-  const tone = m.state === 'idle' ? 'muted' : m.state === 'hot' ? 'orange' : m.state === 'vent' ? 'amber' : 'blue';
-  return `<article class="machine t-${tone} ${m.state}" data-live="tile" data-id="${m.id}" data-tilt="7" data-tilt-lift="12" style="--i:${i}" data-reveal aria-label="Mesin ${m.id}">
-    <div class="mc-top"><b class="mono mid">${m.id}</b><span class="state-chip" data-live="state">${esc(m.state === 'run' ? 'berjalan' : m.state === 'hot' ? 'panas' : m.state === 'vent' ? 'venting' : 'siaga')}</span></div>
-    ${drumMarkup({ rpm: Math.max(1.6, 12 - m.rpm) + 's', size: 132, state: m.state, rags: 6 + (m.load > 60 ? 3 : 0), heat: m.state === 'hot' ? 1 : 0 })}
-    <p class="mc-model">${esc(m.model)}</p>
-    <div class="mc-stage"><span class="stage-pill s-${m.stage}" data-live="pill">${esc(st.label)}</span><time class="mono" data-live="left">−${clockStr(m.left)}</time></div>
-    <div class="meters">
-      <div class="meter"><span class="mono lbl">Beban</span><div class="track"><i data-live="loadbar" style="--w:${m.load}%"></i></div><b class="mono" data-live="load">${m.load}%</b></div>
-      <div class="meter"><span class="mono lbl">Suhu</span><div class="track heat"><i data-live="heatbar" style="--w:${clamp(m.temp / 140 * 100, 2, 100)}%"></i></div><b class="mono" data-live="temp">${Math.round(m.temp)}°</b></div>
-    </div>
-    <p class="mc-tk mono">${esc(m.ticket)}</p>
-  </article>`;
-}
 
 /* ── VIEW: ORDER BARU ─────────────────────────────────── */
 
