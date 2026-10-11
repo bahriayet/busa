@@ -21,3 +21,7 @@ services:
         value: https://busa-londry.vercel.app
       - key: BUSA_SERVE_STATIC
         value: "false"
+      # Produksi: tahap hanya bergerak lewat /scan operator, bukan simulasi.
+      # Nyalakan (true) hanya untuk demo.
+      - key: BUSA_SIMULATE
+        value: "false"

@@ -229,6 +229,74 @@ test('batalkan hanya sebelum masuk lantai', async () => {
   assert.equal(early.statusCode, 409);
 });
 
+test('reslot: pelanggan memindah jam sendiri, gugur setelah masuk lantai', async () => {
+  const token = await login('0812-7781-4402');
+  const co = await app.inject({
+    method: 'POST', url: '/api/orders',
+    headers: { authorization: `Bearer ${token}` },
+    payload: {
+      items: [{ id: 'setrika', qty: 3 }], addons: [], mode: 'pickup',
+      slotDate: '2026-10-12', slotTime: '08:00–10:00', pay: 'qris',
+    },
+  });
+  assert.equal(co.statusCode, 200, co.body);
+  const code = (co.json() as { order: { code: string } }).order.code;
+
+  const ok = await app.inject({
+    method: 'POST', url: `/api/orders/${code}/reslot`,
+    headers: { authorization: `Bearer ${token}` },
+    payload: { slotTime: '10:00–12:00' },
+  });
+  assert.equal(ok.statusCode, 200, ok.body);
+  assert.equal((ok.json() as { order: { slot: { time: string } } }).order.slot.time, '10:00–12:00');
+
+  const bad = await app.inject({
+    method: 'POST', url: `/api/orders/${code}/reslot`,
+    headers: { authorization: `Bearer ${token}` },
+    payload: { slotTime: '25:00–26:00' },
+  });
+  assert.equal(bad.statusCode, 400);
+
+  /* Sudah masuk lantai (tahap > 1) → ditolak, walau oleh staf. */
+  const staff = await login('dodo');
+  const late = await app.inject({
+    method: 'POST', url: '/api/orders/BUSA-4468/reslot',
+    headers: { authorization: `Bearer ${staff}` },
+    payload: { slotTime: '10:00–12:00' },
+  });
+  assert.equal(late.statusCode, 409);
+});
+
+test('bayar hanya untuk staf: pelanggan tidak bisa menandai lunas sendiri', async () => {
+  const token = await login('0812-7781-4402');
+  const co = await app.inject({
+    method: 'POST', url: '/api/orders',
+    headers: { authorization: `Bearer ${token}` },
+    payload: {
+      items: [{ id: 'setrika', qty: 3 }], addons: [], mode: 'pickup',
+      slotDate: '2026-10-12', slotTime: '12:00–14:00', pay: 'cash',
+    },
+  });
+  assert.equal(co.statusCode, 200, co.body);
+  const code = (co.json() as { order: { code: string } }).order.code;
+
+  const denied = await app.inject({
+    method: 'POST', url: `/api/orders/${code}/pay`,
+    headers: { authorization: `Bearer ${token}` },
+    payload: { method: 'cash' },
+  });
+  assert.equal(denied.statusCode, 403);
+
+  const staff = await login('dodo');
+  const paid = await app.inject({
+    method: 'POST', url: `/api/orders/${code}/pay`,
+    headers: { authorization: `Bearer ${staff}` },
+    payload: { method: 'cash' },
+  });
+  assert.equal(paid.statusCode, 200, paid.body);
+  assert.equal((paid.json() as { order: { payStatus: string } }).order.payStatus, 'lunas');
+});
+
 test('top up dompet dihapus: endpoint menolak dengan 404', async () => {
   const token = await login('0812-7781-4402');
   const res = await app.inject({

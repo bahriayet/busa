@@ -437,6 +437,20 @@ API.collect = async function (code) {
   return data;
 };
 
+/** Kasir/staf menandai pesanan lunas (mis. tunai diterima). */
+API.pay = async function (code, method) {
+  const data = await apiReq('POST', '/api/orders/' + encodeURIComponent(code) + '/pay', { method });
+  if (data.order) apiPatchOrder(data.order);
+  return data;
+};
+
+/** Pindah jam jemput — pelanggan hanya sampai sebelum masuk lantai. */
+API.reslot = async function (code, slotTime) {
+  const data = await apiReq('POST', '/api/orders/' + encodeURIComponent(code) + '/reslot', { slotTime });
+  if (data.order) apiPatchOrder(data.order);
+  return data;
+};
+
 API.cancel = async function (code) {
   const data = await apiReq('POST', '/api/orders/' + encodeURIComponent(code) + '/cancel');
   S.orders = S.orders.filter((o) => o.code !== code);

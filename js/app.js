@@ -1011,6 +1011,9 @@ function orderDrawer(o) {
   const staff = isAdminAuthed();
   const acts = [];
   if (staff) {
+    if (o.payStatus && o.payStatus !== 'lunas') {
+      acts.push(`<button class="btn" data-act="pay-mark" data-code="${o.code}">${icon('wallet')} Tandai lunas</button>`);
+    }
     acts.push(o.stage < 8
       ? `<button class="btn primary" data-act="advance" data-code="${o.code}">${icon('bolt')} Majukan siklus</button>`
       : `<button class="btn" data-act="collect" data-code="${o.code}">${icon('check')} Tandai diambil</button>`);
@@ -1030,6 +1033,7 @@ function orderDrawer(o) {
         <div><p class="mono lbl">Prioritas</p><b>${esc(o.priority)}</b></div>
         <div><p class="mono lbl">Jadwal</p><b>${esc(o.slot.date)}</b><p class="mono fine">${esc(o.slot.time)}</p></div>
         <div><p class="mono lbl">Kurir</p><b>${esc(o.courier)}</b></div>
+        <div><p class="mono lbl">Pembayaran</p><b>${o.payStatus === 'lunas' ? 'Lunas' : 'Belum lunas'}</b><p class="mono fine">${esc(o.pay === 'wallet' ? 'dompet' : o.pay || '—')}</p></div>
       </div>
       ${o.notes ? `<div class="note-box">${icon('mail')}<p>${esc(o.notes)}</p></div>` : ''}
       <p class="mono lbl mt">Riwayat siklus</p>
@@ -1604,6 +1608,25 @@ document.addEventListener('click', (e) => {
       break;
     }
     case 'label': toast({ title: 'Label dicetak', msg: code + ' · 4 sticker tahan air', tone: 'lilac', icon: 'tag' }); break;
+    case 'pay-mark': {
+      const o = S.orders.find((x) => x.code === code);
+      if (!o) break;
+      if (typeof API !== 'undefined' && API.on && isAdminAuthed()) {
+        API.pay(code, o.pay)
+          .then((data) => {
+            const fresh = (data && data.order) || o;
+            render();
+            if (qs('#drawerRoot.on')) orderDrawer(fresh);
+            toast({ title: fresh.code + ' lunas', msg: 'Pembayaran ' + (fresh.pay === 'wallet' ? 'dompet' : fresh.pay) + ' tercatat.', tone: 'mint', icon: 'check' });
+          })
+          .catch((err) => apiToastErr(err, 'Gagal mencatat pembayaran'));
+        break;
+      }
+      o.payStatus = 'lunas'; save(); render();
+      if (qs('#drawerRoot.on')) orderDrawer(o);
+      toast({ title: o.code + ' lunas', msg: 'Pembayaran ' + (o.pay === 'wallet' ? 'dompet' : o.pay) + ' tercatat.', tone: 'mint', icon: 'check' });
+      break;
+    }
     case 'cancel': {
       const o = S.orders.find((x) => x.code === code);
       if (!o) break;
@@ -1672,13 +1695,13 @@ document.addEventListener('click', (e) => {
       const tiers = (S.tiers && S.tiers.length) ? S.tiers : SEED.tiers;
       const tier = tiers.find((x) => x.id === t.dataset.v);
       if (!tier) break;
-      if (tier.price > S.wallet.balance) { toast({ title: 'Dompet kurang', msg: 'Butuh ' + rp(tier.price) + ' untuk mengaktifkan ' + tier.name + '.', tone: 'red', icon: 'wallet' }); break; }
-      if (tier.price) {
-        S.wallet.balance -= tier.price;
-        S.wallet.txns.unshift({ id: uid('TX'), type: 'pay', label: 'Langganan ' + tier.name, amount: -tier.price, at: 'Hari ini ' + nowClock(), status: 'sukses' });
+      if (tier.price > 0) {
+        toast({ title: 'Aktivasi lewat kasir', msg: tier.name + ' diaktifkan staf setelah pembayaran — hubungi kasir atau tim lewat chat.', tone: 'amber', icon: 'info', ms: 5600 });
+        openChat();
+        break;
       }
-      S.sub = tier.id; save(); render(); bubbles(12);
-      toast({ title: (tier.price ? 'Paket ' : 'Kembali ke ') + tier.name, msg: tier.price ? 'Dipotong dari Dompet BUSA · perpanjangan otomatis tanggal 1.' : 'Order berikutnya ditagih per kilogram.', tone: tier.price ? 'blue' : 'muted', icon: 'star', ms: 4600 });
+      S.sub = tier.id; save(); render();
+      toast({ title: 'Kembali ke ' + tier.name, msg: 'Order berikutnya ditagih per kilogram.', tone: 'muted', icon: 'star' });
       break;
     }
     case 'reorder': {
@@ -1702,8 +1725,19 @@ document.addEventListener('click', (e) => {
     }
     case 'reslot-set': {
       const o = S.orders.find((x) => x.code === code); if (!o) break;
-      o.slot.time = t.dataset.v; save(); closeModal(); render();
-      toast({ title: o.code + ' digeser', msg: 'Jemputan ' + t.dataset.v, tone: 'mint', icon: 'calendar' });
+      const slotTime = t.dataset.v;
+      if (typeof API !== 'undefined' && API.on && isAuthed()) {
+        API.reslot(code, slotTime)
+          .then((data) => {
+            const fresh = (data && data.order) || o;
+            closeModal(); render();
+            toast({ title: fresh.code + ' dipindah', msg: 'Jemputan ' + slotTime, tone: 'mint', icon: 'calendar' });
+          })
+          .catch((err) => apiToastErr(err, 'Gagal memindah jadwal'));
+        break;
+      }
+      o.slot.time = slotTime; save(); closeModal(); render();
+      toast({ title: o.code + ' digeser', msg: 'Jemputan ' + slotTime, tone: 'mint', icon: 'calendar' });
       break;
     }
     case 'area-check': areaCheck((qs('#arq') || {}).value); break;

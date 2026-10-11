@@ -85,7 +85,10 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     jwtSecret: resolveJwtSecret(env.BUSA_JWT_SECRET, dataDir),
     jwtTtl: env.BUSA_JWT_TTL ?? '12h',
     seedPassword: env.BUSA_SEED_PASSWORD ?? 'busa1234',
-    simulate: bool(env.BUSA_SIMULATE, true),
+    /* Simulasi lantai mati secara default — di produksi tahap hanya boleh
+       bergerak lewat /scan operator. Nyalakan sadar-sadar untuk demo lokal:
+       BUSA_SIMULATE=true. */
+    simulate: bool(env.BUSA_SIMULATE, false),
     tickMs: int(env.BUSA_TICK_MS, 7000),
     corsOrigins: list(env.BUSA_CORS_ORIGINS),
     logLevel: env.BUSA_LOG_LEVEL ?? 'info',

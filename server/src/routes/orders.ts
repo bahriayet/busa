@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import type { Db } from '../db/client.ts';
 import * as R from '../db/repo.ts';
+import { SLOTS } from '../domain/constants.ts';
 import { quote, quoteErrors } from '../domain/pricing.ts';
 import type { Order, OrderItem, OrderMode, PayMethod, Priority } from '../domain/types.ts';
 import { badRequest, conflict, forbidden, notFound } from '../lib/http.ts';
@@ -8,9 +9,9 @@ import { uid } from '../lib/ids.ts';
 import { makeRequireRole } from '../plugins/auth.ts';
 
 /**
- * Order: daftar, checkout pelanggan, walk-in kasir, bayar, ambil, batalkan.
- * Semua angka tagihan keluar dari mesin pricing server — angka dari klien
- * tidak pernah dipercaya.
+ * Order: daftar, checkout pelanggan, walk-in kasir, bayar, ambil, batalkan,
+ * pindah jadwal. Semua angka tagihan keluar dari mesin pricing server —
+ * angka dari klien tidak pernah dipercaya.
  */
 
 interface CheckoutBody {
@@ -33,6 +34,7 @@ interface WalkinBody extends CheckoutBody {
 }
 
 interface PayBody { method?: string }
+interface ReslotBody { slotTime?: string }
 
 function parseCheckout(body: CheckoutBody) {
   const items: OrderItem[] = (body.items ?? [])
@@ -176,8 +178,29 @@ export function registerOrderRoutes(app: FastifyInstance, db: Db): void {
 
   /* ── Bayar ──────────────────────────────────────────── */
 
+  /* Hanya kasir/staf yang boleh menandai lunas — pelanggan tidak boleh
+     mengubah status pembayarannya sendiri. */
   app.post(
     '/api/orders/:code/pay',
+    { preHandler: staff },
+    async (req) => {
+      const code = (req.params as { code: string }).code;
+      const order = await R.findOrderByCode(db, code);
+      if (!order) throw notFound(`Order ${code} tidak ditemukan.`);
+      if (order.payStatus === 'lunas') throw conflict(`${order.code} sudah lunas.`);
+      if (order.cancelled) throw conflict(`${order.code} sudah dibatalkan.`);
+
+      const method = (String((req.body as PayBody | undefined)?.method ?? order.pay)) as PayMethod;
+      return await payOrder(db, order, method);
+    },
+  );
+
+  /* ── Pindah jadwal jemput ───────────────────────────── */
+
+  /* Pelanggan boleh memindah jam pesanannya sendiri selama belum masuk
+     lantai (tahap 0–1); setelah itu harus lewat kasir. */
+  app.post(
+    '/api/orders/:code/reslot',
     { preHandler: anyUser },
     async (req) => {
       const code = (req.params as { code: string }).code;
@@ -187,11 +210,20 @@ export function registerOrderRoutes(app: FastifyInstance, db: Db): void {
         const customer = (await R.listCustomers(db)).find((c) => c.userId === req.auth!.userId);
         if (order.customerId !== customer?.id) throw forbidden('Order ini milik pelanggan lain.');
       }
-      if (order.payStatus === 'lunas') throw conflict(`${order.code} sudah lunas.`);
       if (order.cancelled) throw conflict(`${order.code} sudah dibatalkan.`);
+      if (order.stage > 1) throw conflict(`${order.code} sudah masuk lantai — ubah jadwal lewat kasir.`);
 
-      const method = (String((req.body as PayBody | undefined)?.method ?? order.pay)) as PayMethod;
-      return await payOrder(db, order, method);
+      const slotTime = String((req.body as ReslotBody | undefined)?.slotTime ?? '').trim();
+      if (!SLOTS.includes(slotTime)) {
+        throw badRequest(`Jam tidak dikenal. Pilihan: ${SLOTS.join(', ')}.`);
+      }
+      const updated = await R.patchOrder(db, order.code, { slotTime });
+      await R.insertNotification(db, {
+        customerId: order.customerId, tone: 'blue', icon: 'calendar',
+        title: `${order.code} dipindah ke jam ${slotTime}`,
+        msg: 'Jadwal jemput baru tersimpan — kurir menyesuaikan.',
+      });
+      return { ok: true, order: updated };
     },
   );
 

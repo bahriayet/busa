@@ -142,7 +142,7 @@ VIEWS.langganan = {
           <ul class="tr-perks">${t.perks.map((p) => `<li>${icon('check')}${esc(p)}</li>`).join('')}</ul>
           ${t.id === cur.id
       ? `<span class="tr-cur">${icon('check')} Paket Anda sekarang</span>`
-      : `<button class="btn ${t.id === 'premium' ? 'primary' : 'ghost'}" data-act="sub" data-v="${t.id}">${icon('bolt')} ${t.price ? 'Ambil paket ini' : 'Kembali ke lepas'}</button>`}
+      : `<button class="btn ${t.id === 'premium' ? 'primary' : 'ghost'}" data-act="sub" data-v="${t.id}">${icon(t.price ? 'phone' : 'star')} ${t.price ? 'Aktifkan lewat kasir' : 'Kembali ke lepas'}</button>`}
         </article>`).join('')}
     </section>
     <section class="panel cmp" data-reveal>
@@ -158,7 +158,7 @@ VIEWS.langganan = {
     ['Laporan pemakaian', ['Riwayat order', 'Grafik bulanan', 'Dashboard per cabang']]].map((r, i) => `<tr style="--i:${i}"><td>${esc(r[0])}</td>${r[1].map((c) => `<td>${esc(c)}</td>`).join('')}</tr>`).join('')}
         </tbody>
       </table></div>
-      <p class="mono fine mt">Paket dipotong otomatis dari Dompet BUSA setiap tanggal 1. Batalkan lewat Profil, tagihan berhenti di akhir periode.</p>
+      <p class="mono fine mt">Paket berbayar diaktifkan kasir setelah pembayaran; tagihan berikutnya mengikuti periode berjalan dan bisa berhenti kapan saja.</p>
     </section>`;
   },
 };
