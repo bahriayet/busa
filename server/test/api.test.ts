@@ -368,3 +368,48 @@ test('health check menjawab ok', async () => {
   assert.equal(res.statusCode, 200);
   assert.equal((res.json() as { ok: boolean }).ok, true);
 });
+
+test('QRIS: publik membaca, hanya admin mengganti, pelanggan ditolak', async () => {
+  const anon = await app.inject({ method: 'GET', url: '/api/qris' });
+  assert.equal(anon.statusCode, 200);
+  assert.equal((anon.json() as { qris: unknown }).qris, null);
+
+  const png = 'data:image/png;base64,' + Buffer.from('qris-uji').toString('base64');
+  const custToken = await login('0812-7781-4402');
+  const denied = await app.inject({
+    method: 'PUT', url: '/api/qris',
+    headers: { authorization: `Bearer ${custToken}` },
+    payload: { dataUrl: png },
+  });
+  assert.equal(denied.statusCode, 403);
+
+  const admin = await login('admin');
+  const bad = await app.inject({
+    method: 'PUT', url: '/api/qris',
+    headers: { authorization: `Bearer ${admin}` },
+    payload: { dataUrl: 'data:text/html;base64,YWJj' },
+  });
+  assert.equal(bad.statusCode, 400);
+
+  const put = await app.inject({
+    method: 'PUT', url: '/api/qris',
+    headers: { authorization: `Bearer ${admin}` },
+    payload: { dataUrl: png },
+  });
+  assert.equal(put.statusCode, 200, put.body);
+  const stored = (put.json() as { qris: { dataUrl: string; updatedAt: number } }).qris;
+  assert.equal(stored.dataUrl, png);
+  assert.ok(stored.updatedAt > 0);
+
+  const get = await app.inject({ method: 'GET', url: '/api/qris' });
+  assert.equal((get.json() as { qris: { dataUrl: string } }).qris.dataUrl, png);
+
+  const del = await app.inject({
+    method: 'DELETE', url: '/api/qris',
+    headers: { authorization: `Bearer ${admin}` },
+  });
+  assert.equal(del.statusCode, 200);
+  assert.equal((del.json() as { qris: unknown }).qris, null);
+  const after = await app.inject({ method: 'GET', url: '/api/qris' });
+  assert.equal((after.json() as { qris: unknown }).qris, null);
+});

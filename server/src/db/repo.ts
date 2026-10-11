@@ -1,5 +1,5 @@
 import {
-  b, jparse, jstr, n, nextCounter, peekCounter, unb, type Db, type SqlParam,
+  b, getSetting, jparse, jstr, n, nextCounter, peekCounter, setSetting, unb, type Db, type SqlParam,
 } from './client.ts';
 import { SLOTS, STAMP_CYCLE, clockLabel, createdLabel, dayKey } from '../domain/constants.ts';
 import type {
@@ -764,6 +764,22 @@ export async function setContent(db: Db, key: string, value: unknown): Promise<v
     'INSERT INTO content (key, value_json) VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value_json = ?',
     key, jstr(value), jstr(value),
   );
+}
+
+/* ── QRIS pembayaran ─────────────────────────────────────── */
+
+/** Gambar QRIS yang diunggah admin, disimpan sebagai data URL di settings. */
+export interface QrisImage { dataUrl: string; updatedAt: number }
+
+export async function getQrisImage(db: Db): Promise<QrisImage | null> {
+  const v = await getSetting<QrisImage | null>(db, 'qris_image', null);
+  if (!v || typeof v.dataUrl !== 'string' || !v.dataUrl.startsWith('data:image/')) return null;
+  return { dataUrl: v.dataUrl, updatedAt: typeof v.updatedAt === 'number' ? v.updatedAt : 0 };
+}
+
+export async function setQrisImage(db: Db, image: QrisImage | null): Promise<QrisImage | null> {
+  await setSetting(db, 'qris_image', image);
+  return image;
 }
 
 /* ── Notifikasi & chat ───────────────────────────────────── */

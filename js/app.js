@@ -33,6 +33,7 @@ const PORTALS = {
       { id: 'pelanggan', label: 'Pelanggan', icon: 'user' },
       { id: 'pengguna', label: 'Pengguna', icon: 'key' },
       { id: 'layanan', label: 'Layanan', icon: 'tag' },
+      { id: 'pembayaran', label: 'Pembayaran', icon: 'wallet' },
       { id: 'laporan', label: 'Laporan', icon: 'chart' },
       { id: 'setelan', label: 'Profil', icon: 'user' },
     ],
@@ -90,6 +91,7 @@ let S = {
   users: [],
   usersLoaded: false,
   usersLoading: false,
+  qris: null,
   revenue: null,
   mix: null,
   activity: null,
@@ -248,6 +250,37 @@ function etaFor(stage, priority) {
   const hrs = priority === 'express' ? rest * 0.6 : rest * 6.5;
   const d = new Date(Date.now() + hrs * 3600000);
   return `${pad(d.getHours())}:${pad(d.getMinutes())} · ${['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'][d.getDay()]}`;
+}
+
+/* ── QRIS PEMBAYARAN ──────────────────────────────────── */
+
+/** Gambar QRIS aktif: unggahan admin dari server, atau gambar bawaan. */
+function qrisSrc() {
+  return (S.qris && S.qris.dataUrl) ? S.qris.dataUrl : './img/qris.png';
+}
+function qrisIsCustom() {
+  return Boolean(S.qris && S.qris.dataUrl);
+}
+function qrisDate(ms) {
+  if (!ms) return '';
+  const d = new Date(ms);
+  const bulan = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+  return `${d.getDate()} ${bulan[d.getMonth()]} ${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+/** Unduh gambar QRIS yang sedang tampil (unggahan admin atau fallback bawaan). */
+function qrisDownload() {
+  const img = qs('#qris-img');
+  const src = qrisIsCustom() ? S.qris.dataUrl : (img ? (img.currentSrc || img.src) : './img/qris.svg');
+  if (!src) return;
+  const m = /^data:image\/(png|jpe?g|webp|gif)/.exec(src);
+  const ext = /svg/i.test(src) ? 'svg' : m ? m[1].replace('jpeg', 'jpg') : 'png';
+  const a = document.createElement('a');
+  a.href = src;
+  a.download = 'qris-busa.' + ext;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  toast({ title: 'QRIS diunduh', msg: 'Pindai dari galeri aplikasi bank/e-wallet Anda.', tone: 'mint', icon: 'download' });
 }
 
 /* ── SHELL ─────────────────────────────────────────────── */
@@ -844,10 +877,16 @@ function orderStep2() {
       </div>
       ${c.pay === 'qris' ? `
         <div class="qris-box">
-          <img src="./img/qris.png" alt="Kode QRIS BUSA" onerror="this.onerror=null;this.src='./img/qris.svg';">
+          <img id="qris-img" src="${qrisSrc()}" alt="Kode QRIS BUSA" onerror="this.onerror=null;this.src='./img/qris.svg';">
           <div>
             <b class="display lg">Scan & bayar ${rp(r.total)}</b>
             <p>Buka aplikasi e-wallet atau m-banking, pindai QR di samping, lalu masukkan nominal <b>${rp(r.total)}</b>. Tunjukkan bukti pembayaran ke kurir atau kasir saat penjemputan.</p>
+            ${qrisIsCustom() ? `
+              <div class="qris-acts">
+                <button class="btn ghost sm" data-act="qris-download">${icon('download')} Unduh QRIS</button>
+                <span class="mono fine">QRIS resmi BUSA${S.qris.updatedAt ? ' · diperbarui ' + qrisDate(S.qris.updatedAt) : ''}</span>
+              </div>` : `
+              <p class="mono fine">QRIS resmi belum diunggah admin — tanyakan kasir bila QR ini belum berlaku.</p>`}
           </div>
         </div>` : `
         <p class="hint">${icon('tag')} Siapkan uang tunai <b>${rp(r.total)}</b> — dibayarkan saat kurir atau kasir menyerahkan cucian Anda.</p>`}
@@ -1635,6 +1674,19 @@ document.addEventListener('click', (e) => {
         .catch((err) => apiToastErr(err, 'Gagal menghapus akun'));
       break;
     }
+    case 'qris-pick': { const f = qs('#qris-file'); if (f) f.click(); break; }
+    case 'qris-download': qrisDownload(); break;
+    case 'qris-reset':
+      openModal(`<p class="mono kicker">QRIS kustom</p><h2 class="display lg">Hapus QRIS unggahan?</h2>
+        <p class="lede sm">Pelanggan kembali melihat gambar contoh sampai Anda mengunggah QRIS baru.</p>
+        <div class="m-acts"><button class="btn danger" data-act="qris-reset-yes">${icon('x')} Ya, hapus</button>
+        <button class="btn ghost" data-act="modal-close">Batal</button></div>`);
+      break;
+    case 'qris-reset-yes':
+      API.resetQris()
+        .then(() => { closeModal(); render(); toast({ title: 'QRIS dihapus', msg: 'Kembali ke gambar contoh.', tone: 'red', icon: 'x' }); })
+        .catch((err) => apiToastErr(err, 'Gagal menghapus QRIS'));
+      break;
     case 'sub': {
       const tiers = (S.tiers && S.tiers.length) ? S.tiers : SEED.tiers;
       const tier = tiers.find((x) => x.id === t.dataset.v);

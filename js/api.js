@@ -167,6 +167,7 @@ API.bootstrap = async function () {
   if (!isAuthed()) return false;
   try {
     apiMergeCatalog(await apiReq('GET', '/api/catalog'));
+    await API.loadQris();
     if (isCustomerAuthed()) await apiRefreshMe();
     else if (isAdminAuthed()) await apiLoadAdmin();
     API.on = true;
@@ -203,6 +204,7 @@ API.stop = function () {
   S.apiOn = false;
   S.users = [];
   S.usersLoaded = false;
+  S.qris = null;
   clearTimeout(API.wsTimer);
   if (API.ws) {
     try { API.ws.close(); } catch { /* sudah tertutup */ }
@@ -463,6 +465,32 @@ API.patchAddon = async function (id, patch) {
 API.patchMachine = async function (id, patch) {
   const data = await apiReq('PATCH', '/api/machines/' + encodeURIComponent(id), patch);
   if (data.machine) apiPatchMachineLocal(data.machine);
+  return data;
+};
+
+/* ── MUTASI: QRIS PEMBAYARAN ──────────────────────────── */
+
+/** Baca gambar QRIS aktif. Gagal baca bukan alasan boot berhenti — pakai bawaan. */
+API.loadQris = async function () {
+  try {
+    const data = await apiReq('GET', '/api/qris');
+    S.qris = data.qris || null;
+  } catch (err) {
+    if (err && err.silent) throw err;
+    S.qris = null;
+  }
+  return S.qris;
+};
+
+API.uploadQris = async function (dataUrl) {
+  const data = await apiReq('PUT', '/api/qris', { dataUrl });
+  S.qris = data.qris || null;
+  return S.qris;
+};
+
+API.resetQris = async function () {
+  const data = await apiReq('DELETE', '/api/qris');
+  S.qris = null;
   return data;
 };
 

@@ -296,3 +296,99 @@ async function userSave(id) {
     toast({ title: 'Akun diperbarui', msg: name + ' · ' + (ROLE_LABEL[role] || role), tone: 'blue', icon: 'check' });
   } catch (err) { apiToastErr(err, 'Gagal menyimpan akun'); }
 }
+
+/* ── QRIS PEMBAYARAN (ADMIN) ──────────────────────── */
+
+const QRIS_MAX_BYTES = 2 * 1024 * 1024;
+
+VIEWS.pembayaran = {
+  title: 'Pembayaran', kicker: 'QRIS untuk pelanggan',
+  render() {
+    const custom = qrisIsCustom();
+    const online = typeof API !== 'undefined' && API.on;
+    return `
+    <div class="rep-top">
+      <div><p class="mono kicker">Satu kode untuk semua pelanggan</p><h1 class="display xl">QRIS pembayaran</h1></div>
+      <div class="kan-sum">
+        <button class="btn ghost sm" data-act="qris-download">${icon('download')} Unduh QRIS aktif</button>
+      </div>
+    </div>
+    ${online ? '' : `<p class="hint warn">${icon('alert')} Server tidak terjangkau — QRIS hanya bisa diganti saat tersambung.</p>`}
+    <section class="set-grid">
+      <div class="panel" data-reveal>
+        <header class="p-head"><h3 class="display">QRIS aktif</h3><span class="mono note">${custom ? 'diunggah admin' : 'gambar bawaan'}</span></header>
+        <div class="qris-preview ${custom ? 'custom' : 'fallback'}">
+          <img id="qris-img" src="${qrisSrc()}" alt="Pratinjau QRIS" onerror="this.onerror=null;this.src='./img/qris.svg';">
+          <div>
+            <b class="display lg">${custom ? 'QRIS kustom aktif' : 'Menunggu unggahan'}</b>
+            <p class="mono fine">${custom
+              ? 'Diperbarui ' + qrisDate(S.qris.updatedAt)
+              : 'Pelanggan masih melihat gambar contoh di langkah Pembayaran.'}</p>
+            <p>Gambar ini otomatis muncul di langkah Pembayaran pelanggan dan bisa mereka unduh untuk dipindai.</p>
+          </div>
+        </div>
+        <div class="data-acts mt">
+          ${custom ? `<button class="btn danger sm" data-act="qris-reset">${icon('x')} Hapus, kembali ke contoh</button>` : ''}
+        </div>
+      </div>
+      <div class="panel" data-reveal>
+        <header class="p-head"><h3 class="display">${custom ? 'Ganti QRIS' : 'Unggah QRIS'}</h3><span class="mono note">PNG · JPG · WEBP · maks 2 MB</span></header>
+        <div class="qris-drop" id="qris-drop" data-act="qris-pick" role="button" tabindex="0" aria-label="Pilih gambar QRIS">
+          ${icon('upload')}
+          <b>Letakkan gambar QRIS di sini</b>
+          <p class="mono fine">atau klik untuk memilih file — gambar langsung menggantikan QRIS aktif.</p>
+        </div>
+        <input id="qris-file" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+        <p class="hint">${icon('info', '')} Simpan screenshot QRIS dari aplikasi bank/e-wallet Anda, lalu unggah di sini. Pelanggan melihat gambar yang sama saat checkout dan bisa mengunduhnya.</p>
+      </div>
+    </section>`;
+  },
+  wire() {
+    const drop = qs('#qris-drop');
+    const file = qs('#qris-file');
+    if (!drop || !file) return;
+    file.addEventListener('change', () => {
+      qrisApplyFile(file.files && file.files[0]);
+      file.value = '';
+    });
+    drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('on'); });
+    drop.addEventListener('dragleave', () => drop.classList.remove('on'));
+    drop.addEventListener('drop', (e) => {
+      e.preventDefault();
+      drop.classList.remove('on');
+      const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if (f) qrisApplyFile(f);
+    });
+    drop.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); file.click(); }
+    });
+  },
+};
+
+/** Baca file lokal → data URL → unggah ke server; langsung terasa di portal pelanggan. */
+async function qrisApplyFile(file) {
+  if (!file) return;
+  if (typeof API === 'undefined' || !API.on || !isAdminAuthed()) {
+    toast({ title: 'Server tidak terjangkau', msg: 'QRIS hanya bisa diganti saat terhubung.', tone: 'amber', icon: 'alert' });
+    return;
+  }
+  if (!/^image\/(png|jpe?g|webp|gif)$/.test(file.type || '')) {
+    toast({ title: 'Format tidak didukung', msg: 'Pakai PNG, JPG, WEBP, atau GIF.', tone: 'red', icon: 'alert' });
+    return;
+  }
+  if (file.size > QRIS_MAX_BYTES) {
+    toast({ title: 'Gambar terlalu besar', msg: 'Maksimal 2 MB — kompres dulu bila perlu.', tone: 'red', icon: 'alert' });
+    return;
+  }
+  try {
+    const dataUrl = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = () => reject(new Error('File tidak bisa dibaca.'));
+      reader.readAsDataURL(file);
+    });
+    await API.uploadQris(dataUrl);
+    render();
+    toast({ title: 'QRIS diperbarui', msg: 'Pelanggan langsung melihat gambar baru.', tone: 'mint', icon: 'check' });
+  } catch (err) { apiToastErr(err, 'QRIS gagal diunggah'); }
+}

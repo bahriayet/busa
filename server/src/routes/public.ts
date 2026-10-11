@@ -59,6 +59,10 @@ export function registerPublicRoutes(app: FastifyInstance, db: Db): void {
     metrics: await R.getContent<unknown[]>(db, 'metrics', []),
   }));
 
+  /* Gambar QRIS untuk pembayaran — memang ditunjukkan ke pelanggan untuk
+     dipindai, jadi boleh publik. `null` berarti pakai gambar bawaan frontend. */
+  app.get('/api/qris', async () => ({ ok: true, qris: await R.getQrisImage(db) }));
+
   app.get('/api/slots', async (req: FastifyRequest<{ Querystring: { date?: string } }>) => {
     const date = req.query.date ?? new Date().toISOString().slice(0, 10);
     return { ok: true, date, slots: await R.slotLoad(db, date) };

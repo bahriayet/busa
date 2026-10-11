@@ -21,6 +21,18 @@ interface ContentPatch { value: unknown }
 interface CreateUserBody { name: string; username?: string; phone?: string; password: string; role: 'admin' | 'staff' | 'customer' }
 interface PatchUserBody { name?: string; role?: 'admin' | 'staff' | 'customer'; active?: boolean; newPassword?: string }
 
+/* Batas gambar QRIS: cukup untuk screenshot bank/e-wallet, tapi tidak boleh
+   jadi tempat menyimpan file sembarangan. bodyLimit > max karena base64 ~4/3. */
+const QRIS_DATA_URL = /^data:image\/(png|jpe?g|webp|gif);base64,[A-Za-z0-9+/=]+$/;
+const QRIS_MAX_IMAGE_BYTES = 2 * 1024 * 1024;
+const QRIS_MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
+
+/** Perkiraan ukuran byte gambar dari panjang base64 (tanpa decode penuh). */
+function qrisImageBytes(dataUrl: string): number {
+  const b64 = dataUrl.slice(dataUrl.indexOf(',') + 1);
+  return Math.floor((b64.length * 3) / 4);
+}
+
 export function registerAdminRoutes(app: FastifyInstance, db: Db): void {
   const requireRole = makeRequireRole(db);
   const admin = requireRole('admin');
@@ -128,6 +140,28 @@ export function registerAdminRoutes(app: FastifyInstance, db: Db): void {
 
   app.post('/api/reset', { preHandler: admin }, async () => {
     throw badRequest('Reset database tidak tersedia lewat HTTP saat server berjalan. Jalankan `npm run db:reset`.');
+  });
+
+  /* ── QRIS pembayaran ─────────────────────────────────────── */
+
+  /** Unggah/ganti gambar QRIS yang tampil di langkah pembayaran pelanggan. */
+  app.put('/api/qris', { preHandler: admin, bodyLimit: QRIS_MAX_UPLOAD_BYTES }, async (req) => {
+    const body = (req.body ?? {}) as { dataUrl?: unknown };
+    const dataUrl = typeof body.dataUrl === 'string' ? body.dataUrl : '';
+    if (!QRIS_DATA_URL.test(dataUrl)) {
+      throw badRequest('Gambar QRIS harus PNG, JPG, WEBP, atau GIF (data URL base64).');
+    }
+    if (qrisImageBytes(dataUrl) > QRIS_MAX_IMAGE_BYTES) {
+      throw badRequest('Ukuran gambar QRIS maksimal 2 MB.');
+    }
+    const qris = await R.setQrisImage(db, { dataUrl, updatedAt: Date.now() });
+    return { ok: true, qris };
+  });
+
+  /** Hapus QRIS unggahan — pelanggan kembali melihat gambar bawaan. */
+  app.delete('/api/qris', { preHandler: admin }, async () => {
+    await R.setQrisImage(db, null);
+    return { ok: true, qris: null };
   });
 
   /* ── User management ─────────────────────────────────────── */
