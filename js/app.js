@@ -1179,7 +1179,6 @@ VIEWS.statistik = {
     const spend = mine.reduce((a, o) => a + (o.total || 0), 0);
     const kgSum = mine.reduce((a, o) => a + (o.weight || 0), 0);
     const avg = count ? spend / count : 0;
-    const bonus = S.wallet.txns.filter((t) => t.type === 'cashback' || t.type === 'refund');
     return `
     <section class="cust-stats" data-reveal>
       <div class="cst t-blue"><p class="mono lbl">Total pesanan</p><b class="num xl">${count}</b><p class="mono fine">sejak bergabung</p></div>
@@ -1187,30 +1186,17 @@ VIEWS.statistik = {
       <div class="cst t-mint"><p class="mono lbl">Total berat</p><b class="num xl">${kg(kgSum)} kg</b><p class="mono fine">dicuci & disetrika</p></div>
       <div class="cst t-lilac"><p class="mono lbl">Rata-rata / pesanan</p><b class="num xl">${rp(avg)}</b><p class="mono fine">${count ? kg(kgSum / count) + ' kg per pesanan' : 'belum ada pesanan'}</p></div>
     </section>
-    <section class="wallet-grid mt">
-      <article class="panel stamps" data-reveal>
-        <header class="p-head"><h3 class="display">Kartu stempel</h3><span class="mono note">${S.stamps}/7</span></header>
-        <div class="stamp-grid">
-          ${Array.from({ length: 7 }).map((_, i) => `<div class="stm ${i < S.stamps ? 'on' : ''}">${icon('drum')}<b class="mono">${pad(i + 1)}</b></div>`).join('')}
-        </div>
-        <p class="lede sm">Tujuh kali order, satu kilogram cuci gratis. Stempel bertambah otomatis saat pesanan berstatus Selesai.</p>
-        <div class="ref">
-          <p class="mono lbl">Kode referralsaya</p>
-          <div class="ref-row"><b class="mono">BUSA-RANIA-7742</b><button class="btn-icon" data-act="copy" data-v="BUSA-RANIA-7742" aria-label="Salin">${icon('copy')}</button></div>
-          <p class="mono fine">Teman mendapat Rp 25.000, Anda dapat 1 stempel.</p>
-        </div>
-      </article>
-      <article class="panel" data-reveal>
-        <header class="p-head"><h3 class="display">Bonus & refund</h3><span class="mono note">${bonus.length} catatan</span></header>
-        ${bonus.length ? `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Keterangan</th><th>Tipe</th><th class="r">Jumlah</th><th>Waktu</th></tr></thead>
-          <tbody>${bonus.map((t, i) => `<tr style="--i:${i}">
-            <td>${esc(t.label)}</td>
-            <td><span class="stage-pill t-${t.type}">${esc(t.type)}</span></td>
-            <td class="r mono num ${t.amount > 0 ? 'pos' : 'neg'}">${t.amount > 0 ? '+' : '−'}${rp(Math.abs(t.amount))}</td>
-            <td class="mono fine">${esc(t.at)}</td></tr>`).join('')}</tbody></table></div>`
-          : `<p class="mono fine">Belum ada bonus atau refund.</p>`}
-        ${S.wallet.balance > 0 ? `<p class="hint mt">${icon('wallet')} Saldo refund/bonus tersimpan <b>${rp(S.wallet.balance)}</b> — bisa diuangkan lewat kasir.</p>` : ''}
-      </article>
+    <section class="panel stamps mt" data-reveal>
+      <header class="p-head"><h3 class="display">Kartu stempel</h3><span class="mono note">${S.stamps}/7</span></header>
+      <div class="stamp-grid">
+        ${Array.from({ length: 7 }).map((_, i) => `<div class="stm ${i < S.stamps ? 'on' : ''}">${icon('drum')}<b class="mono">${pad(i + 1)}</b></div>`).join('')}
+      </div>
+      <p class="lede sm">Tujuh kali order, satu kilogram cuci gratis. Stempel bertambah otomatis saat pesanan berstatus Selesai.</p>
+      <div class="ref">
+        <p class="mono lbl">Kode referralsaya</p>
+        <div class="ref-row"><b class="mono">BUSA-RANIA-7742</b><button class="btn-icon" data-act="copy" data-v="BUSA-RANIA-7742" aria-label="Salin">${icon('copy')}</button></div>
+        <p class="mono fine">Teman mendapat Rp 25.000, Anda dapat 1 stempel.</p>
+      </div>
     </section>
     <section class="promo-strip" data-reveal>
       <h3 class="display">Promo aktif</h3>
