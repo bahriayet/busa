@@ -67,7 +67,13 @@ export function buildApp({ db, cfg }: BuildOpts): FastifyInstance {
   app.decorate('broadcast', hub);
   app.decorate('db', db);
 
-  void app.register(cors, { origin: cfg.corsOrigins.length ? cfg.corsOrigins : false });
+  void app.register(cors, {
+    origin: cfg.corsOrigins.length ? cfg.corsOrigins : false,
+    /* Default @fastify/cors hanya GET,HEAD,POST — cukup untuk baca, tapi
+       admin portal memakai PATCH/PUT/DELETE lintas domain (Vercel → API).
+       Tanpa daftar ini, preflight browser menolak perubahan dari portal. */
+    methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  });
   void app.register(jwt, { secret: cfg.jwtSecret, sign: { expiresIn: cfg.jwtTtl } });
   void app.register(rateLimit, { global: true, max: cfg.rateLimitMax, timeWindow: '1 minute' });
   void app.register(swagger, {

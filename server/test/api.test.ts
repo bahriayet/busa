@@ -369,6 +369,23 @@ test('health check menjawab ok', async () => {
   assert.equal((res.json() as { ok: boolean }).ok, true);
 });
 
+test('CORS lintas domain mengizinkan PUT/PATCH/DELETE untuk portal admin', async () => {
+  const web = buildApp({ db, cfg: { ...cfg, corsOrigins: ['https://busa-londry.vercel.app'] } });
+  await web.ready();
+  const pre = await web.inject({
+    method: 'OPTIONS', url: '/api/qris',
+    headers: {
+      origin: 'https://busa-londry.vercel.app',
+      'access-control-request-method': 'PUT',
+      'access-control-request-headers': 'authorization,content-type',
+    },
+  });
+  assert.equal(pre.statusCode, 204, pre.body);
+  const allow = String(pre.headers['access-control-allow-methods'] || '');
+  for (const m of ['PUT', 'PATCH', 'DELETE']) assert.ok(allow.includes(m), `metode ${m} tidak diizinkan: ${allow}`);
+  await web.close();
+});
+
 test('QRIS: publik membaca, hanya admin mengganti, pelanggan ditolak', async () => {
   const anon = await app.inject({ method: 'GET', url: '/api/qris' });
   assert.equal(anon.statusCode, 200);
