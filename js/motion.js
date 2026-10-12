@@ -145,8 +145,7 @@ const MOTION = (function () {
           },
         });
         ptl.addLabel('buka', 0);
-        ptl.to('.peak-door', { scale: 0.62, opacity: 0.1, rotation: 30 }, 'buka')
-          .to('.peak-inner', { rotation: 260, scale: 1.14 }, 'buka')
+        ptl.to('.peak-photo img', { scale: 1.28, rotation: 10 }, 'buka')
           .from('.peak-copy', { opacity: 0, y: 20 }, 'buka')
           .addLabel('bakar', '+=0.05');
         stages.forEach((s, i) => {
