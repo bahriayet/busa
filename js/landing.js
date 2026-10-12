@@ -167,10 +167,11 @@ VIEWS.landing = {
 
     <section class="act act-peak" id="a3" data-bc-act="peak">
       <div class="peak-stage">
-        <div class="peak-inner">
-          ${Array.from({ length: 12 }).map((_, i) => `<i class="rag r${i % 4}" style="--a:${i * 30}deg;--r:${24 + (i % 4) * 7}%;--s:${14 + (i % 3) * 8}px"></i>`)}
-        </div>
-        <div class="peak-door">${drumMarkup({ rpm: '3s', size: 210, state: 'run', rags: 9 })}</div>
+        <figure class="peak-poster">
+          <img class="peak-poster-base" src="./img/proses-laundry.jpg" alt="Infografis sembilan tahap proses laundry: menerima sampai siap" loading="lazy">
+          <div class="peak-lens" aria-hidden="true"><img src="./img/proses-laundry.jpg" alt=""></div>
+          <span class="peak-lens-ring" aria-hidden="true"></span>
+        </figure>
         <div class="peak-copy">
           <p class="mono act-name">Babak tiga · di dalam</p>
           <h2 class="display hero">Sembilan tahap,<br>dibakar satu per satu.</h2>

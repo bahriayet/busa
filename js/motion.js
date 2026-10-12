@@ -136,6 +136,15 @@ const MOTION = (function () {
       peakMM = gsap.matchMedia();
       peakMM.add('(min-width: 1001px)', () => {
         const stages = U.toArray('.peak-i', peak);
+        /* Pusat 9 kartu poster (persen) — urut 01…09 seperti daftar tahap. */
+        const CELLS = [[22, 28], [49, 28], [77, 28], [22, 55], [49, 55], [77, 55], [22, 83], [49, 83], [77, 83]];
+        const lens = qs('.peak-lens', peak);
+        const ring = qs('.peak-lens-ring', peak);
+        const base = qs('.peak-poster-base', peak);
+        if (base) gsap.set(base, { filter: 'brightness(.5) saturate(.72)' });
+        if (lens) gsap.set(lens, { clipPath: 'circle(16% at ' + CELLS[0][0] + '% ' + CELLS[0][1] + '%)' });
+        if (ring) gsap.set(ring, { opacity: 1, left: CELLS[0][0] + '%', top: CELLS[0][1] + '%', xPercent: -50, yPercent: -50 });
+
         const ptl = gsap.timeline({
           defaults: { duration: 0.4, ease: 'none' },
           scrollTrigger: {
@@ -145,15 +154,20 @@ const MOTION = (function () {
           },
         });
         ptl.addLabel('buka', 0);
-        ptl.to('.peak-door', { scale: 0.62, opacity: 0.1, rotation: 30 }, 'buka')
-          .to('.peak-inner', { rotation: 260, scale: 1.14 }, 'buka')
+        ptl.from('.peak-poster', { opacity: 0, scale: .95, transformOrigin: '76% 50%' }, 'buka')
           .from('.peak-copy', { opacity: 0, y: 20 }, 'buka')
           .addLabel('bakar', '+=0.05');
         stages.forEach((s, i) => {
+          const cell = CELLS[i] || CELLS[0];
+          if (lens) ptl.to(lens, { clipPath: 'circle(16% at ' + cell[0] + '% ' + cell[1] + '%)', duration: 0.26 }, 'bakar+=' + (i * 0.3));
+          if (ring) ptl.to(ring, { left: cell[0] + '%', top: cell[1] + '%', duration: 0.26 }, 'bakar+=' + (i * 0.3));
           ptl.fromTo(s, { opacity: 0.1, x: 26 }, { opacity: 1, x: 0 }, 'bakar+=' + (i * 0.3))
             .to(s, { opacity: 0.18, x: -12 }, 'bakar+=' + (i * 0.3 + 0.42));
         });
         ptl.addLabel('tutup', '+=0.15');
+        if (base) ptl.to(base, { filter: 'brightness(1) saturate(1)' }, 'tutup');
+        if (lens) ptl.to(lens, { opacity: 0 }, 'tutup');
+        if (ring) ptl.to(ring, { opacity: 0, scale: 1.5 }, 'tutup');
         ptl.to('.peak-led', { opacity: 1, scale: 1.2 }, 'tutup')
           .from('.peak-done', { opacity: 0, y: 10 }, 'tutup+=0.1');
       });
