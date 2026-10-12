@@ -241,7 +241,8 @@ API.loadLive = async function () {
 API.paintConn = function () {
   const el = (typeof qs === 'function') ? qs('#conn-btn') : null;
   if (!el) return;
-  if (typeof isAuthed !== 'function' || !isAuthed()) { el.hidden = true; return; }
+  /* Status server hanya relevan untuk staf/admin — pelanggan cukup pakai aplikasi. */
+  if (typeof isAdminAuthed !== 'function' || !isAdminAuthed()) { el.hidden = true; return; }
   el.hidden = false;
   const label = qs('#conn-label');
   if (API.busy) {
