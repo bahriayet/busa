@@ -149,7 +149,10 @@ const MOTION = (function () {
           defaults: { duration: 0.4, ease: 'none' },
           scrollTrigger: {
             trigger: peak, start: 'top top', end: () => '+=' + (window.innerHeight * 3.2),
-            pin: true, scrub: 0.9, anticipatePin: 1, invalidateOnRefresh: true,
+            /* fastScrollEnd: saat di-scroll cepat (fling/drag scrollbar), animasi
+               langsung mengejar posisi akhir supaya pin tidak "tertinggal" dan
+               sempat menampilkan babak ini padahal sudah kembali ke atas. */
+            pin: true, scrub: 0.5, fastScrollEnd: true, anticipatePin: 1, invalidateOnRefresh: true,
             onUpdate: (self) => peak.style.setProperty('--bc-p', self.progress.toFixed(3)),
           },
         });
@@ -191,6 +194,13 @@ const MOTION = (function () {
   }
 
   /* ── API ──────────────────────────────────────────────────────────────── */
+  /* Refresh dari pemuatan gambar bisa datang beruntun (carousel 6 foto).
+     Debounce supaya recalculation pin tidak bertumpuk saat pengguna menggulir. */
+  let refreshTimer = 0;
+  function refreshSoon() {
+    clearTimeout(refreshTimer);
+    refreshTimer = setTimeout(() => ScrollTrigger.refresh(), 220);
+  }
   function enter(portal, route, animate = true) {
     reduce = mqReduce.matches;
     fine = mqFine.matches;
@@ -218,5 +228,5 @@ const MOTION = (function () {
 
   mqReduce.addEventListener('change', () => { lastKey = ''; });
 
-  return { ok: true, enter, refresh: () => ScrollTrigger.refresh() };
+  return { ok: true, enter, refresh: refreshSoon };
 })();
