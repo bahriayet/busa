@@ -22,6 +22,26 @@ interface ContentPatch { value: unknown }
 interface CreateUserBody { name: string; username?: string; phone?: string; password: string; role: 'admin' | 'staff' | 'customer' }
 interface PatchUserBody { name?: string; role?: 'admin' | 'staff' | 'customer'; active?: boolean; newPassword?: string }
 
+/* Galeri situs: maksimal 8 foto, masing-masing ≤2 MB (base64). Body limit
+   longgar karena satu permintaan bisa membawa beberapa foto sekaligus. */
+const GALLERY_MAX = 8;
+const CONTENT_MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
+
+/** Validasi isi galeri sebelum disimpan — hanya item gambar yang sah. */
+function validateGallery(value: unknown): void {
+  if (!Array.isArray(value)) throw badRequest('Galeri harus berupa daftar foto.');
+  if (value.length > GALLERY_MAX) throw badRequest(`Maksimal ${GALLERY_MAX} foto dalam galeri.`);
+  value.forEach((raw, i) => {
+    const it = (raw ?? {}) as { dataUrl?: unknown; seed?: unknown };
+    if (typeof it.dataUrl === 'string' && it.dataUrl) {
+      if (!IMAGE_DATA_URL.test(it.dataUrl)) throw badRequest(`Foto #${i + 1}: format harus PNG, JPG, WEBP, atau GIF.`);
+      if (imageBytes(it.dataUrl) > IMAGE_MAX_BYTES) throw badRequest(`Foto #${i + 1}: ukuran maksimal 2 MB.`);
+    } else if (!(typeof it.seed === 'string' && it.seed)) {
+      throw badRequest(`Foto #${i + 1}: tidak berisi gambar.`);
+    }
+  });
+}
+
 export function registerAdminRoutes(app: FastifyInstance, db: Db): void {
   const requireRole = makeRequireRole(db);
   const admin = requireRole('admin');
@@ -118,11 +138,12 @@ export function registerAdminRoutes(app: FastifyInstance, db: Db): void {
     return { ok: true, machine: await R.patchMachine(db, id, patch) };
   });
 
-  app.patch('/api/content/:key', { preHandler: admin }, async (req) => {
+  app.patch('/api/content/:key', { preHandler: admin, bodyLimit: CONTENT_MAX_UPLOAD_BYTES }, async (req) => {
     const key = (req.params as { key: string }).key;
     const body = (req.body ?? {}) as ContentPatch;
     if (!['gallery', 'faq', 'testimonials', 'metrics'].includes(key)) throw notFound('Kunci konten tidak dikenal.');
     if (body.value === undefined) throw badRequest('Isi `value`.');
+    if (key === 'gallery') validateGallery(body.value);
     await R.setContent(db, key, body.value);
     return { ok: true, value: await R.getContent(db, key, null) };
   });

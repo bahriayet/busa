@@ -525,6 +525,36 @@ test('CORS lintas domain mengizinkan PUT/PATCH/DELETE untuk portal admin', async
   await web.close();
 });
 
+test('galeri: admin menyimpan foto, item tidak sah ditolak', async () => {
+  const admin = await login('admin');
+  const png = 'data:image/png;base64,' + Buffer.from('foto-uji').toString('base64');
+  const ok = await app.inject({
+    method: 'PATCH', url: '/api/content/gallery',
+    headers: { authorization: `Bearer ${admin}` },
+    payload: { value: [{ dataUrl: png, label: 'Depan toko' }] },
+  });
+  assert.equal(ok.statusCode, 200, ok.body);
+  const val = (ok.json() as { value: { label: string }[] }).value;
+  assert.equal(val[0]?.label, 'Depan toko');
+
+  const bad = await app.inject({
+    method: 'PATCH', url: '/api/content/gallery',
+    headers: { authorization: `Bearer ${admin}` },
+    payload: { value: [{ dataUrl: 'bukan-gambar' }] },
+  });
+  assert.equal(bad.statusCode, 400);
+
+  const tooMany = await app.inject({
+    method: 'PATCH', url: '/api/content/gallery',
+    headers: { authorization: `Bearer ${admin}` },
+    payload: { value: Array.from({ length: 9 }, () => ({ seed: 'contoh' })) },
+  });
+  assert.equal(tooMany.statusCode, 400);
+
+  const anon = await app.inject({ method: 'PATCH', url: '/api/content/gallery', payload: { value: [] } });
+  assert.equal(anon.statusCode, 401);
+});
+
 test('QRIS: publik membaca, hanya admin mengganti, pelanggan ditolak', async () => {
   const anon = await app.inject({ method: 'GET', url: '/api/qris' });
   assert.equal(anon.statusCode, 200);

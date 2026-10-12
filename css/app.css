@@ -870,6 +870,63 @@ body[data-theme="night"] .stat-hero .num { color: var(--ink); }
 
 .proof-img { width: 100%; max-height: 46vh; object-fit: contain; background: #fff; border: 1px solid var(--line); border-radius: var(--r); margin-top: 10px; }
 
+/* ── galeri situs (carousel + kelola admin) ── */
+.gal-carousel { margin: 0; position: relative; overflow: hidden; border-radius: var(--r); background: var(--paper-2); }
+
+.gal-view { position: relative; aspect-ratio: 9 / 11; }
+
+.gal-shot { position: absolute; inset: 0; opacity: 0; transition: opacity .7s ease; }
+
+.gal-shot.on { opacity: 1; }
+
+.gal-shot img { width: 100%; height: 100%; object-fit: cover; display: block; filter: saturate(.92) contrast(1.03); }
+
+.gal-carousel figcaption { position: absolute; left: 0; bottom: 0; padding: 6px 11px; background: var(--ink); color: var(--bone); font-size: 10px; letter-spacing: .12em; z-index: 2; }
+
+.gal-nav { position: absolute; top: 50%; transform: translateY(-50%); z-index: 3; width: 38px; height: 38px; display: grid; place-items: center; background: color-mix(in oklab, var(--ink) 70%, transparent); color: var(--bone); border: 0; border-radius: 50%; cursor: pointer; transition: background .2s; }
+
+.gal-nav:hover { background: var(--orange); }
+
+.gal-nav .ico { width: 18px; height: 18px; }
+
+.gal-nav.prev { left: 10px; }
+
+.gal-nav.prev .ico { transform: rotate(180deg); }
+
+.gal-nav.next { right: 10px; }
+
+.gal-dots { position: absolute; left: 50%; bottom: 40px; transform: translateX(-50%); z-index: 3; display: flex; gap: 6px; }
+
+.gal-dot { width: 8px; height: 8px; padding: 0; border-radius: 50%; border: 1px solid var(--bone); background: transparent; cursor: pointer; }
+
+.gal-dot.on { background: var(--orange); border-color: var(--orange); }
+
+.gal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+
+.gal-card { margin: 0; background: var(--paper); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; display: grid; align-content: start; }
+
+.gal-card img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; display: block; background: #fff; }
+
+.gal-card figcaption { display: grid; gap: 8px; padding: 10px; }
+
+.gal-tools { display: flex; gap: 6px; justify-content: flex-end; }
+
+.gal-tools .btn-icon[disabled] { opacity: .35; cursor: default; }
+
+.rot-up { transform: rotate(-90deg); }
+
+.rot-down { transform: rotate(90deg); }
+
+.gal-add { display: grid; justify-items: center; align-content: center; gap: 6px; min-height: 220px; padding: 20px; background: color-mix(in oklab, var(--blue) 5%, var(--paper)); border: 1.5px dashed var(--line-2); border-radius: var(--r); cursor: pointer; font: inherit; color: var(--ink); text-align: center; transition: border-color .2s, background .2s; }
+
+.gal-add:hover { border-color: var(--orange); background: color-mix(in oklab, var(--orange) 6%, var(--paper)); }
+
+.gal-add .ico { width: 26px; height: 26px; color: var(--orange); }
+
+@media (max-width: 640px) {
+  .gal-nav { width: 34px; height: 34px; }
+}
+
 .protect { display: flex; gap: 12px; align-items: flex-start; padding: 14px; background: color-mix(in oklab, var(--mint) 9%, var(--paper)); border: 1px solid color-mix(in oklab, var(--mint) 40%, transparent); border-radius: var(--r); cursor: pointer; transition: box-shadow .2s, border-color .2s; }
 
 .protect.on { border-style: dashed; border-color: var(--ink); box-shadow: 3px 3px 0 color-mix(in oklab, var(--mint) 60%, transparent); }

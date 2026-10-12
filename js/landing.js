@@ -88,6 +88,7 @@ VIEWS.landing = {
       ? API.live.doneToday
       : S.orders.filter((o) => o.stage === 8).length;
     const stuck = S.orders.find((o) => o.stage === 0) || S.orders[0] || { code: 'BUSA-0000', stage: 0 };
+    const gallery = galleryShown();
     return `
     <header class="ld-nav">
       <a class="ld-brand" href="#/" data-act="go" data-route="landing" aria-label="BUSA, halaman awal">
@@ -220,9 +221,18 @@ VIEWS.landing = {
 
     <section class="act act-proof" id="a5">
       <div class="proof-grid">
-        <figure class="kb" data-bc-parallax="-0.14" data-reveal>
-          <img src="https://picsum.photos/seed/laundry-drum-interior/900/1100" alt="Drum mesin front-load sedang berputar" width="900" height="1100">
-          <figcaption class="mono">M-02 · 18 kg · ${esc(STAGES[S.machines[1].stage].label)}</figcaption>
+        <figure class="gal-carousel" data-bc-parallax="-0.14" data-reveal>
+          <div class="gal-view">
+            ${gallery.map((it, i) => `
+              <div class="gal-shot ${i === 0 ? 'on' : ''}">
+                <img src="${gallerySrc(it)}" alt="${esc(it.label || 'Foto BUSA Laundry')}"${i === 0 ? '' : ' loading="lazy"'}>
+              </div>`).join('')}
+          </div>
+          ${gallery.length > 1 ? `
+            <button class="gal-nav prev" data-act="gal-prev" aria-label="Foto sebelumnya">${icon('chev')}</button>
+            <button class="gal-nav next" data-act="gal-next" aria-label="Foto berikutnya">${icon('chev')}</button>
+            <div class="gal-dots">${gallery.map((_, i) => `<button class="gal-dot ${i === 0 ? 'on' : ''}" data-act="gal-go" data-i="${i}" aria-label="Foto ${i + 1}"></button>`).join('')}</div>` : ''}
+          <figcaption class="mono" id="gal-cap">${esc(gallery.length ? galleryCaption(gallery[0]) : 'BUSA Laundry Ops')}</figcaption>
         </figure>
         <div>
           <p class="mono act-name">Babak lima · angka</p>
@@ -279,9 +289,47 @@ VIEWS.landing = {
     if (clk) clk.textContent = nowClock();
     const ar = qs('#arq');
     if (ar) ar.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); areaCheck(ar.value); } });
-    qsa('.kb img').forEach((im) => im.addEventListener('load', () => { if (typeof MOTION !== 'undefined' && MOTION.ok) MOTION.refresh(); }));
+    qsa('.kb img, .gal-shot img').forEach((im) => im.addEventListener('load', () => { if (typeof MOTION !== 'undefined' && MOTION.ok) MOTION.refresh(); }));
+    GAL.i = 0;
+    galRestart();
   },
 };
+
+/* ── Carousel galeri halaman situs ──────────────────── */
+
+const GAL = { i: 0, timer: null };
+
+function galCount() { return qsa('.gal-shot').length; }
+
+function galPaint() {
+  const shots = qsa('.gal-shot');
+  if (!shots.length) { clearInterval(GAL.timer); return; }
+  shots.forEach((el, i) => el.classList.toggle('on', i === GAL.i));
+  qsa('.gal-dot').forEach((el, i) => el.classList.toggle('on', i === GAL.i));
+  const cap = qs('#gal-cap');
+  const items = galleryShown();
+  if (cap && items[GAL.i]) cap.textContent = galleryCaption(items[GAL.i]);
+}
+
+function galGo(i) {
+  const n = galCount();
+  if (!n) return;
+  GAL.i = ((i % n) + n) % n;
+  galPaint();
+  galRestart();
+}
+
+function galStep(d) { galGo(GAL.i + d); }
+
+function galRestart() {
+  clearInterval(GAL.timer);
+  if (REDUCED || galCount() < 2) return;
+  GAL.timer = setInterval(() => {
+    if (document.hidden) return;
+    GAL.i = (GAL.i + 1) % galCount();
+    galPaint();
+  }, 6000);
+}
 
 function ldSubmit() {
   const name = ((qs('#ldname') || {}).value || '').trim();

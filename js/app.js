@@ -32,6 +32,7 @@ const PORTALS = {
       { id: 'pengguna', label: 'Pengguna', icon: 'key' },
       { id: 'layanan', label: 'Layanan', icon: 'tag' },
       { id: 'pembayaran', label: 'Pembayaran', icon: 'wallet' },
+      { id: 'galeri', label: 'Galeri', icon: 'eye' },
       { id: 'laporan', label: 'Laporan', icon: 'chart' },
       { id: 'setelan', label: 'Profil', icon: 'user', mobile: true },
     ],
@@ -91,6 +92,7 @@ let S = {
   usersLoading: false,
   qris: null,
   proofs: {},
+  gallery: null,
   revenue: null,
   mix: null,
   activity: null,
@@ -358,6 +360,28 @@ async function submitProof(code, file) {
     render();
     toast({ title: 'Bukti terkirim', msg: 'Menunggu verifikasi kasir — status berubah setelah dicek.', tone: 'mint', icon: 'upload' });
   } catch (err) { apiToastErr(err, 'Bukti gagal diunggah'); }
+}
+
+/* ── GALERI SITUS ─────────────────────────────────────── */
+
+/** Foto galeri aktif: dari server/lokal, fallback contoh. Array kosong dihormati. */
+function galleryItems() {
+  if (Array.isArray(S.gallery)) return S.gallery;
+  return Array.isArray(SEED.gallery) ? SEED.gallery : [];
+}
+/** Foto yang tampil di situs — kalau galeri kosong, pakai satu contoh. */
+function galleryShown() {
+  const items = galleryItems();
+  return items.length ? items : [{ seed: 'laundry-drum-interior', label: 'BUSA Laundry Ops' }];
+}
+function gallerySrc(it) {
+  return (it && it.dataUrl) ? it.dataUrl
+    : 'https://picsum.photos/seed/' + encodeURIComponent((it && it.seed) || 'busa') + '/900/1100';
+}
+function galleryCaption(it) {
+  const label = it && it.label ? String(it.label) : '';
+  const meta = it && it.meta ? String(it.meta) : '';
+  return label && meta ? label + ' · ' + meta : (label || meta || 'BUSA Laundry Ops');
 }
 
 /* ── SHELL ─────────────────────────────────────────────── */
@@ -1775,6 +1799,29 @@ document.addEventListener('click', (e) => {
         .then(() => { closeModal(); render(); toast({ title: 'QRIS dihapus', msg: 'Kembali ke gambar contoh.', tone: 'red', icon: 'x' }); })
         .catch((err) => apiToastErr(err, 'Gagal menghapus QRIS'));
       break;
+    case 'gal-prev': galStep(-1); break;
+    case 'gal-next': galStep(1); break;
+    case 'gal-go': galGo(+t.dataset.i); break;
+    case 'gallery-add': galleryAddFiles(); break;
+    case 'gallery-del': {
+      const items = galleryItems().map((x) => ({ ...x }));
+      const i = +t.dataset.i;
+      if (!items[i]) break;
+      items.splice(i, 1);
+      galleryCommit(items)
+        .then(() => toast({ title: 'Foto dihapus', tone: 'red', icon: 'x' }))
+        .catch((err) => apiToastErr(err, 'Gagal menghapus foto'));
+      break;
+    }
+    case 'gallery-up': case 'gallery-down': {
+      const items = galleryItems().map((x) => ({ ...x }));
+      const i = +t.dataset.i;
+      const j = a === 'gallery-up' ? i - 1 : i + 1;
+      if (i < 0 || j < 0 || i >= items.length || j >= items.length) break;
+      [items[i], items[j]] = [items[j], items[i]];
+      galleryCommit(items).catch((err) => apiToastErr(err, 'Gagal menyimpan urutan'));
+      break;
+    }
     case 'sub': {
       const tiers = (S.tiers && S.tiers.length) ? S.tiers : SEED.tiers;
       const tier = tiers.find((x) => x.id === t.dataset.v);
@@ -2037,6 +2084,14 @@ document.addEventListener('change', (e) => {
     case 'pay': S.cart.pay = t.dataset.v; render(); break;
     case 'protect': S.cart.protect = on; render(); break;
     case 'setting': S.settings[t.dataset.k] = on; save(); render(); break;
+    case 'gal-label': {
+      const items = galleryItems().map((x) => ({ ...x }));
+      const i = +t.dataset.i;
+      if (!items[i]) break;
+      items[i].label = String(t.value || '').trim().slice(0, 60);
+      galleryCommit(items).catch((err) => apiToastErr(err, 'Gagal menyimpan judul'));
+      break;
+    }
     case 'svc-field': {
       const s = CATALOG.find((x) => x.id === t.dataset.id); if (!s) break;
       const val = clamp(Math.round(+t.value), t.dataset.k === 'price' ? 0 : 1, t.dataset.k === 'price' ? 900000 : 168);
@@ -2394,6 +2449,9 @@ function boot() {
     API.loadLive();
     /* Halaman situs: segarkan papan publik berkala (login atau tidak). */
     setInterval(() => { if (S.portal === 'landing') API.loadLive(); }, 30000);
+  }
+  if (typeof API !== 'undefined' && API.loadContent) {
+    API.loadContent().then((g) => { if (g && S.portal === 'landing' && S.route === 'landing') render(false); });
   }
   setTimeout(() => {
     if (!REDUCED) bubbles(8);

@@ -343,3 +343,82 @@ async function qrisApplyFile(file) {
     toast({ title: 'QRIS diperbarui', msg: 'Pelanggan langsung melihat gambar baru.', tone: 'mint', icon: 'check' });
   } catch (err) { apiToastErr(err, 'QRIS gagal diunggah'); }
 }
+
+/* ── GALERI SITUS (ADMIN) ─────────────────────────── */
+
+const GALLERY_MAX = 8;
+
+VIEWS.galeri = {
+  title: 'Galeri', kicker: 'Foto carousel halaman situs',
+  render() {
+    const items = galleryItems();
+    const online = typeof API !== 'undefined' && API.on && isAdminAuthed();
+    return `
+    <div class="rep-top">
+      <div><p class="mono kicker">Tampil sebagai carousel di halaman situs</p><h1 class="display xl">Foto tempat & cucian</h1></div>
+      <div class="kan-sum">
+        <span class="chip t-${items.length ? 'mint' : 'muted'}">${items.length}/${GALLERY_MAX} foto</span>
+        <button class="btn primary sm" data-act="gallery-add">${icon('upload')} Tambah foto</button>
+      </div>
+    </div>
+    ${online ? '' : `<p class="hint warn">${icon('alert')} Server tidak terjangkau — perubahan foto tidak tersimpan permanen.</p>`}
+    <div class="gal-grid">
+      ${items.map((it, i) => `
+        <figure class="gal-card" style="--i:${i}" data-reveal>
+          <img src="${gallerySrc(it)}" alt="${esc(it.label || 'Foto galeri')}" loading="lazy">
+          <figcaption>
+            <input class="in sm gal-label" value="${esc(it.label || '')}" placeholder="Judul foto…" maxlength="60" data-act="gal-label" data-i="${i}" aria-label="Judul foto ${i + 1}">
+            <div class="gal-tools">
+              <button class="btn-icon" data-act="gallery-up" data-i="${i}" ${i === 0 ? 'disabled' : ''} title="Naikkan" aria-label="Naikkan">${icon('arrow', 'rot-up')}</button>
+              <button class="btn-icon" data-act="gallery-down" data-i="${i}" ${i === items.length - 1 ? 'disabled' : ''} title="Turunkan" aria-label="Turunkan">${icon('arrow', 'rot-down')}</button>
+              <button class="btn-icon dim" data-act="gallery-del" data-i="${i}" title="Hapus" aria-label="Hapus">${icon('x')}</button>
+            </div>
+          </figcaption>
+        </figure>`).join('')}
+      ${items.length < GALLERY_MAX ? `
+        <button class="gal-add" data-act="gallery-add" data-reveal>
+          ${icon('upload')}<b class="display">Tambah foto</b>
+          <p class="mono fine">Bisa pilih beberapa sekaligus · dikompres otomatis</p>
+        </button>` : ''}
+    </div>
+    <p class="mono fine mt">Urutan di sini sama dengan urutan carousel di halaman situs. Foto bawaan memakai gambar stok — ganti dengan foto tempat Anda.</p>`;
+  },
+};
+
+/** Simpan daftar galeri: ke server bila tersambung, selalu ke state lokal. */
+async function galleryCommit(items) {
+  S.gallery = items;
+  if (typeof API !== 'undefined' && API.on && isAdminAuthed()) await API.saveGallery(items);
+  render();
+}
+
+async function galleryAddFiles() {
+  const inp = document.createElement('input');
+  inp.type = 'file';
+  inp.accept = 'image/*';
+  inp.multiple = true;
+  inp.addEventListener('change', async () => {
+    const files = Array.from(inp.files || []);
+    if (!files.length) return;
+    const items = galleryItems().map((x) => ({ ...x }));
+    let added = 0;
+    for (const f of files) {
+      if (items.length >= GALLERY_MAX) {
+        toast({ title: 'Batas galeri', msg: `Maksimal ${GALLERY_MAX} foto — hapus salah satu dulu.`, tone: 'amber', icon: 'alert' });
+        break;
+      }
+      if (!/^image\//.test(f.type || '')) continue;
+      try {
+        const dataUrl = await prepareImageDataUrl(f);
+        items.push({ dataUrl, label: '' });
+        added++;
+      } catch (err) { apiToastErr(err, 'Satu foto dilewati'); }
+    }
+    if (!added) return;
+    try {
+      await galleryCommit(items);
+      toast({ title: added + ' foto ditambahkan', msg: 'Tampil di carousel halaman situs.', tone: 'mint', icon: 'check' });
+    } catch (err) { apiToastErr(err, 'Galeri gagal disimpan'); }
+  });
+  inp.click();
+}

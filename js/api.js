@@ -479,6 +479,25 @@ API.patchAddon = async function (id, patch) {
   return data;
 };
 
+/* ── MUTASI: GALERI SITUS ─────────────────────────────── */
+
+/** Baca konten publik (galeri dsb). Aman dipanggil tanpa login. */
+API.loadContent = async function () {
+  try {
+    const res = await fetch(apiOrigin() + '/api/content');
+    const data = await res.json();
+    if (data && data.ok && Array.isArray(data.gallery)) S.gallery = data.gallery;
+  } catch { /* offline — pakai galeri lokal/seed */ }
+  return S.gallery;
+};
+
+/** Simpan daftar foto galeri (admin). */
+API.saveGallery = async function (items) {
+  const data = await apiReq('PATCH', '/api/content/gallery', { value: items });
+  S.gallery = Array.isArray(data.value) ? data.value : items;
+  return S.gallery;
+};
+
 /* ── MUTASI: QRIS PEMBAYARAN ──────────────────────────── */
 
 /** Baca gambar QRIS aktif. Gagal baca bukan alasan boot berhenti — pakai bawaan. */
