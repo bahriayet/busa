@@ -117,7 +117,7 @@ export function decide(input: DecideInput): Verdict {
       if (order.stage >= 5) {
         return reject(
           `${order.code} sudah di tahap ${STAGES[order.stage]?.label ?? '—'}; muatan tidak bisa dibongkar pasang lagi.`,
-          'Pakai aksi "Kosongkan drum" lebih dulu bila memang harus memindahkan cucian.',
+          'Pakai aksi "Selesai proses" lebih dulu bila memang harus memindahkan cucian.',
         );
       }
       const kind = kindNeeded(order, Math.max(order.stage, 2));
@@ -137,7 +137,7 @@ export function decide(input: DecideInput): Verdict {
 
       const cand = requested ?? suggestMachine(order.weight, kind, machines);
       if (!cand) {
-        return reject('Tidak ada drum yang muat.', 'Semua mesin sedang penuh. Tahan keranjang di antrean dan muat begitu ada drum selesai.');
+        return reject('Unit kerja sedang penuh.', 'Tahan keranjang di antrean — mulai lagi setelah ada yang selesai.');
       }
       const cap = machineCap(cand);
       if (cap < order.weight) {
@@ -145,14 +145,17 @@ export function decide(input: DecideInput): Verdict {
           .filter((m) => machineCap(m) >= order.weight)
           .sort((a, b2) => a.load - b2.load)[0];
         return reject(
-          `${cand.id} hanya ${cap} kg, sedangkan ${order.code} ${order.weight} kg.`,
+          `${order.code} ${order.weight} kg melebihi kapasitas unit yang tersedia (${cap} kg).`,
           big ? `Usulan: ${big.id} (${machineCap(big)} kg, beban ${big.load}%).` : `Tidak ada ${MACHINE_KIND_LABEL[kind]} sebesar ${order.weight} kg hari ini.`,
         );
       }
       if (!isFree(cand) && cand.ticket !== order.code) {
         const holder = cand.ticket ?? '—';
         const until = cand.left > 0 ? `sisa ${durText(cand.left)}` : 'siklus berjalan';
-        return reject(`${cand.id} sedang memegang ${holder} (${until}).`, `Drum ${MACHINE_KIND_LABEL[kind]} yang kosong: ${machinesOfKind(machines, kind).filter(isFree).map((m) => m.id).join(', ') || 'tidak ada'}.`);
+        if (input.requestedMachine) {
+          return reject(`${cand.id} sedang memegang ${holder} (${until}).`, `Drum ${MACHINE_KIND_LABEL[kind]} yang kosong: ${machinesOfKind(machines, kind).filter(isFree).map((m) => m.id).join(', ') || 'tidak ada'}.`);
+        }
+        return reject('Semua unit kerja sedang sibuk.', `Cucian lain masih diproses (${holder}). Coba lagi setelah ada yang selesai.`);
       }
 
       const to = Math.max(order.stage, 2);
@@ -168,7 +171,7 @@ export function decide(input: DecideInput): Verdict {
         temp: kind === 'steam' ? 120 : kind === 'dry' ? 68 : 40,
       };
       const warning = load > 90
-        ? `${cand.id} terisi ${load}% — mendekati kapasitas ${cap} kg, cucian bisa tidak bersih merata.`
+        ? `Muatan terisi ${load}% — mendekati kapasitas ${cap} kg, cucian bisa tidak bersih merata.`
         : null;
       return ok({ action, order, to, machine: cand.id, effects: [effect], note, warning });
     }
@@ -179,8 +182,8 @@ export function decide(input: DecideInput): Verdict {
         const holding = machines.find((m) => m.ticket === order.code);
         if (!holding) {
           return reject(
-            `Tahap ${STAGES[order.stage]?.label ?? '—'} harus berjalan di dalam ${MACHINE_KIND_LABEL[need]}.`,
-            `Muat ${order.code} ke drum lebih dulu (aksi "Muat drum").`,
+            `Tahap ${STAGES[order.stage]?.label ?? '—'} belum berjalan untuk ${order.code}.`,
+            'Pakai aksi "Mulai proses" lebih dulu agar cucian mulai dikerjakan.',
           );
         }
         const to = Math.min(LAST_STAGE, order.stage + 1);
@@ -205,10 +208,10 @@ export function decide(input: DecideInput): Verdict {
         ? machines.find((m) => m.id === input.requestedMachine?.toUpperCase())
         : machines.find((m) => m.ticket === order.code);
       if (!target) {
-        return reject(`Tidak ada drum yang sedang memegang ${order.code}.`, 'Aksi ini hanya untuk mengosongkan drum setelah cucian keluar.');
+        return reject(`Tidak ada proses berjalan untuk ${order.code}.`, 'Aksi ini untuk menutup proses setelah cucian keluar.');
       }
       if (target.ticket !== order.code) {
-        return reject(`${target.id} sedang memegang ${target.ticket ?? '—'}, bukan ${order.code}.`);
+        return reject(`${target.id} sedang memproses ${target.ticket ?? '—'}, bukan ${order.code}.`);
       }
       const effect: MachineEffect = {
         machineId: target.id, ticket: null, load: 0, state: 'idle', rpm: 0, left: 0, stage: target.stage, temp: 26,

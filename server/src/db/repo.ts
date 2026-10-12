@@ -916,8 +916,8 @@ export async function serviceMix(db: Db): Promise<MixSlice[]> {
 }
 
 const ACTION_TEXT: Record<ScanAction, string> = {
-  terima: 'diterima di kasir', muat: 'dimuat ke drum', tahap: 'naik tahap',
-  lepas: 'drum dikosongkan', qc: 'balik rendam (QC)', selesai: 'diserahkan',
+  terima: 'diterima di kasir', muat: 'mulai diproses', tahap: 'naik tahap',
+  lepas: 'proses selesai', qc: 'balik rendam (QC)', selesai: 'diserahkan',
 };
 
 /** Aktivitas lantai diturunkan dari event asli, bukan daftar karangan. */

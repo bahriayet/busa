@@ -97,7 +97,7 @@ test('naik tahap tanpa drum yang memegangnya ditolak', () => {
   const o = order({ stage: 2, machine: '—' });
   const v = decide({ action: 'tahap', order: o, machines: MACHINES });
   assert.equal(v.ok, false);
-  if (!v.ok) assert.ok(v.hint?.includes('Muat'));
+  if (!v.ok) assert.ok(v.hint?.includes('Mulai proses'));
 });
 
 test('lepas tanpa pemegang drum ditolak', () => {

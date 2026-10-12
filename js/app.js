@@ -414,13 +414,9 @@ function renderNav() {
 let lastTickerHTML = '';
 function renderTicker() {
   const live = S.orders.filter((o) => o.stage < 8);
-  const items = [];
-  S.machines.forEach((m) => {
-    if (m.state !== 'idle') items.push(`<span class="tk"><b>${m.id}</b> ${esc(STAGES[m.stage].label)} ${clockStr(m.left)} <small>${Math.round(m.temp)}°C</small></span>`);
-  });
-  live.slice(0, 5).forEach((o) => items.push(`<span class="tk"><b>${esc(o.code)}</b> ${esc(STAGES[o.stage].label)} <small>${esc(o.customer)}</small></span>`));
+  const items = live.slice(0, 8).map((o) => `<span class="tk"><b>${esc(o.code)}</b> ${esc(STAGES[o.stage].label)} <small>${esc(o.customer)}</small></span>`);
   const row = items.join('<span class="tk-sep">•</span>');
-  const html = row + '<span class="tk-sep">•</span>' + row;
+  const html = row ? row + '<span class="tk-sep">•</span>' + row : '<span class="tk">Tidak ada pesanan aktif — lantai sedang bersih.</span>';
   if (html === lastTickerHTML) return;
   lastTickerHTML = html;
   qs('#ticker-track').innerHTML = html;
@@ -701,7 +697,7 @@ VIEWS.changePassword = {
 /* ── VIEW: LANTAI MESIN ───────────────────────────────── */
 
 VIEWS.floor = {
-  title: 'Lantai Mesin', kicker: 'Siklus berjalan',
+  title: 'Lantai', kicker: 'Antrean & aktivitas',
   render() {
     const done = S.orders.filter((o) => o.stage === 8).length;
     const proses = S.orders.filter((o) => o.stage > 0 && o.stage < 8).length;
@@ -1012,7 +1008,7 @@ VIEWS.pesanan = {
     ${list.length ? `<ul class="ord-list">
       ${list.map((o, i) => orderRow(o, i)).join('')}</ul>`
       : `<div class="empty-state">${drumMarkup({ rpm: '9s', size: 120, state: 'idle', rags: 4 })}
-          <h2 class="display">Drum kosong</h2><p class="lede">Tidak ada pesanan pada filter ini. Coba kata kunci lain atau buat order baru.</p>
+          <h2 class="display">Belum ada pesanan</h2><p class="lede">Tidak ada pesanan pada filter ini. Coba kata kunci lain atau buat order baru.</p>
           <button class="btn primary" data-act="reset-cart">${icon('plus')} Mulai order</button></div>`}`;
   },
 };
@@ -2287,6 +2283,34 @@ function startClock() {
   f(); setInterval(f, 1000);
 }
 
+/* ── PEMBARUAN VERSI ──────────────────────────────────── */
+
+/* Bandingkan ETag index.html dengan yang terlihat saat aplikasi dimuat.
+   Kalau berubah (deploy baru), tampilkan bilah "muat ulang" — tidak pernah
+   reload otomatis supaya isian yang sedang dikerjakan tidak hilang. */
+let appEtag = null;
+async function checkVersion() {
+  try {
+    const res = await fetch('./index.html', { method: 'HEAD', cache: 'no-store' });
+    const tag = res.headers.get('etag') || res.headers.get('last-modified') || '';
+    if (!tag) return;
+    if (!appEtag) { appEtag = tag; return; }
+    if (tag !== appEtag && !qs('#update-bar')) {
+      const el = document.createElement('button');
+      el.id = 'update-bar';
+      el.className = 'update-bar';
+      el.type = 'button';
+      el.innerHTML = icon('refresh') + '<span>Versi baru tersedia — klik untuk muat ulang</span>';
+      el.addEventListener('click', () => location.reload());
+      document.body.appendChild(el);
+    }
+  } catch { /* offline atau file:// — tidak perlu memantau */ }
+}
+function watchVersion() {
+  checkVersion();
+  setInterval(checkVersion, 5 * 60 * 1000);
+}
+
 function applySvc() {
   Object.keys(S.svc || {}).forEach((id) => {
     const s = CATALOG.find((c) => c.id === id);
@@ -2363,6 +2387,7 @@ function boot() {
   qs('#ticker-track').addEventListener('mouseleave', (e) => e.currentTarget.classList.remove('pause'));
   render();
   startClock();
+  watchVersion();
   setInterval(tick, 7000);
   if (typeof API !== 'undefined') API.init();
   if (typeof API !== 'undefined' && API.loadLive) {
@@ -2372,7 +2397,7 @@ function boot() {
   }
   setTimeout(() => {
     if (!REDUCED) bubbles(8);
-    if (S.portal === 'a' && isAdminAuthed()) toast({ title: 'Lantai siap', msg: S.machines.filter((m) => m.state !== 'idle').length + ' mesin berjalan · ' + S.orders.length + ' pesanan aktif', tone: 'blue', icon: 'drum', ms: 5000 });
+    if (S.portal === 'a' && isAdminAuthed()) toast({ title: 'Lantai siap', msg: S.orders.length + ' pesanan aktif menunggu dikerjakan', tone: 'blue', icon: 'drum', ms: 5000 });
   }, 900);
 }
 

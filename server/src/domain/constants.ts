@@ -34,9 +34,9 @@ export const SLOTS = ['07:00–09:00', '08:00–10:00', '10:00–12:00', '12:00�
 
 export const ACTION_LABEL: Record<ScanAction, string> = {
   terima: 'diterima di kasir',
-  muat: 'dimuat ke drum',
+  muat: 'mulai diproses',
   tahap: 'naik tahap',
-  lepas: 'drum dikosongkan',
+  lepas: 'proses selesai',
   qc: 'balik rendam (QC)',
   selesai: 'diserahkan',
 };

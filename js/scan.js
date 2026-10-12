@@ -109,11 +109,11 @@ function recordEvent(input) {
     const kind = STAGE_MACHINE[Math.max(o.stage, 2)] || 'wash';
     const cand = suggestMachine(need.weight, kind);
     const target = input.machine || (cand && cand.id);
-    if (!target) { toast({ title: 'Tidak ada drum muat', msg: 'Semua mesin penuh. Tahan dulu di antrean.', tone: 'amber', icon: 'pause' }); return null; }
+    if (!target) { toast({ title: 'Unit kerja penuh', msg: 'Tahan dulu di antrean — mulai lagi setelah ada yang selesai.', tone: 'amber', icon: 'pause' }); return null; }
     const m = S.machines.find((x) => x.id === target);
     if (machineCap(m) < need.weight) {
       const big = machineFor('wash').filter((x) => machineCap(x) >= need.weight).sort((a, b) => a.load - b.load)[0];
-      toast({ title: m.id + ' cuma ' + machineCap(m) + ' kg', msg: need.weight + ' kg tidak muat.' + (big ? ' Usulan: ' + big.id + ' (' + machineCap(big) + ' kg).' : ' Tidak ada drum cukup besar.'), tone: 'amber', icon: 'alert' });
+      toast({ title: 'Kapasitas tidak muat', msg: need.weight + ' kg melebihi kapasitas unit yang tersedia.' + (big ? ' Unit yang cukup: ' + big.id + ' (' + machineCap(big) + ' kg).' : ''), tone: 'amber', icon: 'alert' });
       return null;
     }
     ev.machine = m.id; ev.to = Math.max(o.stage, 2);
@@ -165,7 +165,7 @@ function recordEvent(input) {
 }
 
 function labelAction(a) {
-  return { terima: 'diterima di kasir', muat: 'dimuat ke drum', tahap: 'naik tahap', lepas: 'drum dikosongkan', qc: 'balik rendam (QC)', selesai: 'diserahkan' }[a] || a;
+  return { terima: 'diterima di kasir', muat: 'mulai diproses', tahap: 'naik tahap', lepas: 'proses selesai', qc: 'balik rendam (QC)', selesai: 'diserahkan' }[a] || a;
 }
 
 /** Pindai saat server hidup: server yang memutuskan, UI menerapkan balasannya. */

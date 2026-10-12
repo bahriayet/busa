@@ -1648,7 +1648,13 @@ kbd { font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em; paddin
   .mnav-i.on { color: var(--orange); }
   #view { padding-bottom: 96px; }
   #toasts { bottom: calc(86px + env(safe-area-inset-bottom)); }
+  .update-bar { bottom: calc(84px + env(safe-area-inset-bottom)); width: calc(100% - 24px); justify-content: center; }
 }
+
+/* ── pembaruan versi ─────────────────────────────── */
+.update-bar { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 950; display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--ink); color: var(--bone); border: 1px solid var(--orange); border-radius: var(--r); font-family: var(--mono); font-size: 11px; letter-spacing: .06em; cursor: pointer; box-shadow: 0 16px 34px -20px rgba(0, 0, 0, .65); }
+
+.update-bar .ico { width: 15px; height: 15px; color: var(--orange); flex: 0 0 auto; }
 
 /* ── portal switcher ─────────────────────────────── */
 .psw { display: flex; gap: 2px; padding: 2px; background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--r); }

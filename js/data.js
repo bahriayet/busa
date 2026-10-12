@@ -173,7 +173,7 @@ const SEED = {
     { q: 'Berapa lama cycle standar?', a: 'Cuci + Setrika 48 jam sejak diterima. Express 6 jam dengan antrean didahulukan dan kurir privat.' },
     { q: 'Bagaimana kalau noda tidak hilang?', a: 'Kami foto sebelum-sesudah. Jika noda membandel tetap ada setelah dua kali treatment, biaya treatment dikembalikan 100%.' },
     { q: 'Pakaian hilang atau rusak?', a: 'Setiap item diberi label unik dan diasuransikan hingga Rp 500.000 per item. Klaim diproses maksimal 3 hari kerja.' },
-    { q: 'Bayar apa saja yang diterima?', a: 'Dompet BUSA, QRIS, transfer bank, tunai di kasir. Kontrak rutin bisa penagihan bulanan.' },
+    { q: 'Bayar apa saja yang diterima?', a: 'QRIS dan tunai di kasir. Kontrak rutin bisa ditagih bulanan.' },
     { q: 'Apakah pakaian dicampur dengan pelanggan lain?', a: 'Tidak. Setiap pesanan jalan di drum sendiri dengan label tahan air. Bedcover dan linen besar memakai mesin 18 kg terpisah.' },
     { q: 'Bagaimana jika saya tidak di rumah saat dijemput?', a: 'Kurir menunggu 15 menit dan mengirim foto bukti. Anda bisa pindahkan slot lewat portal pelanggan tanpa biaya.' },
   ],
