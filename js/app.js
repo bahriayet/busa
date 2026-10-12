@@ -11,29 +11,29 @@ const PORTALS = {
   c: {
     label: 'Pelanggan', home: 'beranda',
     nav: [
-      { id: 'beranda', label: 'Beranda', icon: 'drum' },
-      { id: 'order', label: 'Order', icon: 'plus' },
-      { id: 'pesanan', label: 'Pesanan', icon: 'basket' },
-      { id: 'lacak', label: 'Lacak', icon: 'truck' },
+      { id: 'beranda', label: 'Beranda', icon: 'drum', mobile: true },
+      { id: 'order', label: 'Order', icon: 'plus', mobile: true },
+      { id: 'pesanan', label: 'Pesanan', icon: 'basket', mobile: true },
+      { id: 'lacak', label: 'Lacak', icon: 'truck', mobile: true },
       { id: 'harga', label: 'Harga', icon: 'tag' },
       { id: 'langganan', label: 'Langganan', icon: 'star' },
       { id: 'statistik', label: 'Statistik', icon: 'chart' },
-      { id: 'setelan', label: 'Profil', icon: 'user' },
+      { id: 'setelan', label: 'Profil', icon: 'user', mobile: true },
     ],
   },
   a: {
     label: 'Admin', home: 'floor',
     nav: [
-      { id: 'floor', label: 'Lantai', icon: 'drum' },
-      { id: 'scan', label: 'Pindai', icon: 'scan' },
-      { id: 'antrean', label: 'Antrean', icon: 'grid' },
-      { id: 'pesanan', label: 'Pesanan', icon: 'basket' },
+      { id: 'floor', label: 'Lantai', icon: 'drum', mobile: true },
+      { id: 'scan', label: 'Pindai', icon: 'scan', mobile: true },
+      { id: 'antrean', label: 'Antrean', icon: 'grid', mobile: true },
+      { id: 'pesanan', label: 'Pesanan', icon: 'basket', mobile: true },
       { id: 'pelanggan', label: 'Pelanggan', icon: 'user' },
       { id: 'pengguna', label: 'Pengguna', icon: 'key' },
       { id: 'layanan', label: 'Layanan', icon: 'tag' },
       { id: 'pembayaran', label: 'Pembayaran', icon: 'wallet' },
       { id: 'laporan', label: 'Laporan', icon: 'chart' },
-      { id: 'setelan', label: 'Profil', icon: 'user' },
+      { id: 'setelan', label: 'Profil', icon: 'user', mobile: true },
     ],
   },
 };
@@ -386,7 +386,7 @@ function renderNav() {
   }
   qs('#nav').innerHTML = navHTML;
 
-  qs('#mnav').innerHTML = nav.map((n) => `<button class="mnav-i ${S.route === n.id ? 'on' : ''}" data-act="go" data-portal="${S.portal}" data-route="${n.id}" aria-label="${n.label}">${icon(n.icon)}<em>${n.label}</em></button>`).join('');
+  qs('#mnav').innerHTML = nav.filter((n) => n.mobile).map((n) => `<button class="mnav-i ${S.route === n.id ? 'on' : ''}" data-act="go" data-portal="${S.portal}" data-route="${n.id}" aria-label="${n.label}">${icon(n.icon)}<em>${n.label}</em></button>`).join('');
   qs('#portal-switch').innerHTML = Object.keys(PORTALS).map((k) => `<button class="ps-i ${S.portal === k ? 'on' : ''}" data-act="portal" data-v="${k}">${icon(k === 'landing' ? 'store' : k === 'c' ? 'user' : 'sliders')}<b>${PORTALS[k].label}</b></button>`).join('');
 
   const avatar = qs('.avatar');
@@ -1356,9 +1356,18 @@ VIEWS.setelan = {
           <button class="btn danger sm" data-act="logout">${icon('lock')} Keluar</button>
         </div>
       </div>` : '';
+    const extras = navFor(S.portal).filter((n) => !n.mobile);
+    const menuPanel = extras.length ? `
+      <div class="panel" data-reveal>
+        <header class="p-head"><h3 class="display">Menu</h3><span class="mono note">${S.portal === 'a' ? 'Operasional' : 'Akun Anda'}</span></header>
+        <ul class="menu-list">
+          ${extras.map((n) => `<li><button class="menu-i" data-act="go" data-portal="${S.portal}" data-route="${n.id}">${icon(n.icon)}<b>${esc(n.label)}</b>${icon('chev', 'chev')}</button></li>`).join('')}
+        </ul>
+      </div>` : '';
     return `
     <section class="set-grid">
       ${profilPanel}
+      ${menuPanel}
       <div class="panel" data-reveal>
         <header class="p-head"><h3 class="display">Wajah aplikasi</h3><span class="mono note">tersimpan di perangkat</span></header>
         <div class="theme-pick">
@@ -1393,7 +1402,7 @@ VIEWS.setelan = {
           <button class="btn ghost sm" data-act="export-json">${icon('box')} Cadangkan JSON</button>
           <button class="btn danger sm" data-act="reset-all">${icon('alert')} Reset ke data contoh</button>
         </div>
-        <p class="mono fine mt">Versi BUSA Ops 1.0 · ${S.orders.length} pesanan · ${S.machines.length} mesin · ${clockStr(S.machines.reduce((a, m) => a + m.left, 0))} siklus tersisa.</p>
+        <p class="mono fine mt">Versi BUSA Ops 1.0 · ${S.orders.length} pesanan · ${S.events.length} event lantai.</p>
       </div>
     </section>`;
   },

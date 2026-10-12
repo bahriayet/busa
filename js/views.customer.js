@@ -26,6 +26,9 @@ VIEWS.beranda = {
           ${aktif ? `<button class="btn ghost" data-act="detail" data-code="${aktif.code}">${icon('drum')} Lihat ${esc(aktif.code)}</button>` : ''}
           <button class="btn ghost" data-act="go" data-route="lacak" data-portal="c">${icon('truck')} Lacak kode</button>
         </div>
+        <div class="hi-links">
+          ${navFor('c').filter((n) => !n.mobile).map((n) => `<button class="chip" data-act="go" data-portal="c" data-route="${n.id}">${icon(n.icon)} ${esc(n.label)}</button>`).join('')}
+        </div>
       </div>
       <div class="hi-r">
         ${aktif ? `
