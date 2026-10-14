@@ -11,6 +11,8 @@ services:
     startCommand: npm start
     healthCheckPath: /health
     envVars:
+      - key: NODE_ENV
+        value: production
       - key: BUSA_DATABASE_URL
         sync: false
       - key: BUSA_JWT_SECRET

@@ -177,7 +177,19 @@ export function registerAuthRoutes(app: FastifyInstance, db: Db, cfg: Config): v
     const expiresMs = Date.now() + 30 * 60 * 1000; // 30 menit
     await R.insertPasswordReset(db, resetToken, found.id, expiresMs);
 
-    return { ok: true, resetToken, expiresAt: expiresMs };
+    /* Di mode produksi, token reset TIDAK PERNAH dikembalikan via response HTTP
+       untuk mencegah serangan Account Takeover (ATO). */
+    if (cfg.production) {
+      req.log.info({ userId: found.id }, 'Password reset requested; token created');
+      return { ok: true, message: 'Jika akun terdaftar, token atau link reset telah dikirimkan.' };
+    }
+
+    return {
+      ok: true,
+      message: 'Jika akun terdaftar, token reset telah dibuat (mode development).',
+      resetToken,
+      expiresAt: expiresMs,
+    };
   });
 
   /** Reset password dengan token dari forgot-password. */

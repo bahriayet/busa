@@ -1,7 +1,7 @@
 import {
   b, getSetting, jparse, jstr, n, nextCounter, peekCounter, setSetting, unb, type Db, type SqlParam,
 } from './client.ts';
-import { SLOTS, STAMP_CYCLE, clockLabel, createdLabel, dayKey } from '../domain/constants.ts';
+import { SLOTS, STAMP_CYCLE, LAST_STAGE, clockLabel, createdLabel, dayKey } from '../domain/constants.ts';
 import type {
   Address, Addon, AppNotification, Area, ChatMessage, FloorEvent, Machine, MachineKind,
   MachineState, MixSlice, Order, OrderItem, OrderMode, PayMethod, PayStatus, Promo,
@@ -273,6 +273,40 @@ export async function listOrders(db: Db, opts: { customerId?: string | null; inc
 export async function getOrder(db: Db, code: string): Promise<Order | undefined> {
   const r = await db.get<OrderRow>(`SELECT ${ORDER_COLS} FROM orders WHERE code = ?`, code);
   return r ? toOrder(r) : undefined;
+}
+
+/** Pesanan yang masih di lantai (belum selesai, tidak batal) — subset kecil
+    untuk papan lantai/publik, menggantikan pemuatan seluruh tabel. */
+export async function listActiveOrders(db: Db): Promise<Order[]> {
+  return (await db.all<OrderRow>(
+    `SELECT ${ORDER_COLS} FROM orders WHERE cancelled = 0 AND stage < ? ORDER BY created_ms DESC`,
+    LAST_STAGE,
+  )).map(toOrder);
+}
+
+/** Jumlah pesanan aktif pada satu tahap (opsional kecualikan satu kode). */
+export async function countOrdersAtStage(db: Db, stage: number, excludeCode?: string): Promise<number> {
+  const sql = excludeCode
+    ? 'SELECT COUNT(*) FROM orders WHERE cancelled = 0 AND stage = ? AND code <> ?'
+    : 'SELECT COUNT(*) FROM orders WHERE cancelled = 0 AND stage = ?';
+  return await db.scalar<number>(sql, stage, ...(excludeCode ? [excludeCode] : [])) ?? 0;
+}
+
+/** Angka ringkas dasbor dalam satu query — menggantikan memuat semua pesanan. */
+export async function dashboardCounts(db: Db): Promise<{ aktif: number; selesai: number; lunas: number }> {
+  const row = await db.get<{ aktif: number | null; selesai: number | null; lunas: number | null }>(
+    `SELECT
+       SUM(CASE WHEN cancelled = 0 AND stage < ? THEN 1 ELSE 0 END) AS aktif,
+       SUM(CASE WHEN cancelled = 0 AND stage = ? AND collected = 0 THEN 1 ELSE 0 END) AS selesai,
+       SUM(CASE WHEN cancelled = 0 AND pay_status = 'lunas' THEN 1 ELSE 0 END) AS lunas
+     FROM orders`,
+    LAST_STAGE, LAST_STAGE,
+  );
+  return {
+    aktif: Number(row?.aktif ?? 0),
+    selesai: Number(row?.selesai ?? 0),
+    lunas: Number(row?.lunas ?? 0),
+  };
 }
 
 /** Cari by kode penuh atau 3+ digit terakhir, meniru perilaku `findOrder()` frontend. */

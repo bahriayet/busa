@@ -100,6 +100,10 @@ export function startSim(db: Db, broadcast: ((msg: Record<string, unknown>) => v
     running = true;
     try {
       await runTick(nowMs);
+    } catch {
+      /* DB sempat putus (mis. Neon bangun dari tidur) — tick berikutnya
+         mencoba lagi. Tanpa tangkapan ini, rejection tak tertangani
+         mematikan seluruh proses server. */
     } finally {
       running = false;
     }

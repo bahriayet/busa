@@ -13,7 +13,8 @@ const cfg: Config = {
   seedPassword: 'busa1234', simulate: false, tickMs: 7000,
   corsOrigins: [], logLevel: 'silent',
   rateLimitMax: 100_000, rateLimitLoginMax: 100_000,
-  trustProxy: false,
+  trustProxy: false, production: false,
+  cacheTtlMs: 0, bodyLimit: 256 * 1024, rateLimitScanMax: 100_000,
 };
 
 const db = await openTestDb();
@@ -506,6 +507,62 @@ test('health check menjawab ok', async () => {
   const res = await app.inject({ method: 'GET', url: '/health' });
   assert.equal(res.statusCode, 200);
   assert.equal((res.json() as { ok: boolean }).ok, true);
+});
+
+test('produksi: /docs ditutup dan /health tanpa detail lokasi DB', async () => {
+  const prod = buildApp({ db, cfg: { ...cfg, production: true } });
+  await prod.ready();
+  const docs = await prod.inject({ method: 'GET', url: '/docs/json' });
+  assert.equal(docs.statusCode, 404);
+  const health = await prod.inject({ method: 'GET', url: '/health' });
+  assert.equal(health.statusCode, 200);
+  assert.deepEqual(Object.keys(health.json()).sort(), ['ok', 'uptime_s']);
+  await prod.close();
+});
+
+test('body melebihi batas dibalas 413 dengan pesan Indonesia', async () => {
+  const tiny = buildApp({ db, cfg: { ...cfg, bodyLimit: 1024 } });
+  await tiny.ready();
+  const res = await tiny.inject({
+    method: 'POST', url: '/api/auth/login',
+    payload: { login: 'admin', password: 'x'.repeat(4096) },
+  });
+  assert.equal(res.statusCode, 413);
+  assert.equal((res.json() as { ok: boolean }).ok, false);
+  await tiny.close();
+});
+
+test('katalog di-cache tetapi invalidasi saat admin mengubah harga addon', async () => {
+  const cached = buildApp({ db, cfg: { ...cfg, cacheTtlMs: 60_000 } });
+  await cached.ready();
+
+  const loginRes = await cached.inject({
+    method: 'POST', url: '/api/auth/login',
+    payload: { login: 'admin', password: 'busa1234' },
+  });
+  const token = (loginRes.json() as { token: string }).token;
+
+  const priceOf = async (): Promise<number> => {
+    const res = await cached.inject({ method: 'GET', url: '/api/catalog' });
+    const body = res.json() as { addons: { id: string; price: number }[] };
+    return body.addons.find((a) => a.id === 'stain')!.price;
+  };
+
+  const before = await priceOf(); // mengisi cache
+  const patch = await cached.inject({
+    method: 'PATCH', url: '/api/addons/stain',
+    headers: { authorization: `Bearer ${token}` },
+    payload: { price: before + 100 },
+  });
+  assert.equal(patch.statusCode, 200, patch.body);
+  assert.equal(await priceOf(), before + 100); // cache tidak boleh basi
+
+  await cached.inject({
+    method: 'PATCH', url: '/api/addons/stain',
+    headers: { authorization: `Bearer ${token}` },
+    payload: { price: before },
+  });
+  await cached.close();
 });
 
 test('CORS lintas domain mengizinkan PUT/PATCH/DELETE untuk portal admin', async () => {

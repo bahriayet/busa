@@ -26,6 +26,14 @@ export interface Config {
   rateLimitLoginMax: number;
   /** Percayai header X-Forwarded-* dari reverse proxy (host PaaS). */
   trustProxy: boolean;
+  /** true saat NODE_ENV=production: /docs ditutup & /health tanpa detail DB. */
+  production: boolean;
+  /** TTL cache in-process endpoint publik (ms); 0 = nonaktif. */
+  cacheTtlMs: number;
+  /** Batas body default request (byte); route unggah gambar menimpanya. */
+  bodyLimit: number;
+  /** Batas pindai per operator/IP per 15 menit. */
+  rateLimitScanMax: number;
 }
 
 function int(v: string | undefined, fallback: number): number {
@@ -95,5 +103,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     rateLimitMax: int(env.BUSA_RATE_LIMIT_MAX, 300),
     rateLimitLoginMax: int(env.BUSA_RATE_LIMIT_LOGIN_MAX, 20),
     trustProxy: bool(env.BUSA_TRUST_PROXY, onPaaS),
+    production: env.NODE_ENV === 'production',
+    cacheTtlMs: int(env.BUSA_CACHE_TTL_MS, 30_000),
+    bodyLimit: int(env.BUSA_BODY_LIMIT, 256 * 1024),
+    rateLimitScanMax: int(env.BUSA_RATE_LIMIT_SCAN_MAX, 300),
   };
 }

@@ -2200,8 +2200,12 @@ document.addEventListener('submit', async (e) => {
         body: JSON.stringify({ login }),
       });
       const data = await res.json();
-      if (!res.ok || !data.ok) throw new Error(data.error || 'Gagal membuat token reset.');
-      if (okEl) { okEl.hidden = false; okEl.textContent = 'Token reset: ' + data.resetToken + ' (salin dan gunakan di halaman reset)'; }
+      if (okEl) {
+        okEl.hidden = false;
+        okEl.textContent = data.resetToken
+          ? 'Token reset (mode dev): ' + data.resetToken + ' (salin dan gunakan di halaman reset)'
+          : (data.message || 'Instruksi reset password telah diproses.');
+      }
     } catch (err) { if (errEl) { errEl.hidden = false; errEl.textContent = err.message; } }
     return;
   }

@@ -8,16 +8,21 @@ import {
 } from '../domain/constants.ts';
 import { etaMinutes, isStuck } from '../domain/rules.ts';
 import { notFound } from '../lib/http.ts';
+import { CACHE } from '../lib/cache.ts';
 import { makeOptionalAuth } from '../plugins/auth.ts';
 
 /**
  * Endpoint publik: data yang sama sekali tidak butuh login. Frontend membaca
  * konfigurasi tahap/slot/konstanta dari sini, jadi satu sumber konfigurasi
  * (server) menggantikan salinan di js/data.js.
+ *
+ * Data yang jarang berubah (meta, katalog, konten, QRIS) dibungkus cache TTL
+ * singkat; route admin memanggil `cache.invalidate` saat menulis agar admin
+ * tidak pernah melihat data basi.
  */
 
 export function registerPublicRoutes(app: FastifyInstance, db: Db): void {
-  app.get('/api/meta', async () => ({
+  app.get('/api/meta', async () => app.cache.wrap(CACHE.meta, async () => ({
     ok: true,
     stages: STAGES,
     stageMin: STAGE_MIN,
@@ -34,13 +39,13 @@ export function registerPublicRoutes(app: FastifyInstance, db: Db): void {
       protectRate: PROTECT_RATE, stampCycle: STAMP_CYCLE,
       topupBonusThreshold: TOPUP_BONUS_THRESHOLD, topupBonus: TOPUP_BONUS,
     },
-  }));
+  })));
 
   /* Katalog: pelanggan hanya melihat yang aktif; staf/admin melihat semua
      supaya layanan yang disembunyikan masih bisa diaktifkan kembali. */
   app.get('/api/catalog', { preHandler: makeOptionalAuth(db) }, async (req) => {
     const staff = req.auth?.role === 'admin' || req.auth?.role === 'staff';
-    return {
+    return app.cache.wrap(staff ? CACHE.catalogStaff : CACHE.catalogPublic, async () => ({
       ok: true,
       services: await R.listServices(db, staff),
       addons: await R.listAddons(db, staff),
@@ -48,20 +53,20 @@ export function registerPublicRoutes(app: FastifyInstance, db: Db): void {
       tiers: await R.listTiers(db),
       areas: await R.listAreas(db),
       couriers: COURIERS,
-    };
+    }));
   });
 
-  app.get('/api/content', async () => ({
+  app.get('/api/content', async () => app.cache.wrap(CACHE.content, async () => ({
     ok: true,
     gallery: await R.getContent<unknown[]>(db, 'gallery', []),
     faq: await R.getContent<unknown[]>(db, 'faq', []),
     testimonials: await R.getContent<unknown[]>(db, 'testimonials', []),
     metrics: await R.getContent<unknown[]>(db, 'metrics', []),
-  }));
+  })));
 
   /* Gambar QRIS untuk pembayaran — memang ditunjukkan ke pelanggan untuk
      dipindai, jadi boleh publik. `null` berarti pakai gambar bawaan frontend. */
-  app.get('/api/qris', async () => ({ ok: true, qris: await R.getQrisImage(db) }));
+  app.get('/api/qris', async () => app.cache.wrap(CACHE.qris, async () => ({ ok: true, qris: await R.getQrisImage(db) })));
 
   app.get('/api/slots', async (req: FastifyRequest<{ Querystring: { date?: string } }>) => {
     const date = req.query.date ?? new Date().toISOString().slice(0, 10);
@@ -71,7 +76,7 @@ export function registerPublicRoutes(app: FastifyInstance, db: Db): void {
   app.get('/api/track/:code', async (req: FastifyRequest<{ Params: { code: string } }>) => {
     const order = await R.findOrderByCode(db, req.params.code);
     if (!order) throw notFound(`Order ${req.params.code} tidak ditemukan.`);
-    const queueDepth = (await R.listOrders(db)).filter((o) => o.code !== order.code && o.stage === order.stage).length;
+    const queueDepth = await R.countOrdersAtStage(db, order.stage, order.code);
     const eta = etaMinutes(order, await R.listMachines(db), queueDepth);
     const services = await R.listServices(db);
     const first = order.items[0];
@@ -79,7 +84,9 @@ export function registerPublicRoutes(app: FastifyInstance, db: Db): void {
     return {
       ok: true,
       order: {
-        code: order.code, customer: order.customer, weight: order.weight,
+        code: order.code,
+        customer: (order.customer || '').split(' ')[0],
+        weight: order.weight,
         stage: order.stage, stageLabel: stageLabel(order.stage),
         machine: order.machine === '—' ? null : order.machine,
         etaLabel: eta.label, etaMins: eta.mins,
@@ -94,9 +101,11 @@ export function registerPublicRoutes(app: FastifyInstance, db: Db): void {
    * login melihat data nyata dari server (nama disamarkan ke nama depan,
    * tanpa total/harga/telepon). Tanpa endpoint ini halaman situs hanya bisa
    * menampilkan data contoh lokal sehingga tidak sinkron dengan lantai.
+   *
+   * TTL pendek (5 dtk) — pola yang sama dengan irama broadcast lantai.
    */
-  app.get('/api/live', async () => {
-    const orders = await R.listOrders(db);
+  app.get('/api/live', async () => app.cache.wrap(CACHE.live, async () => {
+    const orders = await R.listActiveOrders(db);
     const machines = await R.listMachines(db);
     const services = await R.listServices(db);
     const active = orders.filter((o) => o.stage > 0 && o.stage < STAGES.length - 1);
@@ -118,8 +127,8 @@ export function registerPublicRoutes(app: FastifyInstance, db: Db): void {
     return {
       ok: true,
       at: Date.now(),
-      doneToday: orders.filter((o) => o.stage === STAGES.length - 1).length,
+      doneToday: await R.countOrdersAtStage(db, STAGES.length - 1),
       orders: list,
     };
-  });
+  }, 5_000));
 }

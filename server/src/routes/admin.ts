@@ -3,6 +3,7 @@ import type { Db } from '../db/client.ts';
 import * as R from '../db/repo.ts';
 import { badRequest, notFound, conflict } from '../lib/http.ts';
 import { IMAGE_DATA_URL, IMAGE_MAX_BYTES, IMAGE_MAX_UPLOAD_BYTES, imageBytes } from '../lib/images.ts';
+import { CACHE } from '../lib/cache.ts';
 import { makeRequireRole } from '../plugins/auth.ts';
 import { hashPassword } from '../lib/password.ts';
 import { uid } from '../lib/ids.ts';
@@ -63,7 +64,9 @@ export function registerAdminRoutes(app: FastifyInstance, db: Db): void {
     }
     if (body.active !== undefined) patch.active = Boolean(body.active);
     if (body.name !== undefined) patch.name = String(body.name).trim() || undefined;
-    return { ok: true, service: await R.patchService(db, id, patch) };
+    const service = await R.patchService(db, id, patch);
+    app.cache.invalidate(CACHE.catalogStaff, CACHE.catalogPublic);
+    return { ok: true, service };
   });
 
   app.patch('/api/promos/:code', { preHandler: admin }, async (req) => {
@@ -73,6 +76,7 @@ export function registerAdminRoutes(app: FastifyInstance, db: Db): void {
     if (!promo) throw notFound(`Promo ${code} tidak ditemukan.`);
     const active = body.active !== undefined ? Boolean(body.active) : promo.active;
     await R.upsertPromo(db, { ...promo, active });
+    app.cache.invalidate(CACHE.catalogStaff, CACHE.catalogPublic);
     return { ok: true, promo: (await R.listPromos(db)).find((p) => p.code === code) };
   });
 
@@ -88,7 +92,9 @@ export function registerAdminRoutes(app: FastifyInstance, db: Db): void {
     }
     if (body.active !== undefined) patch.active = Boolean(body.active);
     if (body.name !== undefined) patch.name = String(body.name).trim() || undefined;
-    return { ok: true, addon: await R.patchAddon(db, id, patch) };
+    const addon = await R.patchAddon(db, id, patch);
+    app.cache.invalidate(CACHE.catalogStaff, CACHE.catalogPublic);
+    return { ok: true, addon };
   });
 
   app.patch('/api/machines/:id', { preHandler: admin }, async (req) => {
@@ -145,6 +151,7 @@ export function registerAdminRoutes(app: FastifyInstance, db: Db): void {
     if (body.value === undefined) throw badRequest('Isi `value`.');
     if (key === 'gallery') validateGallery(body.value);
     await R.setContent(db, key, body.value);
+    app.cache.invalidate(CACHE.content);
     return { ok: true, value: await R.getContent(db, key, null) };
   });
 
@@ -165,12 +172,14 @@ export function registerAdminRoutes(app: FastifyInstance, db: Db): void {
       throw badRequest('Ukuran gambar QRIS maksimal 2 MB.');
     }
     const qris = await R.setQrisImage(db, { dataUrl, updatedAt: Date.now() });
+    app.cache.invalidate(CACHE.qris);
     return { ok: true, qris };
   });
 
   /** Hapus QRIS unggahan — pelanggan kembali melihat gambar bawaan. */
   app.delete('/api/qris', { preHandler: admin }, async () => {
     await R.setQrisImage(db, null);
+    app.cache.invalidate(CACHE.qris);
     return { ok: true, qris: null };
   });
 

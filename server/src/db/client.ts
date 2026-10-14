@@ -268,7 +268,9 @@ function sslFor(databaseUrl: string): { rejectUnauthorized: boolean } | undefine
     if (url.searchParams.get('sslmode') === 'disable') return undefined;
     const host = url.hostname;
     if (host === 'localhost' || host === '127.0.0.1' || host === '::1') return undefined;
-    return { rejectUnauthorized: false };
+    /* Enforce CA verification for remote databases (Neon/RDS) to prevent MITM */
+    const reject = process.env.BUSA_DB_REJECT_UNAUTHORIZED !== 'false';
+    return { rejectUnauthorized: reject };
   } catch {
     return undefined;
   }

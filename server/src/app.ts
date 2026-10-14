@@ -1,4 +1,5 @@
 import Fastify, { LogController, type FastifyInstance } from 'fastify';
+import helmet from '@fastify/helmet';
 import cors from '@fastify/cors';
 import jwt from '@fastify/jwt';
 import rateLimit from '@fastify/rate-limit';
@@ -14,6 +15,7 @@ import type { Role } from './domain/types.ts';
 import type { JwtPayload } from './plugins/auth.ts';
 import * as R from './db/repo.ts';
 import { ApiError } from './lib/http.ts';
+import { TtlCache } from './lib/cache.ts';
 import { registerPublicRoutes } from './routes/public.ts';
 import { registerAuthRoutes } from './routes/auth.ts';
 import { registerMeRoutes } from './routes/me.ts';
@@ -29,6 +31,8 @@ declare module 'fastify' {
     broadcast: (msg: Record<string, unknown>) => void;
     /** Referensi database untuk operasi auth (blacklist, dll). */
     db: Db;
+    /** Cache TTL untuk endpoint publik yang jarang berubah. */
+    cache: TtlCache;
   }
 }
 
@@ -42,6 +46,8 @@ export function buildApp({ db, cfg }: BuildOpts): FastifyInstance {
     logger: { level: cfg.logLevel },
     logController: new LogController({ disableRequestLogging: true }),
     trustProxy: cfg.trustProxy,
+    /* Batas default ketat; route unggah gambar menimpanya per-route. */
+    bodyLimit: cfg.bodyLimit,
   });
 
   /* Hub WebSocket — satu-satunya kanal push untuk papan lantai hidup.
@@ -66,6 +72,28 @@ export function buildApp({ db, cfg }: BuildOpts): FastifyInstance {
   };
   app.decorate('broadcast', hub);
   app.decorate('db', db);
+  app.decorate('cache', new TtlCache(cfg.cacheTtlMs));
+
+  void app.register(helmet, {
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        baseUri: ["'self'"],
+        fontSrc: ["'self'", 'https:', 'data:'],
+        formAction: ["'self'"],
+        frameAncestors: ["'none'"],
+        imgSrc: ["'self'", 'data:', 'https:'],
+        objectSrc: ["'none'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrcAttr: ["'unsafe-inline'"],
+        styleSrc: ["'self'", 'https:', "'unsafe-inline'"],
+        connectSrc: ["'self'", 'ws:', 'wss:', 'https:'],
+        upgradeInsecureRequests: cfg.production ? [] : null,
+      },
+    },
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  });
 
   void app.register(cors, {
     origin: cfg.corsOrigins.length ? cfg.corsOrigins : false,
@@ -82,7 +110,8 @@ export function buildApp({ db, cfg }: BuildOpts): FastifyInstance {
       servers: [{ url: `http://${cfg.host}:${cfg.port}` }],
     },
   });
-  void app.register(swaggerUi, { routePrefix: '/docs' });
+  /* UI dokumen API hanya di lokal/dev — produksi tidak membuka /docs. */
+  if (!cfg.production) void app.register(swaggerUi, { routePrefix: '/docs' });
 
   /*
    * WebSocket harus didaftarkan bersama route /ws di scope plugin yang sama:
@@ -152,7 +181,7 @@ export function buildApp({ db, cfg }: BuildOpts): FastifyInstance {
     registerAuthRoutes(app, db, cfg);
     registerMeRoutes(app, db);
     registerOrderRoutes(app, db);
-    registerScanRoutes(app, db);
+    registerScanRoutes(app, db, cfg);
     registerFloorRoutes(app, db);
     registerDashboardRoutes(app, db);
     registerAdminRoutes(app, db);
@@ -160,7 +189,10 @@ export function buildApp({ db, cfg }: BuildOpts): FastifyInstance {
     /** Cek hidup + koneksi DB — dipakai monitoring/uptime, tanpa data sensitif. */
     app.get('/health', async () => {
       await db.get('SELECT 1');
-      return { ok: true, db: db.location, uptime_s: Math.round(process.uptime()) };
+      /* Detail lokasi DB hanya untuk lokal/dev — produksi cukup status hidup. */
+      return cfg.production
+        ? { ok: true, uptime_s: Math.round(process.uptime()) }
+        : { ok: true, db: db.location, uptime_s: Math.round(process.uptime()) };
     });
 
     if (cfg.serveStatic) {
@@ -186,6 +218,10 @@ export function buildApp({ db, cfg }: BuildOpts): FastifyInstance {
     }
     if ((err as { validation?: unknown }).validation) {
       return reply.code(400).send({ ok: false, error: 'Body tidak sesuai kontrak API.', detail: (err as { validation?: unknown }).validation });
+    }
+    /* Body melebihi bodyLimit (Fastify melempar 413 bawaan berbahasa Inggris). */
+    if ((err as { statusCode?: number }).statusCode === 413) {
+      return reply.code(413).send({ ok: false, error: 'Body permintaan terlalu besar.' });
     }
     const status = (err as { statusCode?: number }).statusCode;
     if (status && status >= 400 && status < 500) {

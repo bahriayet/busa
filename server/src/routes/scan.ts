@@ -1,4 +1,6 @@
+import { createHash } from 'node:crypto';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
+import type { Config } from '../config.ts';
 import type { Db } from '../db/client.ts';
 import * as R from '../db/repo.ts';
 import { applyDecision } from '../domain/apply.ts';
@@ -31,7 +33,7 @@ export interface ScanBody {
   sync?: string;
 }
 
-export function registerScanRoutes(app: FastifyInstance, db: Db): void {
+export function registerScanRoutes(app: FastifyInstance, db: Db, cfg?: Config): void {
   const requireRole = makeRequireRole(db);
   const optionalAuth = makeOptionalAuth(db);
   const handler = async (req: FastifyRequest, reply: FastifyReply) => {
@@ -87,8 +89,28 @@ export function registerScanRoutes(app: FastifyInstance, db: Db): void {
     });
   };
 
-  /* Seam frontend: terbuka, opsional Bearer untuk identitas operator. */
-  app.post('/scan', { preHandler: optionalAuth }, handler);
+  /* Batas per operator, bukan hanya per IP: beberapa operator bisa berbagi
+     satu koneksi toko, jadi bucket dipisah per token (hash, bukan isi token);
+     pemindaian anonim di dev lokal jatuh kembali ke bucket IP. */
+  const scanLimit = {
+    config: {
+      rateLimit: {
+        max: cfg?.rateLimitScanMax ?? 300,
+        timeWindow: '15 minutes',
+        keyGenerator: (req: FastifyRequest): string => {
+          const auth = req.headers.authorization;
+          return auth ? `token:${createHash('sha1').update(auth).digest('hex')}` : `ip:${req.ip}`;
+        },
+      },
+    },
+  };
+
+  /* Seam frontend: wajib staf/admin di mode produksi, opsional di dev lokal. */
+  if (cfg?.production) {
+    app.post('/scan', { preHandler: requireRole('staff', 'admin'), ...scanLimit }, handler);
+  } else {
+    app.post('/scan', { preHandler: optionalAuth, ...scanLimit }, handler);
+  }
   /* Permukaan API: wajib staf/admin. */
-  app.post('/api/scan', { preHandler: requireRole('staff', 'admin') }, handler);
+  app.post('/api/scan', { preHandler: requireRole('staff', 'admin'), ...scanLimit }, handler);
 }

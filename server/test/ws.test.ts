@@ -19,7 +19,8 @@ const cfg: Config = {
   seedPassword: 'busa1234', simulate: false, tickMs: 7000,
   corsOrigins: [], logLevel: 'silent',
   rateLimitMax: 100_000, rateLimitLoginMax: 100_000,
-  trustProxy: false,
+  trustProxy: false, production: false,
+  cacheTtlMs: 0, bodyLimit: 256 * 1024, rateLimitScanMax: 100_000,
 };
 
 const db = await openTestDb();

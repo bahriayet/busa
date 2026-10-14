@@ -1,12 +1,17 @@
 # Keep-alive gratis untuk backend Render free tier (tidur setelah ~15 menit idle).
 # Repo publik: GitHub Actions tidak memakai kuota menit berbayar.
+# Interval 5 menit (minimum cron GitHub) memberi margin: cron GitHub sering
+# telat beberapa menit; di 10 menit, keterlambatan bisa melewati ambang tidur
+# 15 menit dan server sempat cold start.
 # Catatan: GitHub menonaktifkan workflow terjadwal setelah 60 hari tanpa aktivitas
 # repo — lakukan commit apa pun sekali agar aktif kembali.
+# Untuk benar-benar selalu hidup, naikkan instance Render ke plan berbayar
+# (lihat komentar di render.yaml) — keep-alive hanya mitigasi.
 name: keep-alive
 
 on:
   schedule:
-    - cron: '*/10 * * * *'
+    - cron: '*/5 * * * *'
   workflow_dispatch:
 
 permissions: {}
@@ -21,4 +26,4 @@ jobs:
     timeout-minutes: 3
     steps:
       - name: Bangunkan busa-api (health check)
-        run: curl -fsS --max-time 90 --retry 2 --retry-delay 5 https://busa-api.onrender.com/health
+        run: curl -fsS --max-time 90 --retry 3 --retry-delay 5 --retry-all-errors https://busa-api.onrender.com/health

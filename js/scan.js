@@ -15,9 +15,13 @@ function apiBase() {
 function sendEvent(ev) {
   const base = apiBase();
   if (!base) return Promise.resolve({ ok: true, local: true });
+  const headers = { 'Content-Type': 'application/json' };
+  if (typeof S !== 'undefined' && S && S.auth && S.auth.token) {
+    headers.Authorization = 'Bearer ' + S.auth.token;
+  }
   return fetch(base + '/scan', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify(ev),
   }).then((r) => ({ ok: r.ok, status: r.status })).catch((e) => ({ ok: false, error: e.message }));
 }

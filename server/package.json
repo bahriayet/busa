@@ -12,11 +12,12 @@
     "dev": "node --env-file-if-exists=.env --watch src/index.ts",
     "start": "node --env-file-if-exists=.env src/index.ts",
     "typecheck": "tsc --noEmit",
-    "test": "node --test \"test/*.test.ts\"",
+    "test": "node --test --test-concurrency=1 \"test/*.test.ts\"",
     "db:reset": "node --env-file-if-exists=.env src/db/reset.ts"
   },
   "dependencies": {
     "@fastify/cors": "^11.3.1",
+    "@fastify/helmet": "^13.2.0",
     "@fastify/jwt": "^10.2.3",
     "@fastify/rate-limit": "^11.2.1",
     "@fastify/static": "^10.1.5",

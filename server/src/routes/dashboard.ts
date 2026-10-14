@@ -17,7 +17,7 @@ export function registerDashboardRoutes(app: FastifyInstance, db: Db): void {
 
   app.get('/api/dashboard', { preHandler: staff }, async () => {
     const now = Date.now();
-    const orders = await R.listOrders(db);
+    const active = await R.listActiveOrders(db);
     const machines = await R.listMachines(db);
     const revenue = await R.listRevenue(db, 14);
     const today = revenue[revenue.length - 1];
@@ -34,12 +34,8 @@ export function registerDashboardRoutes(app: FastifyInstance, db: Db): void {
         busy: machines.filter((m) => m.ticket !== '—').length,
         idle: machines.filter((m) => m.ticket === '—').length,
       },
-      orders: {
-        aktif: orders.filter((o) => !o.cancelled && o.stage < 8).length,
-        selesai: orders.filter((o) => o.stage === 8 && !o.collected).length,
-        lunas: orders.filter((o) => o.payStatus === 'lunas' && !o.cancelled).length,
-      },
-      stuck: orders.filter((o) => isStuck(o, now)).map((o) => o.code),
+      orders: await R.dashboardCounts(db),
+      stuck: active.filter((o) => isStuck(o, now)).map((o) => o.code),
     };
   });
 
