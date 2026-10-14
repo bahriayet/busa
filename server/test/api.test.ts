@@ -15,6 +15,7 @@ const cfg: Config = {
   rateLimitMax: 100_000, rateLimitLoginMax: 100_000,
   trustProxy: false, production: false,
   cacheTtlMs: 0, bodyLimit: 256 * 1024, rateLimitScanMax: 100_000,
+  rateLimitTrackMax: 100_000,
 };
 
 const db = await openTestDb();
@@ -45,6 +46,8 @@ test('meta dan katalog publik', async () => {
 test('lacak publik memakai digit terakhir', async () => {
   const full = await app.inject({ method: 'GET', url: '/api/track/BUSA-4471' });
   assert.equal(full.statusCode, 200);
+  /* Privasi: nama lengkap pelanggan tidak pernah keluar dari endpoint publik. */
+  assert.equal((full.json() as { order: { customer: string } }).order.customer, 'Rania');
   const short = await app.inject({ method: 'GET', url: '/api/track/4471' });
   assert.equal(short.statusCode, 200);
   assert.equal((short.json() as { order: { code: string } }).order.code, 'BUSA-4471');
@@ -655,4 +658,38 @@ test('QRIS: publik membaca, hanya admin mengganti, pelanggan ditolak', async () 
   assert.equal((del.json() as { qris: unknown }).qris, null);
   const after = await app.inject({ method: 'GET', url: '/api/qris' });
   assert.equal((after.json() as { qris: unknown }).qris, null);
+});
+
+test('ganti password mencabut token lama (sesi penyerang putus)', async () => {
+  const token = await login('dodo');
+  /* Beri jarak > 1 detik: token yang terbit di detik yang sama dengan
+     pergantian password sengaja dimaafkan (presisi iat JWT = detik). */
+  await new Promise((r) => setTimeout(r, 1100));
+
+  const change = await app.inject({
+    method: 'POST', url: '/api/auth/change-password',
+    headers: { authorization: `Bearer ${token}` },
+    payload: { currentPassword: 'busa1234', newPassword: 'dodoRahasia123' },
+  });
+  assert.equal(change.statusCode, 200, change.body);
+
+  const stale = await app.inject({
+    method: 'GET', url: '/api/dashboard',
+    headers: { authorization: `Bearer ${token}` },
+  });
+  assert.equal(stale.statusCode, 401);
+
+  /* Kembalikan password ke nilai seed supaya tidak mengubah state test lain. */
+  const relog = await app.inject({
+    method: 'POST', url: '/api/auth/login',
+    payload: { login: 'dodo', password: 'dodoRahasia123' },
+  });
+  assert.equal(relog.statusCode, 200, relog.body);
+  const fresh = (relog.json() as { token: string }).token;
+  const restore = await app.inject({
+    method: 'POST', url: '/api/auth/change-password',
+    headers: { authorization: `Bearer ${fresh}` },
+    payload: { currentPassword: 'dodoRahasia123', newPassword: 'busa1234' },
+  });
+  assert.equal(restore.statusCode, 200, restore.body);
 });

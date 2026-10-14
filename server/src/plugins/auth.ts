@@ -29,6 +29,8 @@ export interface JwtPayload {
   role: Role;
   name: string;
   jti?: string;
+  /** Waktu terbit (detik, dari @fastify/jwt) — dipakai cek pencabutan token. */
+  iat?: number;
 }
 
 export function signToken(app: FastifyInstance, payload: JwtPayload): string {
@@ -68,6 +70,12 @@ export function makeRequireRole(db: Db) {
       if (!roles.includes(payload.role)) {
         throw forbidden(`Aksi ini butuh peran ${roles.join(' atau ')}.`);
       }
+      /* Token yang terbit sebelum password terakhir diganti dianggap mati.
+         iat dalam detik; toleransi 1 detik untuk token yang terbit bersamaan. */
+      const changed = await R.passwordChangedAt(db, payload.sub);
+      if (changed && payload.iat && payload.iat * 1000 + 1000 < changed) {
+        throw unauthorized('Sesi telah diakhiri setelah password diganti.');
+      }
       request.auth = { userId: payload.sub, role: payload.role, name: payload.name };
     };
   };
@@ -88,6 +96,9 @@ export function makeOptionalAuth(db: Db) {
         if (payload.jti && await R.isTokenBlacklisted(db, payload.jti)) {
           return; // token di-blacklist, perlakukan sebagai anonim
         }
+        /* Token yang terbit sebelum password diganti → perlakukan anonim. */
+        const changed = await R.passwordChangedAt(db, payload.sub);
+        if (changed && payload.iat && payload.iat * 1000 + 1000 < changed) return;
         request.auth = { userId: payload.sub, role: payload.role, name: payload.name };
       }
     } catch {

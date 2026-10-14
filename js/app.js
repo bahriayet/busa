@@ -129,6 +129,13 @@ function isAuthed() { return S.auth.loggedIn && S.auth.token; }
 function isCustomerAuthed() { return isAuthed() && S.auth.user.role === 'customer'; }
 function isAdminAuthed() { return isAuthed() && (S.auth.user.role === 'admin' || S.auth.user.role === 'staff'); }
 
+/** Benar hanya di lokal/LAN — dipakai menyembunyikan kredensial demo dari publik. */
+function isLocalHost() {
+  const host = location.hostname;
+  return !host || host === 'localhost' || host === '127.0.0.1' || host === '::1'
+    || host.indexOf('192.168.') === 0 || host.indexOf('10.') === 0 || host.indexOf('172.') === 0;
+}
+
 async function doLogin(login, password) {
   const res = await fetch(apiOrigin() + '/api/auth/login', {
     method: 'POST',
@@ -568,7 +575,7 @@ VIEWS.loginA = {
           <button class="btn primary big" type="submit">${icon('lock')} Masuk</button>
         </form>
         <div class="login-foot">
-          <p class="mono fine">Demo: <b>admin</b> / <b>busa1234</b> &middot; <b>dodo</b> / <b>busa1234</b></p>
+          ${isLocalHost() ? `<p class="mono fine">Demo: <b>admin</b> / <b>busa1234</b> &middot; <b>dodo</b> / <b>busa1234</b></p>` : ''}
           <div class="login-links">
             <button class="lnk" data-act="go" data-route="forgot">Lupa password?</button>
             <button class="lnk" data-act="go" data-route="loginC">Masuk sebagai pelanggan →</button>

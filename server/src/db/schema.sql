@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS users (
   active       INTEGER NOT NULL DEFAULT 1,
   created_ms   BIGINT NOT NULL
 );
+ALTER TABLE users ADD COLUMN IF NOT EXISTS pass_changed_ms BIGINT;
 
 CREATE TABLE IF NOT EXISTS customers (
   id         TEXT PRIMARY KEY,

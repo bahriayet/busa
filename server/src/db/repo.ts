@@ -622,6 +622,7 @@ export async function adjustBalance(db: Db, customerId: string, delta: number): 
 interface UserRow {
   id: string; role: string; name: string; phone: string | null; phone_digits: string | null;
   username: string | null; pass_salt: string; pass_hash: string; active: number; created_ms: number;
+  pass_changed_ms: number | null;
 }
 
 export type AuthUser = User & { salt: string; hash: string };
@@ -638,10 +639,10 @@ export async function insertUser(db: Db, u: {
   username?: string | null; salt: string; hash: string; createdMs: number;
 }): Promise<void> {
   await db.run(
-    `INSERT INTO users (id, role, name, phone, phone_digits, username, pass_salt, pass_hash, active, created_ms)
-     VALUES (?,?,?,?,?,?,?,?,1,?)`,
+    `INSERT INTO users (id, role, name, phone, phone_digits, username, pass_salt, pass_hash, active, created_ms, pass_changed_ms)
+     VALUES (?,?,?,?,?,?,?,?,1,?,?)`,
     u.id, u.role, u.name, n(u.phone ?? null), n(u.phone ? u.phone.replace(/\D/g, '') : null),
-    n(u.username ?? null), u.salt, u.hash, u.createdMs,
+    n(u.username ?? null), u.salt, u.hash, u.createdMs, u.createdMs,
   );
 }
 
@@ -664,7 +665,16 @@ export async function findUserById(db: Db, id: string): Promise<User | undefined
 }
 
 export async function setUserPassword(db: Db, id: string, salt: string, hash: string): Promise<void> {
-  await db.run('UPDATE users SET pass_salt = ?, pass_hash = ? WHERE id = ?', salt, hash, id);
+  await db.run('UPDATE users SET pass_salt = ?, pass_hash = ?, pass_changed_ms = ? WHERE id = ?', salt, hash, Date.now(), id);
+}
+
+/** Waktu (ms) password terakhir diganti; 0 = tidak diketahui. Dipakai untuk
+    mencabut token yang diterbitkan sebelum pergantian password. */
+export async function passwordChangedAt(db: Db, id: string): Promise<number> {
+  const r = await db.get<{ pass_changed_ms: number | null }>(
+    'SELECT pass_changed_ms FROM users WHERE id = ?', id,
+  );
+  return r?.pass_changed_ms ?? 0;
 }
 
 export async function countUsers(db: Db): Promise<number> {

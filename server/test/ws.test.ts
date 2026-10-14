@@ -21,6 +21,7 @@ const cfg: Config = {
   rateLimitMax: 100_000, rateLimitLoginMax: 100_000,
   trustProxy: false, production: false,
   cacheTtlMs: 0, bodyLimit: 256 * 1024, rateLimitScanMax: 100_000,
+  rateLimitTrackMax: 100_000,
 };
 
 const db = await openTestDb();

@@ -34,6 +34,8 @@ export interface Config {
   bodyLimit: number;
   /** Batas pindai per operator/IP per 15 menit. */
   rateLimitScanMax: number;
+  /** Batas lacak pesanan publik per IP per 15 menit. */
+  rateLimitTrackMax: number;
 }
 
 function int(v: string | undefined, fallback: number): number {
@@ -107,5 +109,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     cacheTtlMs: int(env.BUSA_CACHE_TTL_MS, 30_000),
     bodyLimit: int(env.BUSA_BODY_LIMIT, 256 * 1024),
     rateLimitScanMax: int(env.BUSA_RATE_LIMIT_SCAN_MAX, 300),
+    rateLimitTrackMax: int(env.BUSA_RATE_LIMIT_TRACK_MAX, 60),
   };
 }

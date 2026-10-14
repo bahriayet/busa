@@ -52,6 +52,10 @@ export function registerAuthRoutes(app: FastifyInstance, db: Db, cfg: Config): v
   const anyAuth = requireRole('admin', 'staff', 'customer');
   const authLimit = { config: { rateLimit: { max: cfg.rateLimitLoginMax, timeWindow: '15 minutes' } } };
 
+  /* Hash dummy: akun yang tidak ada/nonaktif tetap menjalankan scrypt dengan
+     biaya sama, sehingga waktu respons tidak membocorkan keberadaan akun. */
+  const dummy = hashPassword('busa-timing-dummy-tidak-pernah-cocok');
+
   app.post('/api/auth/login', authLimit, async (req: FastifyRequest<{ Body: LoginBody }>, reply) => {
     const body = req.body ?? { login: '', password: '' };
     const login = String(body.login ?? '').trim();
@@ -61,17 +65,22 @@ export function registerAuthRoutes(app: FastifyInstance, db: Db, cfg: Config): v
     }
 
     const found = await R.findUserByLogin(db, login);
-    if (!found || !found.active || !verifyPassword(password, found.salt, found.hash)) {
+    const account = found && found.active ? found : undefined;
+    if (!account) {
+      /* Akun tidak ada/nonaktif: jalankan scrypt dummy supaya waktu respons seragam. */
+      verifyPassword(password, dummy.salt, dummy.hash);
+    }
+    if (!account || !verifyPassword(password, account.salt, account.hash)) {
       throw unauthorized('Identitas atau password salah.');
     }
 
-    const customer = found.phone ? await R.getCustomerByPhone(db, found.phone) : undefined;
+    const customer = account.phone ? await R.getCustomerByPhone(db, account.phone) : undefined;
     const jti = randomBytes(12).toString('hex');
-    const token = signToken(app, { sub: found.id, role: found.role, name: found.name, jti });
+    const token = signToken(app, { sub: account.id, role: account.role, name: account.name, jti });
     return {
       ok: true,
       token,
-      user: publicUser(found),
+      user: publicUser(account),
       customerId: customer?.id ?? null,
     };
   });

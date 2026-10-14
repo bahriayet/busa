@@ -1,5 +1,6 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import type { Db } from '../db/client.ts';
+import type { Config } from '../config.ts';
 import * as R from '../db/repo.ts';
 import {
   ACTION_LABEL, COURIERS, FREE_SHIP_ABOVE, MACHINE_KIND_LABEL, MIN_KG_ORDER, PLAN_LENS,
@@ -21,7 +22,7 @@ import { makeOptionalAuth } from '../plugins/auth.ts';
  * tidak pernah melihat data basi.
  */
 
-export function registerPublicRoutes(app: FastifyInstance, db: Db): void {
+export function registerPublicRoutes(app: FastifyInstance, db: Db, cfg: Config): void {
   app.get('/api/meta', async () => app.cache.wrap(CACHE.meta, async () => ({
     ok: true,
     stages: STAGES,
@@ -73,28 +74,34 @@ export function registerPublicRoutes(app: FastifyInstance, db: Db): void {
     return { ok: true, date, slots: await R.slotLoad(db, date) };
   });
 
-  app.get('/api/track/:code', async (req: FastifyRequest<{ Params: { code: string } }>) => {
-    const order = await R.findOrderByCode(db, req.params.code);
-    if (!order) throw notFound(`Order ${req.params.code} tidak ditemukan.`);
-    const queueDepth = await R.countOrdersAtStage(db, order.stage, order.code);
-    const eta = etaMinutes(order, await R.listMachines(db), queueDepth);
-    const services = await R.listServices(db);
-    const first = order.items[0];
-    const service = first ? services.find((s) => s.id === first.id) : undefined;
-    return {
-      ok: true,
-      order: {
-        code: order.code,
-        customer: (order.customer || '').split(' ')[0],
-        weight: order.weight,
-        stage: order.stage, stageLabel: stageLabel(order.stage),
-        machine: order.machine === '—' ? null : order.machine,
-        etaLabel: eta.label, etaMins: eta.mins,
-        serviceName: service?.name ?? '',
-        stuck: isStuck(order, Date.now()),
-      },
-    };
-  });
+  /* Kode pesanan berurutan (BUSA-44xx): endpoint publik ini dibatasi per IP
+     agar tidak bisa disapu berurutan untuk memanen data pelanggan. */
+  app.get(
+    '/api/track/:code',
+    { config: { rateLimit: { max: cfg.rateLimitTrackMax, timeWindow: '15 minutes' } } },
+    async (req: FastifyRequest<{ Params: { code: string } }>) => {
+      const order = await R.findOrderByCode(db, req.params.code);
+      if (!order) throw notFound(`Order ${req.params.code} tidak ditemukan.`);
+      const queueDepth = await R.countOrdersAtStage(db, order.stage, order.code);
+      const eta = etaMinutes(order, await R.listMachines(db), queueDepth);
+      const services = await R.listServices(db);
+      const first = order.items[0];
+      const service = first ? services.find((s) => s.id === first.id) : undefined;
+      return {
+        ok: true,
+        order: {
+          code: order.code,
+          customer: (order.customer || '').split(' ')[0],
+          weight: order.weight,
+          stage: order.stage, stageLabel: stageLabel(order.stage),
+          machine: order.machine === '—' ? null : order.machine,
+          etaLabel: eta.label, etaMins: eta.mins,
+          serviceName: service?.name ?? '',
+          stuck: isStuck(order, Date.now()),
+        },
+      };
+    },
+  );
 
   /*
    * Papan publik "sedang dikerjakan" untuk halaman situs: pengunjung tanpa

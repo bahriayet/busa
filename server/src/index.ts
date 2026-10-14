@@ -28,6 +28,10 @@ if (seed.version !== SEED_VERSION) {
   console.warn(`[busa] SEED_VERSION berubah (${seed.version} → ${SEED_VERSION}); jalankan db:reset untuk seed ulang.`);
 }
 
+if (cfg.production && cfg.seedPassword === 'busa1234') {
+  console.warn('[busa] PERINGATAN: password seed default masih dipakai di produksi — ganti password admin/staf lewat panel admin sekarang.');
+}
+
 const app = buildApp({ db, cfg });
 
 /* Bersihkan token logout/reset yang kedaluwarsa tiap 6 jam. */

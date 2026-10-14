@@ -145,6 +145,14 @@ export function buildApp({ db, cfg }: BuildOpts): FastifyInstance {
           }
         } catch { /* cek blacklist best-effort; koneksi tetap dilayani */ }
       }
+      /* Token yang terbit sebelum password diganti juga dicabut di jalur WS. */
+      try {
+        const changed = await R.passwordChangedAt(db, payload.sub);
+        if (changed && payload.iat && payload.iat * 1000 + 1000 < changed) {
+          socket.close(4401, 'Sesi telah diakhiri.');
+          return;
+        }
+      } catch { /* cek best-effort; koneksi tetap dilayani */ }
 
       let customerId: string | null = null;
       if (payload.role === 'customer') {
@@ -177,7 +185,7 @@ export function buildApp({ db, cfg }: BuildOpts): FastifyInstance {
    * dibuat setelah plugin aktif, termasuk config `rateLimit` per-route.
    */
   void app.after(() => {
-    registerPublicRoutes(app, db);
+    registerPublicRoutes(app, db, cfg);
     registerAuthRoutes(app, db, cfg);
     registerMeRoutes(app, db);
     registerOrderRoutes(app, db);
