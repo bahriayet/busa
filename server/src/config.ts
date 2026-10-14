@@ -24,6 +24,8 @@ export interface Config {
   logLevel: string;
   rateLimitMax: number;
   rateLimitLoginMax: number;
+  /** Batas percobaan login per akun per 15 menit (melengkapi batas per IP). */
+  rateLimitLoginAccountMax: number;
   /** Percayai header X-Forwarded-* dari reverse proxy (host PaaS). */
   trustProxy: boolean;
   /** true saat NODE_ENV=production: /docs ditutup & /health tanpa detail DB. */
@@ -36,6 +38,8 @@ export interface Config {
   rateLimitScanMax: number;
   /** Batas lacak pesanan publik per IP per 15 menit. */
   rateLimitTrackMax: number;
+  /** Origin publik API untuk CSP produksi (mis. Render RENDER_EXTERNAL_URL). */
+  publicApiOrigin: string;
 }
 
 function int(v: string | undefined, fallback: number): number {
@@ -104,11 +108,13 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     logLevel: env.BUSA_LOG_LEVEL ?? 'info',
     rateLimitMax: int(env.BUSA_RATE_LIMIT_MAX, 300),
     rateLimitLoginMax: int(env.BUSA_RATE_LIMIT_LOGIN_MAX, 20),
+    rateLimitLoginAccountMax: int(env.BUSA_RATE_LIMIT_LOGIN_ACCOUNT_MAX, 10),
     trustProxy: bool(env.BUSA_TRUST_PROXY, onPaaS),
     production: env.NODE_ENV === 'production',
     cacheTtlMs: int(env.BUSA_CACHE_TTL_MS, 30_000),
     bodyLimit: int(env.BUSA_BODY_LIMIT, 256 * 1024),
     rateLimitScanMax: int(env.BUSA_RATE_LIMIT_SCAN_MAX, 300),
     rateLimitTrackMax: int(env.BUSA_RATE_LIMIT_TRACK_MAX, 60),
+    publicApiOrigin: (env.BUSA_PUBLIC_ORIGIN ?? env.RENDER_EXTERNAL_URL ?? '').replace(/\/+$/, ''),
   };
 }

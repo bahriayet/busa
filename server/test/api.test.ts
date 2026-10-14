@@ -15,7 +15,8 @@ const cfg: Config = {
   rateLimitMax: 100_000, rateLimitLoginMax: 100_000,
   trustProxy: false, production: false,
   cacheTtlMs: 0, bodyLimit: 256 * 1024, rateLimitScanMax: 100_000,
-  rateLimitTrackMax: 100_000,
+  rateLimitTrackMax: 100_000, rateLimitLoginAccountMax: 100_000,
+  publicApiOrigin: '',
 };
 
 const db = await openTestDb();
@@ -506,6 +507,31 @@ test('rate limit login menolak percobaan beruntun', async () => {
   await limited.close();
 });
 
+test('limit login per akun: percobaan beruntun ke akun yang sama diblokir', async () => {
+  const perAccount = buildApp({ db, cfg: { ...cfg, rateLimitLoginAccountMax: 3 } });
+  await perAccount.ready();
+  for (let i = 0; i < 3; i++) {
+    const res = await perAccount.inject({
+      method: 'POST', url: '/api/auth/login',
+      payload: { login: 'admin', password: 'salah' },
+    });
+    assert.equal(res.statusCode, 401);
+  }
+  const blocked = await perAccount.inject({
+    method: 'POST', url: '/api/auth/login',
+    payload: { login: 'admin', password: 'salah' },
+  });
+  assert.equal(blocked.statusCode, 429);
+
+  /* Akun lain tidak terkena imbas limit akun ini. */
+  const other = await perAccount.inject({
+    method: 'POST', url: '/api/auth/login',
+    payload: { login: 'dodo', password: 'salah' },
+  });
+  assert.equal(other.statusCode, 401);
+  await perAccount.close();
+});
+
 test('health check menjawab ok', async () => {
   const res = await app.inject({ method: 'GET', url: '/health' });
   assert.equal(res.statusCode, 200);
@@ -513,13 +539,18 @@ test('health check menjawab ok', async () => {
 });
 
 test('produksi: /docs ditutup dan /health tanpa detail lokasi DB', async () => {
-  const prod = buildApp({ db, cfg: { ...cfg, production: true } });
+  const prod = buildApp({ db, cfg: { ...cfg, production: true, publicApiOrigin: 'https://busa-api.onrender.com' } });
   await prod.ready();
   const docs = await prod.inject({ method: 'GET', url: '/docs/json' });
   assert.equal(docs.statusCode, 404);
   const health = await prod.inject({ method: 'GET', url: '/health' });
   assert.equal(health.statusCode, 200);
   assert.deepEqual(Object.keys(health.json()).sort(), ['ok', 'uptime_s']);
+  /* CSP produksi: script hanya dari berkas sendiri, atribut event inline dilarang. */
+  const csp = String(health.headers['content-security-policy'] || '');
+  assert.ok(csp.includes("script-src 'self'"), csp);
+  assert.ok(csp.includes("script-src-attr 'none'"), csp);
+  assert.ok(csp.includes('wss://busa-api.onrender.com'), csp);
   await prod.close();
 });
 

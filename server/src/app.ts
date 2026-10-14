@@ -16,6 +16,7 @@ import type { JwtPayload } from './plugins/auth.ts';
 import * as R from './db/repo.ts';
 import { ApiError } from './lib/http.ts';
 import { TtlCache } from './lib/cache.ts';
+import { auditLine } from './lib/audit.ts';
 import { registerPublicRoutes } from './routes/public.ts';
 import { registerAuthRoutes } from './routes/auth.ts';
 import { registerMeRoutes } from './routes/me.ts';
@@ -74,6 +75,18 @@ export function buildApp({ db, cfg }: BuildOpts): FastifyInstance {
   app.decorate('db', db);
   app.decorate('cache', new TtlCache(cfg.cacheTtlMs));
 
+  /* CSP: script hanya dari berkas sendiri (tak ada script inline di index.html;
+     atribut event inline sudah dihapus dari JS) dan koneksi dibatasi ke API
+     sendiri saat produksi. style-src tetap longgar karena UI memakai atribut
+     style dinamis (--i, lebar bar) yang dibuat lewat innerHTML. */
+  const cspConnect = cfg.production
+    ? [...new Set([
+      "'self'",
+      ...(cfg.publicApiOrigin ? [cfg.publicApiOrigin, cfg.publicApiOrigin.replace(/^http/, 'ws')] : []),
+      'https://busa-api.onrender.com', 'wss://busa-api.onrender.com',
+    ])]
+    : ["'self'", 'ws:', 'wss:', 'https:', 'http:'];
+
   void app.register(helmet, {
     contentSecurityPolicy: {
       directives: {
@@ -84,10 +97,10 @@ export function buildApp({ db, cfg }: BuildOpts): FastifyInstance {
         frameAncestors: ["'none'"],
         imgSrc: ["'self'", 'data:', 'https:'],
         objectSrc: ["'none'"],
-        scriptSrc: ["'self'", "'unsafe-inline'"],
-        scriptSrcAttr: ["'unsafe-inline'"],
+        scriptSrc: ["'self'"],
+        scriptSrcAttr: ["'none'"],
         styleSrc: ["'self'", 'https:', "'unsafe-inline'"],
-        connectSrc: ["'self'", 'ws:', 'wss:', 'https:'],
+        connectSrc: cspConnect,
         upgradeInsecureRequests: cfg.production ? [] : null,
       },
     },
@@ -218,6 +231,22 @@ export function buildApp({ db, cfg }: BuildOpts): FastifyInstance {
         serveDotFiles: false,
       });
     }
+  });
+
+  /* Audit keamanan: hanya peristiwa penting (ditolak, masuk, mutasi) yang
+     dicatat — body/query tidak pernah ikut, jadi tidak ada rahasia di log. */
+  app.addHook('onResponse', (req, reply) => {
+    const body = req.body as { login?: unknown; phone?: unknown } | undefined;
+    const line = auditLine({
+      method: req.method,
+      route: req.routeOptions?.url ?? req.url,
+      ip: req.ip,
+      auth: req.auth,
+      login: body?.login !== undefined ? String(body.login)
+        : body?.phone !== undefined ? String(body.phone)
+        : undefined,
+    }, reply.statusCode);
+    if (line) req.log[line.level](line.data, line.msg);
   });
 
   app.setErrorHandler((err, req, reply) => {

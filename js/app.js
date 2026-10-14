@@ -136,6 +136,15 @@ function isLocalHost() {
     || host.indexOf('192.168.') === 0 || host.indexOf('10.') === 0 || host.indexOf('172.') === 0;
 }
 
+/* Fallback gambar QRIS tanpa atribut onerror inline (dilarang CSP produksi):
+   error sumber daya tidak membubbling, jadi ditangkap di fase capture. */
+document.addEventListener('error', (e) => {
+  const t = e.target;
+  if (t && t.id === 'qris-img' && String(t.src || '').indexOf('qris.svg') === -1) {
+    t.src = './img/qris.svg';
+  }
+}, true);
+
 async function doLogin(login, password) {
   const res = await fetch(apiOrigin() + '/api/auth/login', {
     method: 'POST',
@@ -938,7 +947,7 @@ function orderStep2() {
       </div>
       ${c.pay === 'qris' ? `
         <div class="qris-box">
-          <img id="qris-img" src="${qrisSrc()}" alt="Kode QRIS BUSA" onerror="this.onerror=null;this.src='./img/qris.svg';">
+          <img id="qris-img" src="${qrisSrc()}" alt="Kode QRIS BUSA">
           <div>
             <b class="display lg">Scan & bayar ${rp(r.total)}</b>
             <p>Buka aplikasi e-wallet atau m-banking, pindai QR di samping, lalu masukkan nominal <b>${rp(r.total)}</b>. Tunjukkan bukti pembayaran ke kurir atau kasir saat penjemputan.</p>

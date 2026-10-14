@@ -1,11 +1,11 @@
 import { randomBytes } from 'node:crypto';
-import type { FastifyInstance, FastifyRequest } from 'fastify';
+import type { FastifyInstance, FastifyRequest, RouteShorthandOptions } from 'fastify';
 import type { Config } from '../config.ts';
 import type { Db } from '../db/client.ts';
 import * as R from '../db/repo.ts';
 import { verifyPassword, hashPassword } from '../lib/password.ts';
 import { signToken, makeRequireRole } from '../plugins/auth.ts';
-import { badRequest, unauthorized, conflict } from '../lib/http.ts';
+import { badRequest, unauthorized, conflict, tooMany } from '../lib/http.ts';
 import { uid } from '../lib/ids.ts';
 import type { User } from '../domain/types.ts';
 
@@ -56,7 +56,37 @@ export function registerAuthRoutes(app: FastifyInstance, db: Db, cfg: Config): v
      biaya sama, sehingga waktu respons tidak membocorkan keberadaan akun. */
   const dummy = hashPassword('busa-timing-dummy-tidak-pernah-cocok');
 
-  app.post('/api/auth/login', authLimit, async (req: FastifyRequest<{ Body: LoginBody }>, reply) => {
+  /*
+   * Batas per akun: brute force yang menyebar lewat banyak IP tetap terhenti.
+   * Kunci = identitas ternormalisasi ('0812-77..' ≡ '081277..'), jendela tetap
+   * 15 menit, in-memory (satu proses). Batas per-IP dari rate-limit tetap ada.
+   */
+  const ACCOUNT_WINDOW_MS = 15 * 60 * 1000;
+  const accountHits = new Map<string, { count: number; resetAt: number }>();
+  const accountLimit = async (req: FastifyRequest): Promise<void> => {
+    const body = req.body as { login?: unknown } | undefined;
+    const raw = String(body?.login ?? '').trim().toLowerCase();
+    if (!raw) return;
+    const key = raw.replace(/[^a-z0-9]/g, '') || raw;
+    const now = Date.now();
+    if (accountHits.size > 5000) {
+      for (const [k, v] of accountHits) if (v.resetAt <= now) accountHits.delete(k);
+    }
+    const rec = accountHits.get(key);
+    if (!rec || rec.resetAt <= now) {
+      accountHits.set(key, { count: 1, resetAt: now + ACCOUNT_WINDOW_MS });
+      return;
+    }
+    rec.count += 1;
+    if (rec.count > cfg.rateLimitLoginAccountMax) {
+      throw tooMany('Terlalu banyak percobaan untuk akun ini. Coba lagi beberapa menit lagi.');
+    }
+  };
+
+  /* Opsi rute bertipe agar overload Fastify tetap bisa menyimpulkan Body. */
+  const guardedLimit: RouteShorthandOptions = { ...authLimit, preHandler: accountLimit };
+
+  app.post('/api/auth/login', guardedLimit, async (req: FastifyRequest<{ Body: LoginBody }>, reply) => {
     const body = req.body ?? { login: '', password: '' };
     const login = String(body.login ?? '').trim();
     const password = String(body.password ?? '');
@@ -171,7 +201,7 @@ export function registerAuthRoutes(app: FastifyInstance, db: Db, cfg: Config): v
    * Lupa password — generate token reset. Di aplikasi nyata token dikirim
    * lewat email/SMS. Di sini token dikembalikan langsung (demo LAN).
    */
-  app.post('/api/auth/forgot-password', authLimit, async (req: FastifyRequest<{ Body: ForgotPasswordBody }>) => {
+  app.post('/api/auth/forgot-password', guardedLimit, async (req: FastifyRequest<{ Body: ForgotPasswordBody }>) => {
     const body = req.body ?? {} as ForgotPasswordBody;
     const login = String(body.login ?? '').trim();
     if (!login) throw badRequest('Isi identitas (username atau nomor telepon).');

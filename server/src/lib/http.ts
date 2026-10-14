@@ -27,3 +27,5 @@ export const forbidden = (msg = 'Peran Anda tidak boleh melakukan aksi ini.'): A
 export const notFound = (msg = 'Tidak ditemukan.'): ApiError => new ApiError(404, msg);
 export const conflict = (msg: string, detail: Record<string, unknown> = {}): ApiError =>
   new ApiError(409, msg, detail);
+export const tooMany = (msg = 'Terlalu banyak permintaan. Coba lagi nanti.'): ApiError =>
+  new ApiError(429, msg);

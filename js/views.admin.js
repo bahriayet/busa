@@ -278,7 +278,7 @@ VIEWS.pembayaran = {
       <div class="panel" data-reveal>
         <header class="p-head"><h3 class="display">QRIS aktif</h3><span class="mono note">${custom ? 'diunggah admin' : 'gambar bawaan'}</span></header>
         <div class="qris-preview ${custom ? 'custom' : 'fallback'}">
-          <img id="qris-img" src="${qrisSrc()}" alt="Pratinjau QRIS" onerror="this.onerror=null;this.src='./img/qris.svg';">
+          <img id="qris-img" src="${qrisSrc()}" alt="Pratinjau QRIS">
           <div>
             <b class="display lg">${custom ? 'QRIS kustom aktif' : 'Menunggu unggahan'}</b>
             <p class="mono fine">${custom
