@@ -8,6 +8,9 @@ const MOTION = (function () {
 
   gsap.registerPlugin(ScrollTrigger);
   gsap.defaults({ duration: 0.55, ease: 'power3.out', overwrite: 'auto' });
+  /* Refresh otomatis saat resize dimatikan — resize ditangani sendiri lewat
+     refreshSoon() yang menunda perhitungan selama pin "babak tiga" aktif. */
+  ScrollTrigger.config({ autoRefreshEvents: 'visibilitychange,load' });
 
   const U = gsap.utils;
   const mm = gsap.matchMedia();
@@ -156,6 +159,7 @@ const MOTION = (function () {
             onUpdate: (self) => peak.style.setProperty('--bc-p', self.progress.toFixed(3)),
           },
         });
+        peakST = ptl.scrollTrigger || null;
         ptl.addLabel('buka', 0);
         ptl.from('.peak-poster', { opacity: 0, scale: .95, transformOrigin: '76% 50%' }, 'buka')
           .from('.peak-copy', { opacity: 0, y: 20 }, 'buka')
@@ -173,6 +177,32 @@ const MOTION = (function () {
         if (ring) ptl.to(ring, { opacity: 0, scale: 1.5 }, 'tutup');
         ptl.to('.peak-led', { opacity: 1, scale: 1.2 }, 'tutup')
           .from('.peak-done', { opacity: 0, y: 10 }, 'tutup+=0.1');
+
+        /* Perbaikan pasca-refresh: saat refresh (resize jendela / gambar selesai
+           dimuat) terjadi selagi pin "babak tiga" aktif, ScrollTrigger kadang
+           mengukur start/end dengan basis scroll yang salah — babak ikut
+           terparkir di ujung bawah pin-spacer dan menyisakan celah kosong
+           besar. Invariannya: start selalu sama dengan posisi dokumen ujung
+           atas pin-spacer. Kalau melenceng, koreksi lalu update ulang
+           (setelah siklus refresh selesai, lewat event 'refresh'). */
+        const repairPin = () => {
+          const st = ptl.scrollTrigger;
+          const spacer = st && st.pin && st.pin.parentNode;
+          if (!st || !spacer || !spacer.classList || !spacer.classList.contains('pin-spacer')) return;
+          const top = spacer.getBoundingClientRect().top + window.scrollY;
+          if (Math.abs(st.start - top) > 2) {
+            const dur = st.end - st.start;
+            st.start = top;
+            st.end = top + dur;
+            st.update();
+          }
+          healPeak(true);
+        };
+        ScrollTrigger.addEventListener('refresh', repairPin);
+        return () => {
+          ScrollTrigger.removeEventListener('refresh', repairPin);
+          peakST = null;
+        };
       });
     }
 
@@ -197,13 +227,103 @@ const MOTION = (function () {
   /* Refresh dari pemuatan gambar bisa datang beruntun (carousel 6 foto).
      Debounce supaya recalculation pin tidak bertumpuk saat pengguna menggulir. */
   let refreshTimer = 0;
+  let navRO = null;
+  let peakST = null;
+  let refreshDeferred = false;
+  let lastScrollT = 0;
+  /* Tinggi header landing → variabel CSS `--ldnav-h`. Babak tiga yang di-pin
+     memakai variabel ini sebagai jarak atas supaya kicker tidak tersembunyi
+     di balik header sticky. Tinggi diukur (bukan dipatok) karena nav
+     membungkus jadi dua baris di lebar sempit. */
+  function syncNavH() {
+    const nav = qs('.ld-nav');
+    if (!nav) return;
+    const h = nav.offsetHeight + 'px';
+    const root = document.documentElement;
+    if (root.style.getPropertyValue('--ldnav-h') !== h) root.style.setProperty('--ldnav-h', h);
+  }
+  /* Amati nav dengan ResizeObserver: perubahan bungkus baris langsung
+     tertangkap tanpa bergantung urutan event resize jendela. */
+  function watchNav() {
+    if (navRO) { navRO.disconnect(); navRO = null; }
+    const nav = qs('.ld-nav');
+    if (!nav) return;
+    syncNavH();
+    if (typeof ResizeObserver !== 'undefined') {
+      navRO = new ResizeObserver(() => { syncNavH(); refreshSoon(); });
+      navRO.observe(nav);
+    }
+  }
+  /* Refresh ScrollTrigger saat pin "babak tiga" aktif berbahaya: pengukuran
+     ulang di tengah pin bisa memarkir babak di ujung pin-spacer, dan refresh
+     lanjutan yang jatuh di keadaan itu mengunci kerusakannya. Karena itu
+     refresh ditunda selama scroll berada di wilayah pin; begitu keluar,
+     perhitungan ulang dijalankan. */
+  function inPeakPin() {
+    if (!peakST || !peakST.pin) return false;
+    const spacer = peakST.pin.parentNode;
+    if (!spacer || !spacer.classList || !spacer.classList.contains('pin-spacer')) return false;
+    const top = spacer.getBoundingClientRect().top + window.scrollY;
+    const dur = spacer.offsetHeight - (peakST.pin.offsetHeight || 0);
+    const y = window.scrollY || window.pageYOffset || 0;
+    return y > top - 2 && y < top + dur + 2;
+  }
+  function refreshNow() {
+    syncNavH();
+    /* Jangan hitung ulang selagi scroll masih berjalan (mis. animasi gulir
+       mulus dari klik tautan babak — refresh akan memotongnya) dan jangan
+       selagi berada di wilayah pin. Coba lagi setelah gulir reda. */
+    if (inPeakPin() || Date.now() - lastScrollT < 200) {
+      refreshDeferred = true;
+      clearTimeout(refreshTimer);
+      refreshTimer = setTimeout(refreshNow, 260);
+      return;
+    }
+    refreshDeferred = false;
+    /* ScrollTrigger.refresh() menyimpan & memulihkan posisi gulir sendiri.
+       Kalau pemulihannya gagal total (halaman terlempar ke paling atas),
+       kembalikan posisi semula. */
+    const y0 = window.scrollY || window.pageYOffset || 0;
+    ScrollTrigger.refresh();
+    const y1 = window.scrollY || window.pageYOffset || 0;
+    if (y0 > 10 && y1 < 10) window.scrollTo({ top: y0, left: 0, behavior: 'instant' });
+  }
   function refreshSoon() {
     clearTimeout(refreshTimer);
-    refreshTimer = setTimeout(() => ScrollTrigger.refresh(), 220);
+    refreshTimer = setTimeout(refreshNow, 220);
   }
+  /* Penyembuh keadaan "terparkir": posisi gulir ada di wilayah pin tetapi pin
+     tidak menempel (sisa refresh di tengah pin atau lompatan gulir ekstrem).
+     Perhitungan ulang sekali-dua kali memulihkannya; dibatasi agar tidak
+     berputar-putar. */
+  let healTries = 0;
+  let healTimer = 0;
+  function healPeak(defer) {
+    if (healTimer) { clearTimeout(healTimer); healTimer = 0; }
+    const st = peakST;
+    if (!st || !st.pin) return;
+    if (st.isActive || !inPeakPin()) { healTries = 0; return; }
+    if (healTries >= 2) return;
+    const run = () => {
+      healTimer = 0;
+      if (peakST !== st || st.isActive || !inPeakPin()) { healTries = 0; return; }
+      healTries += 1;
+      st.refresh();
+    };
+    if (defer) requestAnimationFrame(run);
+    else healTimer = setTimeout(run, 140);
+  }
+  window.addEventListener('scroll', () => {
+    lastScrollT = Date.now();
+    if (refreshDeferred) refreshNow();
+    healPeak(false);
+  }, { passive: true });
   function enter(portal, route, animate = true) {
     reduce = mqReduce.matches;
     fine = mqFine.matches;
+    watchNav();
+    refreshDeferred = false;
+    healTries = 0;
     if (animate) {
       const key = portal + '/' + route;
       if (!reduce && key !== lastKey) enterChrome(portal, route);
@@ -227,6 +347,10 @@ const MOTION = (function () {
   }
 
   mqReduce.addEventListener('change', () => { lastKey = ''; });
+
+  /* Lebar berubah → nav bisa membungkus/lepas bungkus → ukur ulang header
+     lalu segarkan perhitungan pin. */
+  window.addEventListener('resize', () => { syncNavH(); refreshSoon(); });
 
   return { ok: true, enter, refresh: refreshSoon };
 })();
