@@ -33,6 +33,7 @@ const PORTALS = {
       { id: 'layanan', label: 'Layanan', icon: 'tag' },
       { id: 'pembayaran', label: 'Pembayaran', icon: 'wallet' },
       { id: 'galeri', label: 'Galeri', icon: 'eye' },
+      { id: 'lokasi', label: 'Lokasi', icon: 'pin' },
       { id: 'laporan', label: 'Laporan', icon: 'chart' },
       { id: 'setelan', label: 'Profil', icon: 'user', mobile: true },
     ],
@@ -93,6 +94,7 @@ let S = {
   qris: null,
   proofs: {},
   gallery: null,
+  location: null,
   revenue: null,
   mix: null,
   activity: null,
@@ -398,6 +400,34 @@ function galleryCaption(it) {
   const label = it && it.label ? String(it.label) : '';
   const meta = it && it.meta ? String(it.meta) : '';
   return label && meta ? label + ' · ' + meta : (label || meta || 'BUSA Laundry Ops');
+}
+
+/* ── LOKASI & PETA SITUS ──────────────────────────────── */
+
+/** Data lokasi aktif: dari server/lokal, fallback contoh. */
+function locInfo() {
+  if (S.location && typeof S.location === 'object' && !Array.isArray(S.location)) return S.location;
+  return (SEED.location && typeof SEED.location === 'object') ? SEED.location : {};
+}
+
+/** Gambar peta aktif (data URL) atau null bila belum diunggah admin. */
+function locImage(it) {
+  const img = (it || locInfo()).image;
+  return (img && img.dataUrl) ? img.dataUrl : null;
+}
+
+/** Tautan peta: tautan admin, atau pencarian Google Maps dari nama & alamat. */
+function locLink(it) {
+  const l = it || locInfo();
+  if (l.url) return String(l.url);
+  const q = [l.name, l.address].filter(Boolean).join(' ');
+  return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q || 'BUSA Laundry');
+}
+
+/** Bagian lokasi tampil di situs? Ikuti saklar admin; sembunyikan bila kosong. */
+function locOn() {
+  const l = locInfo();
+  return l.active !== false && Boolean(l.name || l.address || locImage(l));
 }
 
 /* ── SHELL ─────────────────────────────────────────────── */
@@ -1838,6 +1868,23 @@ document.addEventListener('click', (e) => {
       galleryCommit(items).catch((err) => apiToastErr(err, 'Gagal menyimpan urutan'));
       break;
     }
+    case 'loc-pick': { const f = qs('#loc-file'); if (f) f.click(); break; }
+    case 'loc-image-del':
+      openModal(`<p class="mono kicker">Gambar peta</p><h2 class="display lg">Hapus gambar peta?</h2>
+        <p class="lede sm">Halaman situs kembali menampilkan ajakan buka peta lewat tautan alamat, sampai Anda mengunggah gambar baru.</p>
+        <div class="m-acts"><button class="btn danger" data-act="loc-image-del-yes">${icon('x')} Ya, hapus</button>
+        <button class="btn ghost" data-act="modal-close">Batal</button></div>`);
+      break;
+    case 'loc-image-del-yes':
+      locCommit({ image: null })
+        .then((saved) => {
+          if (!saved) return;
+          closeModal();
+          toast({ title: 'Gambar peta dihapus', msg: 'Bagian lokasi tetap tampil dengan tautan alamat.', tone: 'red', icon: 'x' });
+        })
+        .catch((err) => apiToastErr(err, 'Gagal menghapus gambar peta'));
+      break;
+    case 'loc-save': locSaveFields(); break;
     case 'sub': {
       const tiers = (S.tiers && S.tiers.length) ? S.tiers : SEED.tiers;
       const tier = tiers.find((x) => x.id === t.dataset.v);

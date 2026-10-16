@@ -147,6 +147,16 @@ const SEED = {
     { seed: 'laundry-basket-wicker', label: 'Keranjang anyam', meta: 'Siap antar' },
   ],
 
+  location: {
+    active: true,
+    name: 'BUSA Laundry — Cabang Buahbatu',
+    address: 'Jl. Buahbatu No. 108, Bandung 40286',
+    hours: '07.00–21.00 setiap hari',
+    phone: '0812-7781-4402',
+    url: 'https://www.google.com/maps/search/?api=1&query=BUSA+Laundry+Buahbatu+Bandung',
+    image: null,
+  },
+
   addresses: [
     { id: 'a1', tag: 'Rumah', label: 'Jl. Cendana Raya No. 12, Bandung 40115', def: true },
     { id: 'a2', tag: 'Kantor', label: 'Gedung Sabda Lt. 4, Jl. Riau No. 88', def: false },

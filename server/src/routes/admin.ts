@@ -43,6 +43,37 @@ function validateGallery(value: unknown): void {
   });
 }
 
+/* Lokasi situs: teks singkat + gambar peta opsional (base64) yang bisa diklik
+   pengunjung. Semua kolom teks boleh kosong; `url` bila diisi wajib http(s). */
+const LOCATION_TEXT_MAX: Record<string, number> = {
+  name: 80, address: 200, hours: 80, phone: 40, url: 500,
+};
+
+/** Validasi data lokasi sebelum disimpan — teks pendek dan gambar peta sah. */
+function validateLocation(value: unknown): void {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) throw badRequest('Lokasi harus berupa objek.');
+  const v = value as Record<string, unknown>;
+  for (const [key, max] of Object.entries(LOCATION_TEXT_MAX)) {
+    const raw = v[key];
+    if (raw === undefined || raw === null) continue;
+    if (typeof raw !== 'string') throw badRequest(`Kolom ${key} harus berupa teks.`);
+    if (raw.length > max) throw badRequest(`Kolom ${key} maksimal ${max} karakter.`);
+  }
+  if (typeof v.url === 'string' && v.url && !/^https?:\/\//i.test(v.url)) {
+    throw badRequest('Tautan peta harus diawali http:// atau https://.');
+  }
+  if (v.active !== undefined && typeof v.active !== 'boolean') throw badRequest('Kolom active harus boolean.');
+  if (v.image !== undefined && v.image !== null) {
+    const img = (v.image ?? {}) as { dataUrl?: unknown; seed?: unknown };
+    if (typeof img.dataUrl === 'string' && img.dataUrl) {
+      if (!IMAGE_DATA_URL.test(img.dataUrl)) throw badRequest('Gambar peta: format harus PNG, JPG, WEBP, atau GIF.');
+      if (imageBytes(img.dataUrl) > IMAGE_MAX_BYTES) throw badRequest('Gambar peta: ukuran maksimal 2 MB.');
+    } else if (!(typeof img.seed === 'string' && img.seed)) {
+      throw badRequest('Gambar peta tidak berisi gambar.');
+    }
+  }
+}
+
 export function registerAdminRoutes(app: FastifyInstance, db: Db): void {
   const requireRole = makeRequireRole(db);
   const admin = requireRole('admin');
@@ -147,9 +178,10 @@ export function registerAdminRoutes(app: FastifyInstance, db: Db): void {
   app.patch('/api/content/:key', { preHandler: admin, bodyLimit: CONTENT_MAX_UPLOAD_BYTES }, async (req) => {
     const key = (req.params as { key: string }).key;
     const body = (req.body ?? {}) as ContentPatch;
-    if (!['gallery', 'faq', 'testimonials', 'metrics'].includes(key)) throw notFound('Kunci konten tidak dikenal.');
+    if (!['gallery', 'faq', 'testimonials', 'metrics', 'location'].includes(key)) throw notFound('Kunci konten tidak dikenal.');
     if (body.value === undefined) throw badRequest('Isi `value`.');
     if (key === 'gallery') validateGallery(body.value);
+    if (key === 'location') validateLocation(body.value);
     await R.setContent(db, key, body.value);
     app.cache.invalidate(CACHE.content);
     return { ok: true, value: await R.getContent(db, key, null) };

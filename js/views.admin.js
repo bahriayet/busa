@@ -422,3 +422,156 @@ async function galleryAddFiles() {
   });
   inp.click();
 }
+
+/* ── LOKASI & PETA SITUS (ADMIN) ─────────────────────── */
+
+VIEWS.lokasi = {
+  title: 'Lokasi', kicker: 'Peta & alamat di halaman situs',
+  render() {
+    const l = locInfo();
+    const img = locImage(l);
+    const online = typeof API !== 'undefined' && API.on && isAdminAuthed();
+    return `
+    <div class="rep-top">
+      <div><p class="mono kicker">Tampil di babak penutup halaman situs</p><h1 class="display xl">Lokasi & peta</h1></div>
+      <div class="kan-sum">
+        ${l.active === false
+        ? `<span class="chip t-muted">disembunyikan</span>`
+        : `<span class="chip t-${img ? 'mint' : 'orange'}">${img ? 'peta aktif' : 'tanpa gambar peta'}</span>`}
+        <button class="btn primary sm" data-act="loc-save">${icon('check')} Simpan</button>
+      </div>
+    </div>
+    ${online ? '' : `<p class="hint warn">${icon('alert')} Server tidak terjangkau — perubahan lokasi tidak tersimpan permanen.</p>`}
+    <section class="set-grid">
+      <div class="panel" data-reveal>
+        <header class="p-head"><h3 class="display">Peta di halaman situs</h3><span class="mono note">${img ? 'diunggah admin' : 'belum diunggah'}</span></header>
+        <div class="loc-preview ${img ? 'custom' : 'fallback'}">
+          ${img
+          ? `<img src="${img}" alt="Pratinjau gambar peta">`
+          : `<span class="ico-w">${icon('pin')}</span>`}
+          <div>
+            <b class="display lg">${img ? 'Pengunjung melihat peta ini' : 'Menunggu unggahan peta'}</b>
+            <p class="mono fine">${img && l.image && l.image.updatedAt ? 'Diperbarui ' + qrisDate(l.image.updatedAt) : (img ? '' : 'Selama belum ada gambar, pengunjung tetap bisa mengeklik tautan alamat.')}</p>
+            <p>Unggah tangkapan layar peta (mis. Google Maps) yang menunjukkan lokasi cabang. Gambar ini diklik pengunjung dan membuka tautan peta.</p>
+          </div>
+        </div>
+        <div class="data-acts mt">
+          ${img ? `<button class="btn danger sm" data-act="loc-image-del">${icon('x')} Hapus gambar peta</button>` : ''}
+        </div>
+      </div>
+      <div class="panel" data-reveal>
+        <header class="p-head"><h3 class="display">${img ? 'Ganti gambar peta' : 'Unggah gambar peta'}</h3><span class="mono note">PNG · JPG · WEBP · besar dikompres otomatis</span></header>
+        <div class="qris-drop" id="loc-drop" data-act="loc-pick" role="button" tabindex="0" aria-label="Pilih gambar peta">
+          ${icon('upload')}
+          <b>Letakkan gambar peta di sini</b>
+          <p class="mono fine">atau klik untuk memilih file — gambar langsung terpasang setelah muncul pemberitahuan.</p>
+        </div>
+        <input id="loc-file" type="file" accept="image/*" hidden>
+      </div>
+    </section>
+    <section class="panel mt" data-reveal>
+      <header class="p-head"><h3 class="display">Alamat & tautan</h3><span class="mono note">teks yang dibaca pengunjung</span></header>
+      <div class="loc-fields">
+        <label class="fld"><span class="mono lbl">Nama cabang</span>
+          <input class="in" id="loc-name" maxlength="80" value="${esc(l.name || '')}" placeholder="BUSA Laundry — Cabang Buahbatu"></label>
+        <label class="fld"><span class="mono lbl">Telepon</span>
+          <input class="in mono" id="loc-phone" maxlength="40" value="${esc(l.phone || '')}" placeholder="0812-7781-4402"></label>
+        <label class="fld wide"><span class="mono lbl">Alamat</span>
+          <input class="in" id="loc-address" maxlength="200" value="${esc(l.address || '')}" placeholder="Jl. Buahbatu No. 108, Bandung 40286"></label>
+        <label class="fld"><span class="mono lbl">Jam buka</span>
+          <input class="in" id="loc-hours" maxlength="80" value="${esc(l.hours || '')}" placeholder="07.00–21.00 setiap hari"></label>
+        <label class="loc-active"><input type="checkbox" id="loc-active" ${l.active === false ? '' : 'checked'}>
+          <span>${icon('eye')} Tampilkan bagian ini di halaman situs</span></label>
+        <label class="fld wide"><span class="mono lbl">Tautan peta (Google Maps)</span>
+          <input class="in" id="loc-url" maxlength="500" value="${esc(l.url || '')}" placeholder="https://maps.app.goo.gl/…"></label>
+        <p class="hint wide">${icon('info', '')} Bila tautan kosong, gambar peta dan tombol membuka pencarian Google Maps dari nama dan alamat di atas.</p>
+        <div class="data-acts wide"><button class="btn primary" data-act="loc-save">${icon('check')} Simpan lokasi</button></div>
+      </div>
+    </section>`;
+  },
+  wire() {
+    const drop = qs('#loc-drop');
+    const file = qs('#loc-file');
+    if (!drop || !file) return;
+    file.addEventListener('change', () => {
+      locApplyFile(file.files && file.files[0]);
+      file.value = '';
+    });
+    drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('on'); });
+    drop.addEventListener('dragleave', () => drop.classList.remove('on'));
+    drop.addEventListener('drop', (e) => {
+      e.preventDefault();
+      drop.classList.remove('on');
+      const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if (f) locApplyFile(f);
+    });
+    drop.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); file.click(); }
+    });
+  },
+};
+
+/** Baca isi formulir lokasi menjadi objek data. */
+function locFields() {
+  const val = (id) => { const el = qs(id); return el ? String(el.value || '').trim() : ''; };
+  const act = qs('#loc-active');
+  return {
+    active: act ? !!act.checked : true,
+    name: val('#loc-name'),
+    address: val('#loc-address'),
+    hours: val('#loc-hours'),
+    phone: val('#loc-phone'),
+    url: val('#loc-url'),
+  };
+}
+
+/**
+ * Simpan data lokasi: nilai formulir + tambalan (mis. gambar baru). Ke server
+ * bila tersambung, selalu ke state lokal supaya halaman langsung ikut berubah.
+ */
+async function locCommit(patch) {
+  const base = locInfo();
+  const next = Object.assign({}, base, locFields(), patch || {});
+  if (!next.image || (typeof next.image === 'object' && !next.image.dataUrl && !next.image.seed)) next.image = null;
+  if (next.url && !/^https?:\/\//i.test(next.url)) {
+    toast({ title: 'Tautan tidak sah', msg: 'Tautan peta harus diawali http:// atau https://.', tone: 'red', icon: 'alert' });
+    return null;
+  }
+  if (typeof API !== 'undefined' && API.on && isAdminAuthed()) {
+    await API.saveLocation(next);
+  } else {
+    S.location = next;
+  }
+  render();
+  return S.location;
+}
+
+/** Unggah/ganti gambar peta; teks formulir yang sedang diisi ikut tersimpan. */
+async function locApplyFile(file) {
+  if (!file) return;
+  if (typeof API === 'undefined' || !API.on || !isAdminAuthed()) {
+    toast({ title: 'Server tidak terjangkau', msg: 'Gambar peta hanya bisa diunggah saat terhubung.', tone: 'amber', icon: 'alert' });
+    return;
+  }
+  if (!/^image\//.test(file.type || '')) {
+    toast({ title: 'Bukan berkas gambar', msg: 'Pilih file gambar peta (PNG/JPG).', tone: 'red', icon: 'alert' });
+    return;
+  }
+  try {
+    const dataUrl = await prepareImageDataUrl(file);
+    const saved = await locCommit({ image: { dataUrl, updatedAt: Date.now() } });
+    if (saved) toast({ title: 'Gambar peta terpasang', msg: 'Klik gambar di halaman situs untuk membuka peta.', tone: 'mint', icon: 'check' });
+  } catch (err) { apiToastErr(err, 'Gambar peta gagal diunggah'); }
+}
+
+/** Simpan lewat tombol Simpan — hanya permanen saat server tersambung. */
+async function locSaveFields() {
+  if (typeof API === 'undefined' || !API.on || !isAdminAuthed()) {
+    toast({ title: 'Server tidak terjangkau', msg: 'Perubahan lokasi tidak bisa disimpan permanen.', tone: 'amber', icon: 'alert' });
+    return;
+  }
+  try {
+    const saved = await locCommit({});
+    if (saved) toast({ title: 'Lokasi disimpan', msg: 'Halaman situs langsung memakai data baru.', tone: 'mint', icon: 'check' });
+  } catch (err) { apiToastErr(err, 'Lokasi gagal disimpan'); }
+}

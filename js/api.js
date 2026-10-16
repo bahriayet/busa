@@ -480,15 +480,20 @@ API.patchAddon = async function (id, patch) {
   return data;
 };
 
-/* ── MUTASI: GALERI SITUS ─────────────────────────────── */
+/* ── MUTASI: GALERI & LOKASI SITUS ───────────────────── */
 
-/** Baca konten publik (galeri dsb). Aman dipanggil tanpa login. */
+/** Baca konten publik (galeri, lokasi, dsb). Aman dipanggil tanpa login. */
 API.loadContent = async function () {
   try {
     const res = await fetch(apiOrigin() + '/api/content');
     const data = await res.json();
-    if (data && data.ok && Array.isArray(data.gallery)) S.gallery = data.gallery;
-  } catch { /* offline — pakai galeri lokal/seed */ }
+    if (data && data.ok) {
+      if (Array.isArray(data.gallery)) S.gallery = data.gallery;
+      if (data.location !== undefined) {
+        S.location = (data.location && typeof data.location === 'object') ? data.location : null;
+      }
+    }
+  } catch { /* offline — pakai galeri/lokasi lokal */ }
   return S.gallery;
 };
 
@@ -497,6 +502,13 @@ API.saveGallery = async function (items) {
   const data = await apiReq('PATCH', '/api/content/gallery', { value: items });
   S.gallery = Array.isArray(data.value) ? data.value : items;
   return S.gallery;
+};
+
+/** Simpan data lokasi/peta halaman situs (admin). */
+API.saveLocation = async function (value) {
+  const data = await apiReq('PATCH', '/api/content/location', { value });
+  S.location = (data.value && typeof data.value === 'object') ? data.value : value;
+  return S.location;
 };
 
 /* ── MUTASI: QRIS PEMBAYARAN ──────────────────────────── */

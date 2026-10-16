@@ -646,6 +646,60 @@ test('galeri: admin menyimpan foto, item tidak sah ditolak', async () => {
   assert.equal(anon.statusCode, 401);
 });
 
+test('lokasi: admin menyimpan peta & alamat, isi tidak sah ditolak', async () => {
+  const admin = await login('admin');
+  const png = 'data:image/png;base64,' + Buffer.from('peta-uji').toString('base64');
+  const ok = await app.inject({
+    method: 'PATCH', url: '/api/content/location',
+    headers: { authorization: `Bearer ${admin}` },
+    payload: {
+      value: {
+        active: true,
+        name: 'Cabang Buahbatu',
+        address: 'Jl. Buahbatu No. 108, Bandung',
+        hours: '07.00–21.00',
+        phone: '0812-7781-4402',
+        url: 'https://maps.google.com/?q=BUSA',
+        image: { dataUrl: png },
+      },
+    },
+  });
+  assert.equal(ok.statusCode, 200, ok.body);
+  const val = (ok.json() as { value: { name: string; image: { dataUrl: string } } }).value;
+  assert.equal(val.name, 'Cabang Buahbatu');
+  assert.equal(val.image.dataUrl, png);
+
+  /* Endpoint publik ikut membawa lokasi supaya halaman situs bisa merender. */
+  const pub = await app.inject({ method: 'GET', url: '/api/content' });
+  assert.equal(pub.statusCode, 200);
+  const body = pub.json() as { location: { name: string } | null };
+  assert.equal(body.location?.name, 'Cabang Buahbatu');
+
+  const badUrl = await app.inject({
+    method: 'PATCH', url: '/api/content/location',
+    headers: { authorization: `Bearer ${admin}` },
+    payload: { value: { url: 'javascript:alert(1)' } },
+  });
+  assert.equal(badUrl.statusCode, 400);
+
+  const badImg = await app.inject({
+    method: 'PATCH', url: '/api/content/location',
+    headers: { authorization: `Bearer ${admin}` },
+    payload: { value: { image: { dataUrl: 'bukan-gambar' } } },
+  });
+  assert.equal(badImg.statusCode, 400);
+
+  const notObject = await app.inject({
+    method: 'PATCH', url: '/api/content/location',
+    headers: { authorization: `Bearer ${admin}` },
+    payload: { value: [1, 2, 3] },
+  });
+  assert.equal(notObject.statusCode, 400);
+
+  const anon = await app.inject({ method: 'PATCH', url: '/api/content/location', payload: { value: {} } });
+  assert.equal(anon.statusCode, 401);
+});
+
 test('QRIS: publik membaca, hanya admin mengganti, pelanggan ditolak', async () => {
   const anon = await app.inject({ method: 'GET', url: '/api/qris' });
   assert.equal(anon.statusCode, 200);

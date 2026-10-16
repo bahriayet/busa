@@ -294,6 +294,15 @@ export const SEED_CONTENT: Record<string, unknown> = {
     { n: '6 jam', l: 'express tercepat' },
     { n: '4,9', l: 'rata-rata 812 ulasan' },
   ],
+  location: {
+    active: true,
+    name: 'BUSA Laundry — Cabang Buahbatu',
+    address: 'Jl. Buahbatu No. 108, Bandung 40286',
+    hours: '07.00–21.00 setiap hari',
+    phone: '0812-7781-4402',
+    url: 'https://www.google.com/maps/search/?api=1&query=BUSA+Laundry+Buahbatu+Bandung',
+    image: null,
+  },
 };
 
 /** Akun demo. Password default development — wajib diganti lewat BUSA_SEED_PASSWORD di produksi. */

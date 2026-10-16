@@ -89,6 +89,9 @@ VIEWS.landing = {
       : S.orders.filter((o) => o.stage === 8).length;
     const stuck = S.orders.find((o) => o.stage === 0) || S.orders[0] || { code: 'BUSA-0000', stage: 0 };
     const gallery = galleryShown();
+    const loc = locOn() ? locInfo() : null;
+    const locImg = loc ? locImage(loc) : null;
+    const locHref = loc ? locLink(loc) : '';
     return `
     <header class="ld-nav">
       <a class="ld-brand" href="#/" data-act="go" data-route="landing" aria-label="BUSA, halaman awal">
@@ -277,6 +280,27 @@ VIEWS.landing = {
           <p class="hold mono" id="ldhold">Berat final ditentukan timbangan lantai, dan selalu bisa Anda tuntut ulang di kasir.</p>
         </form>
       </div>
+      ${loc ? `
+      <section class="find-us" data-reveal>
+        <div class="find-copy">
+          <p class="mono act-name">Atau datang langsung</p>
+          <h3 class="display xl">${esc(loc.name || 'BUSA Laundry')}</h3>
+          ${loc.address ? `<p class="lede sm">${esc(loc.address)}</p>` : ''}
+          ${(loc.hours || loc.phone) ? `
+          <p class="find-meta mono">
+            ${loc.hours ? `${icon('clock')}<span>${esc(loc.hours)}</span>` : ''}
+            ${(loc.hours && loc.phone) ? '<i>·</i>' : ''}
+            ${loc.phone ? `${icon('phone')}<span>${esc(loc.phone)}</span>` : ''}
+          </p>` : ''}
+          <a class="btn primary" href="${esc(locHref)}" target="_blank" rel="noopener">${icon('pin')} Buka di Google Maps</a>
+        </div>
+        <a class="find-map" href="${esc(locHref)}" target="_blank" rel="noopener" aria-label="Buka lokasi di peta (tab baru)">
+          ${locImg
+          ? `<img src="${locImg}" alt="Peta lokasi ${esc(loc.name || 'BUSA Laundry')}" loading="lazy">`
+          : `<span class="find-void">${icon('pin')}<b class="display">Peta belum diunggah</b><i class="mono">klik untuk membuka alamat di Google Maps</i></span>`}
+          <span class="find-tag mono">${icon('pin')} Lihat di peta</span>
+        </a>
+      </section>` : ''}
       <div class="colophon">
         <p class="mono fine">BUSA Laundry Ops · Buahbatu, Bandung · 07.00–21.00 setiap hari · 0812-7781-4402</p>
         <p class="mono fine">© ${new Date().getFullYear()} · panel ini berjalan dengan data contoh; ganti angka dan testimoni dengan milik Anda sebelum tayang.</p>
@@ -290,7 +314,7 @@ VIEWS.landing = {
     if (clk) clk.textContent = nowClock();
     const ar = qs('#arq');
     if (ar) ar.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); areaCheck(ar.value); } });
-    qsa('.kb img, .gal-shot img').forEach((im) => im.addEventListener('load', () => { if (typeof MOTION !== 'undefined' && MOTION.ok) MOTION.refresh(); }));
+    qsa('.kb img, .gal-shot img, .find-map img').forEach((im) => im.addEventListener('load', () => { if (typeof MOTION !== 'undefined' && MOTION.ok) MOTION.refresh(); }));
     GAL.i = 0;
     galRestart();
   },
