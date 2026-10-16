@@ -2216,7 +2216,7 @@ body[data-theme="night"] .act-peak { background: #070A10; }
 
 .peak-copy { position: relative; z-index: 3; max-width: 46ch; }
 
-.peak-copy .hero { margin: 4px 0 14px; }
+.peak-copy .hero { margin: 4px 0 14px; text-wrap: balance; }
 
 .peak-copy .lede { color: color-mix(in oklab, var(--bone) 74%, transparent); }
 
@@ -2246,9 +2246,19 @@ body[data-theme="night"] .act-peak { background: #070A10; }
      tertutup header. */
   .act-peak { height: 100vh; height: 100dvh; padding-top: calc(var(--ldnav-h, 53px) + clamp(8px, 1.2vh, 32px)); padding-bottom: clamp(18px, 2.6vh, 52px); }
 
+  /* Poster dibuat sebesar mungkin: mengisi tinggi babak (atas-bawah) selama
+     tidak menabrak kolom teks. Lebar mengikuti rasio asli gambar (1376:768 =
+     1,7917) dan menjorok sampai tepi kanan viewport (bleed). */
+  .peak-copy { max-width: clamp(300px, 28vw, 420px); }
+
+  .peak-poster {
+    right: calc(-1 * clamp(16px, 4vw, 54px));
+    width: min(calc(100% + clamp(16px, 4vw, 54px) - clamp(300px, 28vw, 420px) - clamp(24px, 2.4vw, 40px)), calc((100vh - var(--ldnav-h, 53px) - 44px) * 1.7917));
+  }
+
   .peak-stage { min-height: 0; height: 100%; align-content: center; align-content: safe center; gap: clamp(14px, min(4vw, 2.4vh), 52px); }
 
-  .peak-copy .hero { font-size: clamp(26px, min(4.6vw, 5.8vh), 62px); }
+  .peak-copy .hero { font-size: clamp(26px, min(4.6vw, 5.4vh), 58px); }
 
   .peak-list { margin-top: clamp(9px, 1.8vh, 24px); }
 

@@ -240,7 +240,13 @@ const MOTION = (function () {
     if (!nav) return;
     const h = nav.offsetHeight + 'px';
     const root = document.documentElement;
-    if (root.style.getPropertyValue('--ldnav-h') !== h) root.style.setProperty('--ldnav-h', h);
+    if (root.style.getPropertyValue('--ldnav-h') !== h) {
+      root.style.setProperty('--ldnav-h', h);
+      /* Paksa resolusi ulang gaya babak tiga begitu variabel berubah —
+         sebagian browser menahan komputasi padding sampai ada reflow. */
+      const peak = qs('[data-bc-act="peak"]');
+      if (peak) void peak.offsetHeight;
+    }
   }
   /* Amati nav dengan ResizeObserver: perubahan bungkus baris langsung
      tertangkap tanpa bergantung urutan event resize jendela. */
