@@ -95,6 +95,12 @@ export function buildApp({ db, cfg }: BuildOpts): FastifyInstance {
         fontSrc: ["'self'", 'https:', 'data:'],
         formAction: ["'self'"],
         frameAncestors: ["'none'"],
+        /* Peta Google tertanam di halaman situs (babak penutup) — tanpa ini
+           `default-src 'self'` memblokir iframe lokasi. */
+        frameSrc: [
+          'https://www.google.com', 'https://maps.google.com', 'https://consent.google.com',
+          'https://www.google.co.id', 'https://maps.google.co.id',
+        ],
         imgSrc: ["'self'", 'data:', 'https:'],
         objectSrc: ["'none'"],
         scriptSrc: ["'self'"],

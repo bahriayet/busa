@@ -424,6 +424,13 @@ function locLink(it) {
   return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q || 'BUSA Laundry');
 }
 
+/** Peta Google tertanam (tanpa kunci API): dipakai bila belum ada gambar peta. */
+function locEmbedUrl(it) {
+  const l = it || locInfo();
+  const q = [l.name, l.address].filter(Boolean).join(' ');
+  return 'https://www.google.com/maps?q=' + encodeURIComponent(q || 'BUSA Laundry') + '&z=15&hl=id&output=embed';
+}
+
 /** Bagian lokasi tampil di situs? Ikuti saklar admin; sembunyikan bila kosong. */
 function locOn() {
   const l = locInfo();

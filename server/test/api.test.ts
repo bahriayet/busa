@@ -551,6 +551,8 @@ test('produksi: /docs ditutup dan /health tanpa detail lokasi DB', async () => {
   assert.ok(csp.includes("script-src 'self'"), csp);
   assert.ok(csp.includes("script-src-attr 'none'"), csp);
   assert.ok(csp.includes('wss://busa-api.onrender.com'), csp);
+  /* Iframe peta lokasi di halaman situs — frame-src harus mengizinkan Google Maps. */
+  assert.ok(csp.includes('frame-src') && csp.includes('https://www.google.com'), csp);
   await prod.close();
 });
 

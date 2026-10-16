@@ -92,6 +92,7 @@ VIEWS.landing = {
     const loc = locOn() ? locInfo() : null;
     const locImg = loc ? locImage(loc) : null;
     const locHref = loc ? locLink(loc) : '';
+    const locEmbed = (loc && !locImg) ? locEmbedUrl(loc) : '';
     return `
     <header class="ld-nav">
       <a class="ld-brand" href="#/" data-act="go" data-route="landing" aria-label="BUSA, halaman awal">
@@ -294,12 +295,15 @@ VIEWS.landing = {
           </p>` : ''}
           <a class="btn primary" href="${esc(locHref)}" target="_blank" rel="noopener">${icon('pin')} Buka di Google Maps</a>
         </div>
+        ${locImg ? `
         <a class="find-map" href="${esc(locHref)}" target="_blank" rel="noopener" aria-label="Buka lokasi di peta (tab baru)">
-          ${locImg
-          ? `<img src="${locImg}" alt="Peta lokasi ${esc(loc.name || 'BUSA Laundry')}" loading="lazy">`
-          : `<span class="find-void">${icon('pin')}<b class="display">Peta belum diunggah</b><i class="mono">klik untuk membuka alamat di Google Maps</i></span>`}
+          <img src="${locImg}" alt="Peta lokasi ${esc(loc.name || 'BUSA Laundry')}" loading="lazy">
           <span class="find-tag mono">${icon('pin')} Lihat di peta</span>
-        </a>
+        </a>` : `
+        <div class="find-map live">
+          <iframe src="${esc(locEmbed)}" title="Peta lokasi ${esc(loc.name || 'BUSA Laundry')}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+          <a class="find-tag mono" href="${esc(locHref)}" target="_blank" rel="noopener">${icon('pin')} Buka di Google Maps</a>
+        </div>`}
       </section>` : ''}
       <div class="colophon">
         <p class="mono fine">BUSA Laundry Ops · Buahbatu, Bandung · 07.00–21.00 setiap hari · 0812-7781-4402</p>

@@ -437,22 +437,22 @@ VIEWS.lokasi = {
       <div class="kan-sum">
         ${l.active === false
         ? `<span class="chip t-muted">disembunyikan</span>`
-        : `<span class="chip t-${img ? 'mint' : 'orange'}">${img ? 'peta aktif' : 'tanpa gambar peta'}</span>`}
+        : `<span class="chip t-${img ? 'mint' : 'orange'}">${img ? 'peta unggahan' : 'peta google otomatis'}</span>`}
         <button class="btn primary sm" data-act="loc-save">${icon('check')} Simpan</button>
       </div>
     </div>
     ${online ? '' : `<p class="hint warn">${icon('alert')} Server tidak terjangkau — perubahan lokasi tidak tersimpan permanen.</p>`}
     <section class="set-grid">
       <div class="panel" data-reveal>
-        <header class="p-head"><h3 class="display">Peta di halaman situs</h3><span class="mono note">${img ? 'diunggah admin' : 'belum diunggah'}</span></header>
+        <header class="p-head"><h3 class="display">Peta di halaman situs</h3><span class="mono note">${img ? 'diunggah admin' : 'pakai peta google'}</span></header>
         <div class="loc-preview ${img ? 'custom' : 'fallback'}">
           ${img
           ? `<img src="${img}" alt="Pratinjau gambar peta">`
           : `<span class="ico-w">${icon('pin')}</span>`}
           <div>
-            <b class="display lg">${img ? 'Pengunjung melihat peta ini' : 'Menunggu unggahan peta'}</b>
-            <p class="mono fine">${img && l.image && l.image.updatedAt ? 'Diperbarui ' + qrisDate(l.image.updatedAt) : (img ? '' : 'Selama belum ada gambar, pengunjung tetap bisa mengeklik tautan alamat.')}</p>
-            <p>Unggah tangkapan layar peta (mis. Google Maps) yang menunjukkan lokasi cabang. Gambar ini diklik pengunjung dan membuka tautan peta.</p>
+            <b class="display lg">${img ? 'Pengunjung melihat peta ini' : 'Pengunjung melihat peta Google otomatis'}</b>
+            <p class="mono fine">${img && l.image && l.image.updatedAt ? 'Diperbarui ' + qrisDate(l.image.updatedAt) : (img ? '' : 'Tanpa gambar unggahan, peta Google tertanam langsung dari nama & alamat.')}</p>
+            <p>Unggah tangkapan layar peta untuk menggantikan peta Google otomatis. Gambar ini diklik pengunjung dan membuka tautan peta.</p>
           </div>
         </div>
         <div class="data-acts mt">
