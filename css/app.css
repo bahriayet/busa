@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400;12..96,75..100,600;12..96,75..100,800&family=Baloo+2:wght@600;700;800&family=Pacifico&family=Lobster&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400;12..96,75..100,600;12..96,75..100,800&family=Baloo+2:wght@600;700;800&family=Leckerli+One&family=Lobster&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
 :root {
   --bone: #EBE4D6;
@@ -25,7 +25,7 @@
   --r: 14px;
   --gutter: clamp(18px, 3.2vw, 46px);
   --display: 'Baloo 2', 'Bricolage Grotesque', 'Helvetica Neue', sans-serif;
-  --script: 'Lobster', 'Pacifico', cursive;
+  --script: 'Leckerli One', 'Lobster', cursive;
   --body: 'Newsreader', Georgia, serif;
   --mono: 'IBM Plex Mono', ui-monospace, monospace;
 }
