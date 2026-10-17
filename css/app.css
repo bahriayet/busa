@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400;12..96,75..100,600;12..96,75..100,800&family=Baloo+2:wght@600;700;800&family=Pacifico&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400;12..96,75..100,600;12..96,75..100,800&family=Baloo+2:wght@600;700;800&family=Pacifico&family=Lobster&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
 :root {
   --bone: #EBE4D6;
@@ -25,7 +25,7 @@
   --r: 14px;
   --gutter: clamp(18px, 3.2vw, 46px);
   --display: 'Baloo 2', 'Bricolage Grotesque', 'Helvetica Neue', sans-serif;
-  --script: 'Pacifico', 'Baloo 2', cursive;
+  --script: 'Lobster', 'Pacifico', cursive;
   --body: 'Newsreader', Georgia, serif;
   --mono: 'IBM Plex Mono', ui-monospace, monospace;
 }
@@ -2882,17 +2882,27 @@ h1, h2, h3, h4, .display, .num { color: var(--headline); }
   line-height: 1.16;
 }
 
-/* Mode gelap + babak berlatar gelap: huruf madu berkilau (seperti gambar 1). */
+/* Mode gelap + babak berlatar gelap: huruf madu glossy 3D —
+   gradien kilau (putih-krem di atas), sisi ekstrusi gelap bertingkat,
+   dan glow hangat — meniru huruf madu pada gambar. */
 body[data-theme="night"] .display.hero, body[data-theme="night"] .display.xl,
 body[data-theme="night"] h1, body[data-theme="night"] h2,
 .act-peak .display.hero, .act-peak .display.xl, .act-peak h1, .act-peak h2 {
-  background: linear-gradient(180deg, #FFE9A8 0%, #FFC24D 42%, #F2A31F 72%, #D98213 100%);
+  background: linear-gradient(180deg, #FFF8DA 0%, #FFE28A 22%, #FFC24D 45%, #F2A31F 68%, #D98213 86%, #B96F0C 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 2px 0 rgba(120, 66, 6, .45)) drop-shadow(0 10px 22px rgba(240, 160, 40, .22));
+  filter:
+    drop-shadow(0 1px 0 rgba(255, 244, 200, .6))
+    drop-shadow(0 2px 0 #B8730E)
+    drop-shadow(0 4px 0 #96590A)
+    drop-shadow(0 6px 0 #7C4A08)
+    drop-shadow(0 10px 18px rgba(120, 70, 0, .35));
 }
+
+/* Kemiringan playful seperti goresan tangan pada gambar. */
+.display.hero { transform: rotate(-1.4deg); transform-origin: left center; }
 
 /* H3/H4 kecil tetap huruf bulat agar mudah dibaca. */
 h3, h4, .display.lg { font-family: var(--display); }
