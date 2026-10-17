@@ -20,7 +20,7 @@
   --dark: #0D1017;
   --c: var(--blue);
   --shadow: 0 18px 40px -28px rgba(30, 24, 10, .55);
-  --r: 3px;
+  --r: 14px;
   --gutter: clamp(18px, 3.2vw, 46px);
   --display: 'Bricolage Grotesque', 'Helvetica Neue', sans-serif;
   --body: 'Newsreader', Georgia, serif;
@@ -2262,7 +2262,7 @@ body[data-theme="night"] .act-peak { background: #070A10; }
 
   .peak-list { margin-top: clamp(9px, 1.8vh, 24px); }
 
-  .peak-i { padding: clamp(3px, 0.65vh, 8px) 0; }
+  .peak-i { padding: clamp(3px, 0.58vh, 8px) 0; }
 }
 
 /* Layar pendek: paragraf pengantar disembunyikan supaya poster + sembilan
@@ -2829,3 +2829,34 @@ body[data-theme="night"] .pb-hint { background: var(--paper-2); border: 1px soli
   .peak-done { opacity: 1; }
   .btn, .fchip, .chip { transition: background .12s linear, border-color .12s linear, color .12s linear; }
 }
+
+/* ── Soft pass: sudut membulat & tipografi lebih ramah ────────────────
+   Menghilangkan kesan kaku: sudut-sudut kecil dibulatkan, tombol jadi pil,
+   nada huruf judul dilonggarkan, bayangan "stempel" sedikit dilembutkan. */
+.btn { border-radius: 999px; box-shadow: 2px 2px 0 var(--ink); }
+
+.btn:hover { box-shadow: 1px 1px 0 var(--ink); }
+
+.btn.sm { box-shadow: 1px 1px 0 var(--ink); }
+
+.btn.ghost { box-shadow: 2px 2px 0 var(--line-2); }
+
+.btn.danger { box-shadow: 2px 2px 0 color-mix(in oklab, var(--c) 40%, transparent); }
+
+.chip, .fchip, .ld-tab, .ld-badge, .stage-pill, .ps-i, .tl-live { border-radius: 999px; }
+
+.panel.stitch::after { border-radius: 12px; }
+
+.rc-stamp { border-radius: 12px; }
+
+kbd { border-radius: 8px; }
+
+.scan-in input, .scan-in select { border-radius: 12px; }
+
+.pb-track, .pb-blk, .pb-free { border-radius: 999px; }
+
+.slider::-webkit-slider-runnable-track, .slider::-moz-range-track { border-radius: 999px; }
+
+.lg::before { border-radius: 4px; }
+
+h1, h2, h3, h4, .display { letter-spacing: -.018em; line-height: 1; }
