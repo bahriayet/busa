@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400;12..96,75..100,600;12..96,75..100,800&family=Baloo+2:wght@600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400;12..96,75..100,600;12..96,75..100,800&family=Baloo+2:wght@600;700;800&family=Pacifico&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
 :root {
   --bone: #EBE4D6;
@@ -25,6 +25,7 @@
   --r: 14px;
   --gutter: clamp(18px, 3.2vw, 46px);
   --display: 'Baloo 2', 'Bricolage Grotesque', 'Helvetica Neue', sans-serif;
+  --script: 'Pacifico', 'Baloo 2', cursive;
   --body: 'Newsreader', Georgia, serif;
   --mono: 'IBM Plex Mono', ui-monospace, monospace;
 }
@@ -2262,7 +2263,7 @@ body[data-theme="night"] .act-peak { background: #070A10; }
 
   .peak-stage { min-height: 0; height: 100%; align-content: center; align-content: safe center; gap: clamp(14px, min(4vw, 2.4vh), 52px); }
 
-  .peak-copy .hero { font-size: clamp(22px, min(4.2vw, 5vh), 52px); }
+  .peak-copy .hero { font-size: clamp(19px, min(4vw, 4.7vh), 48px); }
 
   .peak-list { margin-top: clamp(9px, 1.8vh, 24px); }
 
@@ -2286,7 +2287,7 @@ body[data-theme="night"] .act-peak { background: #070A10; }
 @media (min-width: 1001px) and (max-width: 1340px) and (max-height: 660px) {
   .peak-stage { gap: clamp(12px, min(4vw, 2.1vh), 40px); }
 
-  .peak-copy .hero { font-size: clamp(21px, min(4vw, 4.9vh), 50px); }
+  .peak-copy .hero { font-size: clamp(17px, min(3.6vw, 4.3vh), 42px); }
 
   .peak-list { margin-top: clamp(8px, 1.5vh, 20px); }
 
@@ -2865,18 +2866,47 @@ kbd { border-radius: 8px; }
 
 h1, h2, h3, h4, .display { letter-spacing: -.018em; line-height: 1; }
 
-/* ── Tipografi ala gambar "Back To" ────────────────────────────────────
-   Judul memakai huruf bulat-tebal playful (Baloo 2). Warna judul:
-   hitam pekat saat mode terang, amber oranye saat mode gelap — seperti
-   pasangan "Back" (hitam) & "To" (amber) pada gambar. Sisi biru pada
-   huruf 3D gambar dipakai sebagai bayangan tipis di landing. */
+/* ── Tipografi ala gambar "Sweet Honey" ───────────────────────────────
+   Judul besar memakai huruf skrip cair (Pacifico). Warna mengikuti gambar:
+   hitam pekat saat mode terang, gradien madu amber saat mode gelap —
+   lengkap dengan pantulan lembut seperti huruf 3D madu di gambar. */
 h1, h2, h3, h4, .display, .num { color: var(--headline); }
 
-/* Babak tiga selalu berlatar gelap — judulnya tetap krem agar terbaca. */
+/* Babak tiga selalu berlatar gelap — judulnya tetap memakai warna madu. */
 .act-peak { --headline: var(--bone); }
 
-body[data-portal="landing"] h1, body[data-portal="landing"] h2, body[data-portal="landing"] .display {
-  text-shadow: .028em .04em 0 color-mix(in oklab, var(--blue) 30%, transparent);
+.display.hero, .display.xl {
+  font-family: var(--script);
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.16;
 }
 
-.act-peak h1, .act-peak h2, .act-peak .display { text-shadow: .028em .04em 0 color-mix(in oklab, var(--cyan) 26%, transparent); }
+/* Mode gelap + babak berlatar gelap: huruf madu berkilau (seperti gambar 1). */
+body[data-theme="night"] .display.hero, body[data-theme="night"] .display.xl,
+body[data-theme="night"] h1, body[data-theme="night"] h2,
+.act-peak .display.hero, .act-peak .display.xl, .act-peak h1, .act-peak h2 {
+  background: linear-gradient(180deg, #FFE9A8 0%, #FFC24D 42%, #F2A31F 72%, #D98213 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 0 rgba(120, 66, 6, .45)) drop-shadow(0 10px 22px rgba(240, 160, 40, .22));
+}
+
+/* H3/H4 kecil tetap huruf bulat agar mudah dibaca. */
+h3, h4, .display.lg { font-family: var(--display); }
+
+/* ── Buih: warna mengikuti tema (hitam lembut di terang, madu di gelap) ── */
+.sud {
+  background: radial-gradient(circle at 30% 28%, #fff 0 16%, color-mix(in oklab, var(--ink) 34%, transparent) 48%, transparent 72%);
+  border-color: color-mix(in oklab, var(--ink) 24%, transparent);
+  opacity: .45;
+}
+
+body[data-theme="night"] .sud {
+  background: radial-gradient(circle at 30% 28%, #FFF6D8 0 16%, color-mix(in oklab, var(--gold) 58%, transparent) 50%, transparent 74%);
+  border-color: color-mix(in oklab, var(--gold) 46%, transparent);
+  box-shadow: 0 0 20px color-mix(in oklab, var(--gold) 26%, transparent);
+  opacity: .8;
+}
