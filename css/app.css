@@ -20,7 +20,8 @@
   --dark: #0D1017;
   --c: var(--blue);
   --shadow: 0 18px 40px -28px rgba(25, 15, 10, .45);
-  --r: 3px;
+  --r: 14px;
+  --r-lg: 26px;
   --gutter: clamp(18px, 3.2vw, 46px);
   --display: 'Bricolage Grotesque', 'Helvetica Neue', sans-serif;
   --body: 'Newsreader', Georgia, serif;
@@ -2829,3 +2830,9 @@ body[data-theme="night"] .pb-hint { background: var(--paper-2); border: 1px soli
   .peak-done { opacity: 1; }
   .btn, .fchip, .chip { transition: background .12s linear, border-color .12s linear, color .12s linear; }
 }
+
+/* -- Bentuk sesuai acuan: kartu sudut membulat besar + tombol rounded -- */
+.btn { border-radius: 12px; }
+.panel, .find-map, .peak-poster { border-radius: var(--r-lg); }
+.panel.stitch::after { border-radius: 18px; }
+.qris-drop, .gal-add { border-radius: 22px; }
