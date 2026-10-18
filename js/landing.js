@@ -422,6 +422,23 @@ VIEWS.landing = {
       qsa('.ld-thumb').forEach((b, i) => b.addEventListener('click', (e) => { e.preventDefault(); ldSlide(i); }));
       const prev = qs('#ldPrev'); if (prev) prev.addEventListener('click', () => ldStep(-1));
       const next = qs('#ldNext'); if (next) next.addEventListener('click', () => ldStep(1));
+
+      /* Navigasi scroll: gulir konten dulu; begitu mentok di ujung, pindah
+         SATU slide (berurutan). Tidak pernah melompat ke slide lain. */
+      let wheelLock = 0;
+      deck.addEventListener('wheel', (e) => {
+        if (Date.now() < wheelLock) { e.preventDefault(); return; }
+        const dir = e.deltaY > 0 ? 1 : -1;
+        const inner = qs('.ld-slider .act.on .ld-inner');
+        const canScroll = inner && ((dir > 0 && inner.scrollTop + inner.clientHeight < inner.scrollHeight - 2)
+          || (dir < 0 && inner.scrollTop > 2));
+        if (canScroll) return;
+        if (Math.abs(e.deltaY) < 4) return;
+        e.preventDefault();
+        ldStep(dir);
+        wheelLock = Date.now() + 800;
+      }, { passive: false });
+
       deck.addEventListener('touchstart', (e) => {
         const t = e.touches[0];
         if (e.target && e.target.closest && e.target.closest('.ld-thumbs, .ld-arrows')) {
@@ -438,9 +455,17 @@ VIEWS.landing = {
         const t = e.changedTouches[0];
         const dx = t.clientX - sx;
         const dy = t.clientY - sy;
-        /* Hanya swipe yang jelas mendatar — geseran scroll vertikal (yang
-           kadang sedikit miring) tidak boleh memindah slide. */
-        if (Math.abs(dx) > 56 && Math.abs(dx) > Math.abs(dy) * 1.4) ldStep(dx < 0 ? 1 : -1);
+        /* Swipe mendatar: pindah satu slide. */
+        if (Math.abs(dx) > 56 && Math.abs(dx) > Math.abs(dy) * 1.4) { ldStep(dx < 0 ? 1 : -1); return; }
+        /* Swipe tegak: hanya bila konten sudah mentok di ujung — pindah satu slide. */
+        if (Math.abs(dy) > 70 && Math.abs(dy) > Math.abs(dx) * 1.2) {
+          const inner = qs('.ld-slider .act.on .ld-inner');
+          const noScroll = !inner || inner.scrollHeight <= inner.clientHeight + 2;
+          const atEdge = noScroll
+            || (dy < 0 && inner.scrollTop + inner.clientHeight >= inner.scrollHeight - 3)
+            || (dy > 0 && inner.scrollTop <= 3);
+          if (atEdge) ldStep(dy < 0 ? 1 : -1);
+        }
       }, { passive: true });
     }
     const ar = qs('#arq');
