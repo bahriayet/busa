@@ -3,6 +3,9 @@ server/node_modules/
 server/.env
 server/database-url.txt
 server/data/
+test-results/
+playwright-report/
+.playwright/
 .commandcode/
 *.log
 poto/

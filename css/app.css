@@ -2322,6 +2322,10 @@ body[data-theme="night"] .quote footer { color: var(--muted); }
 
 .colophon { display: grid; gap: 4px; margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line); }
 
+.ld-slider .act .colophon a { color: color-mix(in oklab, var(--bone) 82%, transparent); text-decoration-color: color-mix(in oklab, var(--orange) 60%, transparent); text-underline-offset: 3px; }
+.ld-slider .act .colophon a:hover { color: var(--orange); }
+.ld-slider .act .colophon-legal { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
+
 /* kartu lokasi + peta — di dalam babak penutup */
 .find-us { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: clamp(18px, 3vw, 40px); align-items: center; margin-top: clamp(26px, 4vw, 48px); padding: clamp(18px, 2.6vw, 30px); background: var(--paper); border: 1px solid var(--ink); border-radius: var(--r); box-shadow: 5px 5px 0 var(--ink); }
 

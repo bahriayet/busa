@@ -10,16 +10,21 @@ Frontend statis (HTML/CSS/JS), backend Fastify + PostgreSQL, realtime via WebSoc
 - **Portal pelanggan** — lacak kode pesanan, checkout, dompet, stempel, alamat.
 - **Dashboard admin/staf** — lantai mesin real-time, pindai tahap, antrean, pesanan,
   pelanggan, layanan/harga, pembayaran (QRIS), galeri, lokasi, laporan (CSV), pengguna.
+- **Halaman legal publik** — Kebijakan Privasi dan Syarat & Ketentuan (tautan di colophon landing).
 - **Keamanan** — RBAC, rate limit login, audit log, CSP ketat, CORS terbatas.
 
 ## Struktur
 
 ```
 index.html            shell aplikasi (SPA hash router)
-css/app.css           seluruh gaya (landing, portal, admin)
+privasi.html          Kebijakan Privasi (publik, statis)
+syarat.html           Syarat & Ketentuan (publik, statis)
+css/app.css           seluruh gaya aplikasi (landing, portal, admin)
+css/legal.css         gaya halaman legal
 js/                   config, data seed, ui, app, api, landing, motion, views.*, scan
 img/                  aset situs (poster, slide 01-05 + varian mobile/thumbnail)
 server/               API Fastify (routes, db repo, seed, test)
+e2e/                  test E2E Playwright + server statis
 render.yaml           blueprint backend Render
 vercel.json           konfigurasi deploy frontend Vercel (termasuk CSP)
 ```
@@ -98,12 +103,26 @@ npm run typecheck
 npm test        # 65 test API/domain
 ```
 
+E2E frontend (memakai **Microsoft Edge** yang terpasang — tanpa unduh browser):
+
+```bash
+# dari root repo
+npm install
+npm run test:e2e        # headless
+npm run test:e2e:headed # melihat prosesnya
+```
+
+Cakupan E2E: slider 6 babak & navigasi berurutan, regresi daftar layanan babak 4,
+header mobile tanpa overflow, halaman legal, serta login admin → unggah/hapus
+background slide (API dimock, tidak menyentuh database).
+
 Checklist QA manual sebelum rilis:
 
 - login admin/staf/pelanggan, checkout, lalu pindai tahap 0→8
 - landing: panah, thumbnail, swipe/scroll (satu langkah), dark mode, HP
 - admin: unggah background slide, lokasi, QRIS, galeri, ekspor CSV
 - pastikan tombol Portal & Jadwalkan di header landing berfungsi
+- buka `privasi.html` dan `syarat.html`, cek tautan colophon & tampilan HP
 
 ## Operasional
 

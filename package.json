@@ -1,0 +1,14 @@
+{
+  "name": "busa-laundry-ops",
+  "version": "1.0.0",
+  "private": true,
+  "description": "BUSA Laundry Ops — situs publik, portal pelanggan, dan dasbor operasional.",
+  "scripts": {
+    "serve": "node e2e/serve.mjs",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0"
+  }
+}
