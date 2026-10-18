@@ -186,7 +186,7 @@ VIEWS.landing = {
         <h2 class="display hero">Ini yang sedang terjadi<br>di dalam, detik ini.</h2>
         <p class="lede">Bukan janji, bukan angka promosi. Daftar di bawah dibaca dari panel yang sama yang dipakai kasir kami, dan bergerak selagi Anda membacanya.</p>
       </div>
-      <div class="live-cols" data-reveal>
+      <div class="live-cols">
         <div class="live-col">
           <p class="mono lbl">Sedang dikerjakan</p>
           <ul class="live-list">
@@ -240,13 +240,12 @@ VIEWS.landing = {
       </div>
     </section>
 
-    <section class="act act-peak ld-slide" id="a3" data-slide="2" data-bc-act="peak">
+    <section class="act act-peak ld-slide" id="a3" data-slide="2">
       <div class="ld-inner">
       <div class="peak-stage">
         <figure class="peak-poster">
           <img class="peak-poster-base" src="./img/proses-laundry.jpg" alt="Infografis sembilan tahap proses laundry: menerima sampai siap" loading="lazy">
           <div class="peak-lens" aria-hidden="true"><img src="./img/proses-laundry.jpg" alt=""></div>
-          <span class="peak-lens-ring" aria-hidden="true"></span>
         </figure>
         <div class="peak-copy">
           <p class="mono act-name">Babak tiga · di dalam</p>
@@ -268,8 +267,8 @@ VIEWS.landing = {
         <p class="mono act-name">Babak empat · kendalikan</p>
         <h2 class="display xl">Geser, dan permukaannya menjawab.</h2>
       </div>
-      <div class="rail-wrap" data-reveal>
-        <ul class="rail" data-bc-pan>
+      <div class="rail-wrap">
+        <ul class="rail">
           ${CATALOG.filter(svcOn).map((s) => `
             <li class="rail-i t-${s.tone} ${LDC.svc === s.id ? 'on' : ''}" data-act="ld-svc" data-id="${s.id}" tabindex="0" role="button">
               ${icon(s.icon)}<b class="display lg">${esc(s.name)}</b>
@@ -278,7 +277,7 @@ VIEWS.landing = {
             </li>`).join('')}
         </ul>
       </div>
-      <div class="console" data-reveal>
+      <div class="console">
         <div class="con-l">
           <p class="mono lbl">Berat cucian</p>
           <b class="num xxl"><span id="ldw">${kg(LDC.weight)}</span><i>kg</i></b>
@@ -302,7 +301,7 @@ VIEWS.landing = {
     <section class="act act-proof ld-slide" id="a5" data-slide="4">
       <div class="ld-inner">
       <div class="proof-grid">
-        <figure class="gal-carousel" data-bc-parallax="-0.14" data-reveal>
+        <figure class="gal-carousel">
           <div class="gal-view">
             ${gallery.map((it, i) => `
               <div class="gal-shot ${i === 0 ? 'on' : ''}">
@@ -360,7 +359,7 @@ VIEWS.landing = {
         </form>
       </div>
       ${loc ? `
-      <section class="find-us" data-reveal>
+      <section class="find-us">
         <div class="find-copy">
           <p class="mono act-name">Atau datang langsung</p>
           <h3 class="display xl">${esc(loc.name || 'BUSA Laundry')}</h3>
