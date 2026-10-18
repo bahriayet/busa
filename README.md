@@ -122,7 +122,7 @@ Checklist QA manual sebelum rilis:
 - landing: panah, thumbnail, swipe/scroll (satu langkah), dark mode, HP
 - admin: unggah background slide, lokasi, QRIS, galeri, ekspor CSV
 - pastikan tombol Portal & Jadwalkan di header landing berfungsi
-- buka `privasi.html` dan `syarat.html`, cek tautan colophon & tampilan HP
+- buka `privasi` dan `syarat`, cek tautan colophon & tampilan HP
 
 ## Operasional
 

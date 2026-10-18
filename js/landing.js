@@ -391,9 +391,9 @@ VIEWS.landing = {
         <p class="mono fine">BUSA Laundry Ops · Buahbatu, Bandung · 07.00–21.00 setiap hari · 0812-7781-4402</p>
         <p class="mono fine">© ${new Date().getFullYear()} · BUSA Laundry Ops — operasional cabang Buahbatu, Bandung.</p>
         <p class="mono fine colophon-legal">
-          <a href="./privasi.html">Kebijakan privasi</a>
+          <a href="./privasi">Kebijakan privasi</a>
           <span aria-hidden="true">·</span>
-          <a href="./syarat.html">Syarat &amp; ketentuan</a>
+          <a href="./syarat">Syarat &amp; ketentuan</a>
         </p>
       </div>
       </div>

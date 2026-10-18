@@ -2713,6 +2713,24 @@ body[data-theme="night"] .pb-hint { background: var(--paper-2); border: 1px soli
   font-size: 11px;
 }
 
+.login-legal {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.login-legal a {
+  color: var(--muted);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, var(--orange) 55%, transparent);
+  text-underline-offset: 3px;
+}
+
+.login-legal a:hover { color: var(--orange); }
+
 .login-foot .lnk {
   background: none;
   border: none;

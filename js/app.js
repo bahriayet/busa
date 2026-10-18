@@ -611,6 +611,11 @@ VIEWS.loginC = {
             <button class="lnk" data-act="go" data-route="register">Daftar akun baru</button>
             <button class="lnk" data-act="go" data-route="loginA">Masuk sebagai admin →</button>
           </div>
+          <p class="mono fine login-legal">
+            <a href="./privasi">Kebijakan privasi</a>
+            <span aria-hidden="true">·</span>
+            <a href="./syarat">Syarat &amp; ketentuan</a>
+          </p>
         </div>
       </div>
     </section>`;
@@ -649,6 +654,11 @@ VIEWS.loginA = {
             <button class="lnk" data-act="go" data-route="forgot">Lupa password?</button>
             <button class="lnk" data-act="go" data-route="loginC">Masuk sebagai pelanggan →</button>
           </div>
+          <p class="mono fine login-legal">
+            <a href="./privasi">Kebijakan privasi</a>
+            <span aria-hidden="true">·</span>
+            <a href="./syarat">Syarat &amp; ketentuan</a>
+          </p>
         </div>
       </div>
     </section>`;

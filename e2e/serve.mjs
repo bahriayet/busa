@@ -37,15 +37,21 @@ const server = createServer(async (req, res) => {
       res.end('forbidden');
       return;
     }
-    const info = await stat(file).catch(() => null);
+    let target = file;
+    if (!extname(target)) {
+      const html = target + '.html';
+      const htmlInfo = await stat(html).catch(() => null);
+      if (htmlInfo && htmlInfo.isFile()) target = html;
+    }
+    const info = await stat(target).catch(() => null);
     if (!info || !info.isFile()) {
       res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' });
       res.end('not found');
       return;
     }
-    const data = await readFile(file);
+    const data = await readFile(target);
     res.writeHead(200, {
-      'content-type': MIME[extname(file).toLowerCase()] || 'application/octet-stream',
+      'content-type': MIME[extname(target).toLowerCase()] || 'application/octet-stream',
       'cache-control': 'no-store',
     });
     res.end(data);

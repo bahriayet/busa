@@ -75,8 +75,17 @@ test.describe('Landing slider', () => {
     expect(overflow).toBeLessThanOrEqual(1);
   });
 
+  test('login menampilkan tautan legal', async ({ page }) => {
+    await mockPublicApi(page);
+    await page.goto('/#/c/loginC', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('.login-legal')).toBeVisible();
+    await expect(page.locator('.login-legal a')).toHaveCount(2);
+    await expect(page.locator('.login-legal a').first()).toHaveAttribute('href', './privasi');
+    await expect(page.locator('.login-legal a').last()).toHaveAttribute('href', './syarat');
+  });
+
   test('halaman legal publik dapat dibuka dan saling tertaut', async ({ page }) => {
-    await page.goto('/privasi.html', { waitUntil: 'domcontentloaded' });
+    await page.goto('/privasi', { waitUntil: 'domcontentloaded' });
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Kebijakan Privasi');
     await expect(page.locator('.legal-card h2')).toHaveCount(11);
 
