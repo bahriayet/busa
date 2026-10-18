@@ -2800,6 +2800,22 @@ body[data-portal="landing"] { overflow: hidden; }
 
 .ld-slider { position: fixed; inset: 0; overflow: hidden; background: #0b0d12; z-index: 1; }
 
+/* Header ramping landing (mengambang di atas slide): logo, jam, dua CTA. */
+body[data-portal="landing"] .ld-nav {
+  position: fixed; inset: 0 0 auto 0; z-index: 90;
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px clamp(16px, 4vw, 54px);
+  background: color-mix(in oklab, #0b0d12 52%, transparent);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  border-bottom: 1px solid color-mix(in oklab, var(--bone) 12%, transparent);
+  color: var(--bone);
+}
+body[data-portal="landing"] .ld-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; flex: none; color: var(--bone); }
+body[data-portal="landing"] .ld-brand .drum { --sz: 26px; }
+body[data-portal="landing"] .ld-brand b { font-family: var(--display); font-weight: 800; font-size: 20px; letter-spacing: -.02em; color: var(--bone); }
+body[data-portal="landing"] .ld-cta { display: flex; align-items: center; gap: 8px; margin-left: auto; min-width: 0; }
+body[data-portal="landing"] .ld-clock { color: var(--orange); letter-spacing: .14em; font-size: 11px; padding-right: 8px; border-right: 1px solid color-mix(in oklab, var(--bone) 16%, transparent); margin-right: 2px; }
+
 .ld-slider .act {
   position: absolute; inset: 0; height: 100%; width: 100%;
   margin: 0; padding: 0; border: 0; background: #0b0d12; color: var(--bone);
@@ -2850,7 +2866,7 @@ body[data-portal="landing"] { overflow: hidden; }
 .ld-slider .ld-inner {
   position: relative; z-index: 2;
   height: 100%; overflow-y: auto; overscroll-behavior: contain;
-  padding: clamp(14px, 2.4vh, 34px) clamp(16px, 4vw, 54px) clamp(118px, 17vh, 152px);
+  padding: calc(var(--ldnav-h, 60px) + clamp(8px, 1.8vh, 24px)) clamp(16px, 4vw, 54px) clamp(118px, 17vh, 152px);
   scrollbar-width: thin;
 }
 .ld-slider .act.on .ld-inner { animation: ldIn .75s cubic-bezier(.22,.7,.25,1) both; }
@@ -2934,7 +2950,7 @@ body[data-portal="landing"] { overflow: hidden; }
 .ld-count { color: var(--bone); font-size: 10px; letter-spacing: .16em; min-width: 62px; text-align: center; }
 
 @media (max-width: 1000px) {
-  .ld-slider .ld-inner { padding-top: clamp(12px, 2.2vh, 22px); padding-bottom: 136px; }
+  .ld-slider .ld-inner { padding-top: calc(var(--ldnav-h, 60px) + 10px); padding-bottom: 136px; }
   .ld-thumb { width: 64px; height: 40px; border-radius: 11px; }
   .ld-thumb-l { display: none; }
   .ld-thumbs { gap: 6px; padding: 5px; }
@@ -2951,6 +2967,7 @@ body[data-portal="landing"] { overflow: hidden; }
   .ld-slider #a6 { --ldbg: url('../img/slides/m/01.jpg'); }
   .ld-slider .act.on::before { animation: none; transform: none; }
   .ld-slider .act.on .ld-inner { animation: ldInM .5s ease both; }
+  body[data-portal="landing"] .ld-nav { -webkit-backdrop-filter: none; backdrop-filter: none; background: color-mix(in oklab, #0b0d12 78%, transparent); }
   body[data-portal="landing"]::before { display: none; }
   body[data-portal="landing"] .grain { display: none; }
   .ld-thumbs { -webkit-backdrop-filter: none; backdrop-filter: none; background: color-mix(in oklab, #0b0d12 84%, transparent); }
@@ -2959,6 +2976,12 @@ body[data-portal="landing"] { overflow: hidden; }
 @keyframes ldInM {
   from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: none; }
+}
+
+@media (max-width: 700px) {
+  body[data-portal="landing"] .ld-clock { display: none; }
+  body[data-portal="landing"] .ld-cta .btn { padding: 7px 10px; font-size: 9.5px; letter-spacing: .08em; }
+  body[data-portal="landing"] .ld-brand b { font-size: 17px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

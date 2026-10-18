@@ -172,6 +172,17 @@ VIEWS.landing = {
     const locHref = loc ? locLink(loc) : '';
     const locEmbed = (loc && !locImg) ? locEmbedUrl(loc) : '';
     return `
+    <header class="ld-nav">
+      <a class="ld-brand" href="#/" data-act="go" data-route="landing" aria-label="BUSA, halaman awal">
+        ${drumMarkup({ rpm: '7s', size: 26, state: 'run', rags: 4, screws: false })}<b>BUSA</b>
+      </a>
+      <div class="ld-cta">
+        <time class="ld-clock mono" id="ld-clock">--:--</time>
+        <button class="btn sm" data-act="portal" data-v="c">Portal pelanggan</button>
+        <button class="btn sm primary" data-act="bc-jump" data-v="a6">Jadwalkan jemputan</button>
+      </div>
+    </header>
+
     <div class="ld-slider" id="ldSlider">
     <section class="act act-live ld-slide" id="a1" data-slide="0">
       <div class="ld-inner">
@@ -396,6 +407,19 @@ VIEWS.landing = {
   wire() {
     const sl = qs('#ldslider');
     if (sl) sl.addEventListener('input', (e) => { LDC.weight = +e.target.value; paintLDC(); });
+    const clock = qs('#ld-clock');
+    if (clock) clock.textContent = nowClock();
+    /* Tinggi header mengambang → jarak aman atas slide (bisa membungkus di HP). */
+    const navEl = qs('.ld-nav');
+    if (navEl) {
+      const setNavH = () => document.documentElement.style.setProperty('--ldnav-h', navEl.offsetHeight + 'px');
+      setNavH();
+      if (typeof ResizeObserver !== 'undefined') {
+        if (window.__ldNavRO) window.__ldNavRO.disconnect();
+        window.__ldNavRO = new ResizeObserver(setNavH);
+        window.__ldNavRO.observe(navEl);
+      }
+    }
     const deck = qs('#ldSlider');
     if (deck) {
       ldSlide(LDS.i);

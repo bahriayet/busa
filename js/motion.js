@@ -78,7 +78,8 @@ const MOTION = (function () {
     const tl = gsap.timeline({ defaults: { duration: 0.45, ease: 'power3.out' } });
     tl.addLabel('chrome', 0);
     if (route === 'landing') {
-      tl.from('.ld-thumbs, .ld-arrows', { opacity: 0, y: 10 }, 'chrome');
+      tl.from('.ld-brand, .ld-clock, .ld-cta .btn', { opacity: 0, y: -8, stagger: 0.04 }, 'chrome')
+        .from('.ld-thumbs, .ld-arrows', { opacity: 0, y: 10 }, 'chrome+=0.05');
       return tl;
     }
     tl.from('#nav', { opacity: 0, x: -14 }, 'chrome')
