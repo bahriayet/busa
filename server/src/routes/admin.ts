@@ -26,6 +26,7 @@ interface PatchUserBody { name?: string; role?: 'admin' | 'staff' | 'customer'; 
 /* Galeri situs: maksimal 8 foto, masing-masing ≤2 MB (base64). Body limit
    longgar karena satu permintaan bisa membawa beberapa foto sekaligus. */
 const GALLERY_MAX = 8;
+const SLIDES_MAX = 6;
 const CONTENT_MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
 
 /** Validasi isi galeri sebelum disimpan — hanya item gambar yang sah. */
@@ -72,6 +73,18 @@ function validateLocation(value: unknown): void {
       throw badRequest('Gambar peta tidak berisi gambar.');
     }
   }
+}
+
+/* Background slide landing: hingga 6 gambar (satu per babak slider). Slot
+   kosong (null) berarti frontend memakai gambar bawaan; tiap gambar <=2 MB. */
+function validateSlides(value: unknown): void {
+  if (!Array.isArray(value)) throw badRequest('Background slide harus berupa daftar gambar.');
+  if (value.length > SLIDES_MAX) throw badRequest(`Maksimal ${SLIDES_MAX} background slide.`);
+  value.forEach((raw, i) => {
+    if (raw === null || raw === undefined || raw === '') return;
+    if (typeof raw !== 'string' || !IMAGE_DATA_URL.test(raw)) throw badRequest(`Background #${i + 1}: format harus PNG, JPG, WEBP, atau GIF.`);
+    if (imageBytes(raw) > IMAGE_MAX_BYTES) throw badRequest(`Background #${i + 1}: ukuran maksimal 2 MB.`);
+  });
 }
 
 export function registerAdminRoutes(app: FastifyInstance, db: Db): void {
@@ -178,10 +191,11 @@ export function registerAdminRoutes(app: FastifyInstance, db: Db): void {
   app.patch('/api/content/:key', { preHandler: admin, bodyLimit: CONTENT_MAX_UPLOAD_BYTES }, async (req) => {
     const key = (req.params as { key: string }).key;
     const body = (req.body ?? {}) as ContentPatch;
-    if (!['gallery', 'faq', 'testimonials', 'metrics', 'location'].includes(key)) throw notFound('Kunci konten tidak dikenal.');
+    if (!['gallery', 'faq', 'testimonials', 'metrics', 'location', 'slides'].includes(key)) throw notFound('Kunci konten tidak dikenal.');
     if (body.value === undefined) throw badRequest('Isi `value`.');
     if (key === 'gallery') validateGallery(body.value);
     if (key === 'location') validateLocation(body.value);
+    if (key === 'slides') validateSlides(body.value);
     await R.setContent(db, key, body.value);
     app.cache.invalidate(CACHE.content);
     return { ok: true, value: await R.getContent(db, key, null) };

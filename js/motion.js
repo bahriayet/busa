@@ -78,7 +78,7 @@ const MOTION = (function () {
     const tl = gsap.timeline({ defaults: { duration: 0.45, ease: 'power3.out' } });
     tl.addLabel('chrome', 0);
     if (route === 'landing') {
-      tl.from('.ld-brand, .ld-tab, .ld-cta .btn', { opacity: 0, y: -8, stagger: 0.04 }, 'chrome');
+      tl.from('.ld-thumbs, .ld-arrows', { opacity: 0, y: 10 }, 'chrome');
       return tl;
     }
     tl.from('#nav', { opacity: 0, x: -14 }, 'chrome')
@@ -103,40 +103,12 @@ const MOTION = (function () {
   }
 
   /* ── API ──────────────────────────────────────────────────────────────── */
-  /* Refresh dari pemuatan gambar bisa datang beruntun (carousel 6 foto).
-     Debounce supaya recalculation pin tidak bertumpuk saat pengguna menggulir. */
-  let refreshTimer = 0;
-  let navRO = null;
-  /* Tinggi header landing -> variabel CSS --ldnav-h (dipakai padding atas slide). */
-  function syncNavH() {
-    const nav = qs('.ld-nav');
-    if (!nav) return;
-    const h = nav.offsetHeight + 'px';
-    const root = document.documentElement;
-    if (root.style.getPropertyValue('--ldnav-h') !== h) {
-      root.style.setProperty('--ldnav-h', h);
-      const on = qs('#ldSlider .act.on');
-      if (on) void on.offsetHeight;
-    }
-  }
-  /* Amati nav dengan ResizeObserver: perubahan bungkus baris langsung
-     tertangkap tanpa bergantung urutan event resize jendela. */
-  function watchNav() {
-    if (navRO) { navRO.disconnect(); navRO = null; }
-    const nav = qs('.ld-nav');
-    if (!nav) return;
-    syncNavH();
-    if (typeof ResizeObserver !== 'undefined') {
-      navRO = new ResizeObserver(() => { syncNavH(); refreshSoon(); });
-      navRO.observe(nav);
-    }
-  }
-  /* Refresh ScrollTrigger dari pemuatan gambar bisa datang beruntun (carousel).
+  /* Refresh ScrollTrigger dari pemuatan gambar bisa datang beruntun (galeri).
      Debounce supaya recalculation tidak bertumpuk. */
+  let refreshTimer = 0;
   function refreshSoon() {
     clearTimeout(refreshTimer);
     refreshTimer = setTimeout(() => {
-      syncNavH();
       const y0 = window.scrollY || window.pageYOffset || 0;
       ScrollTrigger.refresh();
       const y1 = window.scrollY || window.pageYOffset || 0;
@@ -146,7 +118,6 @@ const MOTION = (function () {
   function enter(portal, route, animate = true) {
     reduce = mqReduce.matches;
     fine = mqFine.matches;
-    watchNav();
     if (animate) {
       const key = portal + '/' + route;
       if (!reduce && key !== lastKey) enterChrome(portal, route);
@@ -169,10 +140,6 @@ const MOTION = (function () {
   }
 
   mqReduce.addEventListener('change', () => { lastKey = ''; });
-
-  /* Lebar berubah → nav bisa membungkus/lepas bungkus → ukur ulang header
-     lalu segarkan perhitungan ScrollTrigger. */
-  window.addEventListener('resize', () => { syncNavH(); refreshSoon(); });
 
   return { ok: true, enter, refresh: refreshSoon };
 })();

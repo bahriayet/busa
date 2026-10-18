@@ -303,6 +303,7 @@ export const SEED_CONTENT: Record<string, unknown> = {
     url: 'https://www.google.com/maps/search/?api=1&query=BUSA+Laundry+Buahbatu+Bandung',
     image: null,
   },
+  slides: [null, null, null, null, null, null],
 };
 
 /** Akun demo. Password default development — wajib diganti lewat BUSA_SEED_PASSWORD di produksi. */

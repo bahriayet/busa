@@ -34,6 +34,7 @@ const PORTALS = {
       { id: 'pembayaran', label: 'Pembayaran', icon: 'wallet' },
       { id: 'galeri', label: 'Galeri', icon: 'eye' },
       { id: 'lokasi', label: 'Lokasi', icon: 'pin' },
+      { id: 'tampilan', label: 'Tampilan', icon: 'grid' },
       { id: 'laporan', label: 'Laporan', icon: 'chart' },
       { id: 'setelan', label: 'Profil', icon: 'user', mobile: true },
     ],
@@ -95,6 +96,7 @@ let S = {
   proofs: {},
   gallery: null,
   location: null,
+  slides: [],
   revenue: null,
   mix: null,
   activity: null,
@@ -435,6 +437,22 @@ function locEmbedUrl(it) {
 function locOn() {
   const l = locInfo();
   return l.active !== false && Boolean(l.name || l.address || locImage(l));
+}
+
+/* ── BACKGROUND SLIDE LANDING ─────────────────────────── */
+
+const SLIDE_DEFAULTS = ['./img/slides/01.jpg', './img/slides/02.jpg', './img/slides/03.jpg', './img/slides/05.jpg', './img/slides/04.jpg', './img/slides/01.jpg'];
+const SLIDE_LABELS = ['Sekarang', 'Masalah', 'Dalam drum', 'Kendalikan', 'Angka', 'Jadwalkan'];
+
+/** Gambar background slide aktif: unggahan admin, atau gambar bawaan. */
+function slideImage(i) {
+  const v = (S.slides || [])[i];
+  return (typeof v === 'string' && v) ? v : (SLIDE_DEFAULTS[i] || SLIDE_DEFAULTS[0]);
+}
+
+function slideIsCustom(i) {
+  const v = (S.slides || [])[i];
+  return typeof v === 'string' && Boolean(v);
 }
 
 /* ── SHELL ─────────────────────────────────────────────── */
@@ -1892,6 +1910,8 @@ document.addEventListener('click', (e) => {
         .catch((err) => apiToastErr(err, 'Gagal menghapus gambar peta'));
       break;
     case 'loc-save': locSaveFields(); break;
+    case 'slide-pick': { const f = qs('#slide-file-' + t.dataset.i); if (f) f.click(); break; }
+    case 'slide-del': slideDel(+t.dataset.i); break;
     case 'sub': {
       const tiers = (S.tiers && S.tiers.length) ? S.tiers : SEED.tiers;
       const tier = tiers.find((x) => x.id === t.dataset.v);

@@ -1765,20 +1765,6 @@ body[data-portal="landing"] .shell { grid-template-columns: 1fr; }
 
 body[data-portal="landing"] #view { padding: 0; gap: 0; }
 
-/* ── LANDING: kerangka chrome (selektor hidup) ────── */
-.ld-nav {
-  position: sticky; top: 0; z-index: 80; display: flex; align-items: center; gap: 14px;
-  padding: 10px clamp(16px, 4vw, 54px);
-  background: color-mix(in oklab, var(--bone) 92%, transparent);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--line);
-}
-
-.ld-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; flex: none; }
-
-.ld-brand .drum { --sz: 28px; }
-
-.ld-brand b { font-family: var(--display); font-weight: 800; font-size: 20px; letter-spacing: -.02em; }
 
 .ar-check { display: flex; gap: 8px; }
 
@@ -2036,7 +2022,6 @@ select.in.sm { font-family: var(--mono); text-transform: none; letter-spacing: .
 }
 
 @media (max-width: 640px) {
-  .ld-nav { padding: 10px 16px; }
   .hi-mini { grid-template-columns: 1fr; }
   .pick-next { grid-template-columns: 1fr; }
   .psw .ps-i b { display: none; }
@@ -2069,26 +2054,6 @@ body.gsap-on [data-reveal] { opacity: 1; transform: none; transition: none; }
 }
 
 /* ── HALAMAN PUBLIK: enam babak, permukaan nyata ─── */
-.ld-nav { flex-wrap: wrap; gap: 12px 18px; padding: 10px clamp(16px, 4vw, 54px); }
-
-.ld-nav::after { display: none; }
-
-.ld-tabs { display: flex; gap: 2px; margin-left: 6px; overflow-x: auto; scrollbar-width: none; min-width: 0; }
-
-.ld-tabs::-webkit-scrollbar { display: none; }
-
-.ld-tab { position: relative; padding: 7px 11px; background: none; border: 1px solid transparent; border-radius: 2px; cursor: pointer; font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); transition: color .18s, border-color .18s, background .18s; white-space: nowrap; }
-
-.ld-tab:hover, .ld-tab.hot { color: var(--ink); border-color: var(--line-2); background: var(--paper); }
-
-.ld-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border: 1px dashed var(--line-2); border-radius: 2px; color: var(--muted); letter-spacing: .1em; }
-
-.ld-badge .ico { width: 13px; height: 13px; color: var(--amber); }
-
-.ld-clock { color: var(--orange); letter-spacing: .14em; font-size: 11px; }
-
-.ld-cta { display: flex; align-items: center; gap: 8px; margin-left: auto; }
-
 .act { padding: clamp(34px, 5.5vw, 92px) clamp(16px, 4vw, 54px); border-bottom: 1px solid var(--line); position: relative; }
 
 .act:last-of-type { border-bottom: 0; }
@@ -2402,7 +2367,6 @@ body[data-theme="night"] .quote footer { color: var(--muted); }
   .peak-led, .peak-done { display: none; }
   .peak-i { opacity: 1; grid-template-columns: 30px 20px 1fr; }
   .peak-i i { display: none; }
-  .ld-tabs { order: 3; width: 100%; }
 }
 
 @media (max-width: 640px) {
@@ -2413,10 +2377,6 @@ body[data-theme="night"] .quote footer { color: var(--muted); }
   .live-facts { grid-template-columns: 1fr; }
   .live-facts li { border-right: 0; border-bottom: 1px solid var(--line); }
   .rail-wrap .rail-i { width: 264px; }
-  .ld-cta { flex-wrap: wrap; }
-  .ld-badge { display: none; }
-  .ld-clock { display: none; }
-  .ld-tabs { display: none; }
 }
 
 /* ── LAYAR PINDAI OPERATOR ───────────────────────── */
@@ -2838,8 +2798,6 @@ body[data-theme="night"] .pb-hint { background: var(--paper-2); border: 1px soli
 /* ==== LANDING SLIDER (gaya magic slider) ==== */
 body[data-portal="landing"] { overflow: hidden; }
 
-body[data-portal="landing"] .ld-nav { position: fixed; inset: 0 0 auto 0; z-index: 90; }
-
 .ld-slider { position: fixed; inset: 0; overflow: hidden; background: #0b0d12; z-index: 1; }
 
 .ld-slider .act {
@@ -2892,7 +2850,7 @@ body[data-portal="landing"] .ld-nav { position: fixed; inset: 0 0 auto 0; z-inde
 .ld-slider .ld-inner {
   position: relative; z-index: 2;
   height: 100%; overflow-y: auto; overscroll-behavior: contain;
-  padding: calc(var(--ldnav-h, 53px) + clamp(12px, 2.2vh, 26px)) clamp(16px, 4vw, 54px) clamp(118px, 17vh, 152px);
+  padding: clamp(14px, 2.4vh, 34px) clamp(16px, 4vw, 54px) clamp(118px, 17vh, 152px);
   scrollbar-width: thin;
 }
 .ld-slider .act.on .ld-inner { animation: ldIn .75s cubic-bezier(.22,.7,.25,1) both; }
@@ -2976,7 +2934,7 @@ body[data-portal="landing"] .ld-nav { position: fixed; inset: 0 0 auto 0; z-inde
 .ld-count { color: var(--bone); font-size: 10px; letter-spacing: .16em; min-width: 62px; text-align: center; }
 
 @media (max-width: 1000px) {
-  .ld-slider .ld-inner { padding-top: calc(var(--ldnav-h, 96px) + 12px); padding-bottom: 136px; }
+  .ld-slider .ld-inner { padding-top: clamp(12px, 2.2vh, 22px); padding-bottom: 136px; }
   .ld-thumb { width: 64px; height: 40px; border-radius: 11px; }
   .ld-thumb-l { display: none; }
   .ld-thumbs { gap: 6px; padding: 5px; }
@@ -2995,7 +2953,6 @@ body[data-portal="landing"] .ld-nav { position: fixed; inset: 0 0 auto 0; z-inde
   .ld-slider .act.on .ld-inner { animation: ldInM .5s ease both; }
   body[data-portal="landing"]::before { display: none; }
   body[data-portal="landing"] .grain { display: none; }
-  body[data-portal="landing"] .ld-nav { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--bone); }
   .ld-thumbs { -webkit-backdrop-filter: none; backdrop-filter: none; background: color-mix(in oklab, #0b0d12 84%, transparent); }
 }
 
@@ -3009,3 +2966,20 @@ body[data-portal="landing"] .ld-nav { position: fixed; inset: 0 0 auto 0; z-inde
   .ld-slider .act.on .ld-inner { animation: none; }
   .ld-slider .act::before { transition: none; transform: none; }
 }
+
+/* -- Admin: background slide landing -- */
+.slide-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin-top: 14px; }
+
+.slide-card { display: grid; gap: 12px; align-content: start; }
+
+.slide-thumb { position: relative; aspect-ratio: 16 / 9; border-radius: var(--r); overflow: hidden; background: #0b0d12; }
+
+.slide-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.slide-tag { position: absolute; left: 10px; top: 10px; padding: 3px 9px; border-radius: 999px; background: color-mix(in oklab, #0b0d12 72%, transparent); color: var(--bone); font-size: 9px; letter-spacing: .14em; }
+
+.slide-meta { display: grid; gap: 2px; }
+
+.slide-drop { width: 100%; min-height: 44px; padding: 8px 10px; border: 1.5px dashed var(--line-2); border-radius: 12px; background: transparent; color: var(--muted); font: inherit; font-size: 12px; cursor: pointer; transition: border-color .2s, background .2s; }
+
+.slide-drop:hover, .slide-drop.on { border-color: var(--orange); background: color-mix(in oklab, var(--orange) 8%, var(--paper)); color: var(--ink-2); }

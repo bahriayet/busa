@@ -64,6 +64,7 @@ export function registerPublicRoutes(app: FastifyInstance, db: Db, cfg: Config):
     testimonials: await R.getContent<unknown[]>(db, 'testimonials', []),
     metrics: await R.getContent<unknown[]>(db, 'metrics', []),
     location: await R.getContent<unknown>(db, 'location', null),
+    slides: await R.getContent<unknown[]>(db, 'slides', []),
   })));
 
   /* Gambar QRIS untuk pembayaran — memang ditunjukkan ke pelanggan untuk

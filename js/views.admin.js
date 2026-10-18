@@ -575,3 +575,96 @@ async function locSaveFields() {
     if (saved) toast({ title: 'Lokasi disimpan', msg: 'Halaman situs langsung memakai data baru.', tone: 'mint', icon: 'check' });
   } catch (err) { apiToastErr(err, 'Lokasi gagal disimpan'); }
 }
+
+/* ── BACKGROUND SLIDE LANDING (ADMIN) ─────────────────── */
+
+VIEWS.tampilan = {
+  title: 'Tampilan', kicker: 'Background slide halaman situs',
+  render() {
+    const online = typeof API !== 'undefined' && API.on && isAdminAuthed();
+    const custom = (S.slides || []).filter((x) => typeof x === 'string' && x).length;
+    return `
+    <div class="rep-top">
+      <div><p class="mono kicker">Enam babak slider landing</p><h1 class="display xl">Background slide</h1></div>
+      <div class="kan-sum"><span class="chip t-orange">${custom} dari 6 diunggah</span></div>
+    </div>
+    ${online ? '' : `<p class="hint warn">${icon('alert')} Server tidak terjangkau — perubahan background hanya berlaku di perangkat ini.</p>`}
+    <p class="hint">${icon('info', '')} Unggah gambar untuk tiap babak (disarankan rasio lebar 16:9). Kosongkan slot untuk memakai gambar bawaan. Gambar dikompres otomatis dan langsung tampil di halaman situs.</p>
+    <section class="slide-grid">
+      ${SLIDE_LABELS.map((label, i) => `
+      <article class="panel slide-card" data-reveal>
+        <div class="slide-thumb">
+          <img src="${esc(slideImage(i))}" alt="Background babak ${esc(label)}">
+          <span class="slide-tag mono">${String(i + 1).padStart(2, '0')}</span>
+        </div>
+        <div class="slide-meta">
+          <b class="display lg">${esc(label)}</b>
+          <p class="mono fine">${slideIsCustom(i) ? 'gambar unggahan admin' : 'gambar bawaan'}</p>
+        </div>
+        <div class="data-acts">
+          <button class="btn sm ${slideIsCustom(i) ? '' : 'primary'}" data-act="slide-pick" data-i="${i}">${icon('upload')} ${slideIsCustom(i) ? 'Ganti gambar' : 'Pilih gambar'}</button>
+          ${slideIsCustom(i) ? `<button class="btn danger sm" data-act="slide-del" data-i="${i}">${icon('x')} Hapus</button>` : ''}
+        </div>
+        <button class="slide-drop" data-act="slide-pick" data-i="${i}" aria-label="Pilih background ${esc(label)}">Tarik gambar ke sini, atau klik untuk memilih</button>
+        <input id="slide-file-${i}" type="file" accept="image/*" hidden>
+      </article>`).join('')}
+    </section>`;
+  },
+  wire() {
+    SLIDE_LABELS.forEach((_, i) => {
+      const file = qs('#slide-file-' + i);
+      const drop = qs('.slide-drop[data-i="' + i + '"]');
+      if (file) {
+        file.addEventListener('change', () => {
+          slideApplyFile(i, file.files && file.files[0]);
+          file.value = '';
+        });
+      }
+      if (drop) {
+        drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('on'); });
+        drop.addEventListener('dragleave', () => drop.classList.remove('on'));
+        drop.addEventListener('drop', (e) => {
+          e.preventDefault();
+          drop.classList.remove('on');
+          const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+          if (f) slideApplyFile(i, f);
+        });
+      }
+    });
+  },
+};
+
+/** Simpan background slide ke-i (dataUrl) atau kosongkan (null). */
+async function slideCommit(idx, dataUrl) {
+  const next = (S.slides || []).slice();
+  while (next.length < SLIDE_LABELS.length) next.push(null);
+  next[idx] = dataUrl;
+  if (typeof API !== 'undefined' && API.on && isAdminAuthed()) {
+    await API.saveSlides(next);
+  } else {
+    S.slides = next;
+  }
+  render();
+}
+
+/** Unggah/ganti background satu slide; gambar dikompres otomatis. */
+async function slideApplyFile(idx, file) {
+  if (!file) return;
+  if (!/^image\//.test(file.type || '')) {
+    toast({ title: 'Bukan berkas gambar', msg: 'Pilih file gambar (PNG/JPG/WEBP).', tone: 'red', icon: 'alert' });
+    return;
+  }
+  try {
+    const dataUrl = await prepareImageDataUrl(file);
+    await slideCommit(idx, dataUrl);
+    toast({ title: 'Background diperbarui', msg: 'Babak ' + (idx + 1) + ' memakai gambar baru.', tone: 'mint', icon: 'check' });
+  } catch (err) { apiToastErr(err, 'Background gagal diunggah'); }
+}
+
+/** Kembalikan background slide ke gambar bawaan. */
+async function slideDel(idx) {
+  try {
+    await slideCommit(idx, null);
+    toast({ title: 'Kembali ke gambar bawaan', msg: 'Babak ' + (idx + 1) + ' memakai gambar default.', tone: 'mint', icon: 'check' });
+  } catch (err) { apiToastErr(err, 'Gagal menghapus background'); }
+}

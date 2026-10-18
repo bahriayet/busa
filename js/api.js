@@ -492,6 +492,7 @@ API.loadContent = async function () {
       if (data.location !== undefined) {
         S.location = (data.location && typeof data.location === 'object') ? data.location : null;
       }
+      if (Array.isArray(data.slides)) S.slides = data.slides;
     }
   } catch { /* offline — pakai galeri/lokasi lokal */ }
   return S.gallery;
@@ -509,6 +510,13 @@ API.saveLocation = async function (value) {
   const data = await apiReq('PATCH', '/api/content/location', { value });
   S.location = (data.value && typeof data.value === 'object') ? data.value : value;
   return S.location;
+};
+
+/** Simpan 6 background slide landing (admin). */
+API.saveSlides = async function (items) {
+  const data = await apiReq('PATCH', '/api/content/slides', { value: items });
+  S.slides = Array.isArray(data.value) ? data.value : items;
+  return S.slides;
 };
 
 /* ── MUTASI: QRIS PEMBAYARAN ──────────────────────────── */

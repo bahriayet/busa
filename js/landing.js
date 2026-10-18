@@ -172,24 +172,6 @@ VIEWS.landing = {
     const locHref = loc ? locLink(loc) : '';
     const locEmbed = (loc && !locImg) ? locEmbedUrl(loc) : '';
     return `
-    <header class="ld-nav">
-      <a class="ld-brand" href="#/" data-act="go" data-route="landing" aria-label="BUSA, halaman awal">
-        ${drumMarkup({ rpm: '7s', size: 28, state: 'run', rags: 4, screws: false })}<b>BUSA</b>
-      </a>
-      <nav class="ld-tabs" aria-label="Babak">
-        ${[['a1', 'Sekarang'], ['a2', 'Masalah'], ['a3', 'Dalam drum'], ['a4', 'Kendalikan'], ['a5', 'Angka'], ['a6', 'Jadwalkan']]
-        .map(([id, l]) => `<button class="ld-tab" data-act="bc-jump" data-v="${id}">${esc(l)}</button>`).join('')}
-      </nav>
-      <div class="ld-cta">
-        <span class="ld-badge mono" title="Angka di halaman ini dihitung dari state aplikasi contoh">
-          ${icon('info', '')} data contoh
-        </span>
-        <time class="ld-clock mono" id="ld-clock">--:--</time>
-        <button class="btn sm" data-act="portal" data-v="c">Portal pelanggan</button>
-        <button class="btn sm primary" data-act="bc-jump" data-v="a6">Jadwalkan jemputan</button>
-      </div>
-    </header>
-
     <div class="ld-slider" id="ldSlider">
     <section class="act act-live ld-slide" id="a1" data-slide="0">
       <div class="ld-inner">
@@ -414,11 +396,20 @@ VIEWS.landing = {
   wire() {
     const sl = qs('#ldslider');
     if (sl) sl.addEventListener('input', (e) => { LDC.weight = +e.target.value; paintLDC(); });
-    const clock = qs('#ld-clock');
-    if (clock) clock.textContent = nowClock();
     const deck = qs('#ldSlider');
     if (deck) {
       ldSlide(LDS.i);
+      /* Background slide: pakai gambar unggahan admin bila ada. */
+      qsa('.ld-slider .act').forEach((el, i) => {
+        if (slideIsCustom(i)) el.style.setProperty('--ldbg', 'url("' + slideImage(i) + '")');
+        else el.style.removeProperty('--ldbg');
+      });
+      qsa('.ld-thumb').forEach((el, i) => {
+        const bg = el.querySelector('.ld-thumb-bg');
+        if (!bg) return;
+        if (slideIsCustom(i)) bg.style.backgroundImage = 'url("' + slideImage(i) + '")';
+        else bg.style.removeProperty('background-image');
+      });
       qsa('.ld-thumb').forEach((b, i) => b.addEventListener('click', (e) => { e.preventDefault(); ldSlide(i); }));
       const prev = qs('#ldPrev'); if (prev) prev.addEventListener('click', () => ldStep(-1));
       const next = qs('#ldNext'); if (next) next.addEventListener('click', () => ldStep(1));

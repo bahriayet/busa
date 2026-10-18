@@ -702,6 +702,51 @@ test('lokasi: admin menyimpan peta & alamat, isi tidak sah ditolak', async () =>
   assert.equal(anon.statusCode, 401);
 });
 
+test('background slide: admin menyimpan 6 slot, isi tidak sah ditolak', async () => {
+  const admin = await login('admin');
+  const jpg = 'data:image/jpeg;base64,' + Buffer.from('slide-uji').toString('base64');
+  const ok = await app.inject({
+    method: 'PATCH', url: '/api/content/slides',
+    headers: { authorization: `Bearer ${admin}` },
+    payload: { value: [jpg, null, jpg, jpg, jpg, jpg] },
+  });
+  assert.equal(ok.statusCode, 200, ok.body);
+  const val = (ok.json() as { value: (string | null)[] }).value;
+  assert.equal(val.length, 6);
+  assert.equal(val[0], jpg);
+  assert.equal(val[1], null);
+
+  /* Endpoint publik ikut membawa background agar landing bisa merender. */
+  const pub = await app.inject({ method: 'GET', url: '/api/content' });
+  assert.equal(pub.statusCode, 200);
+  const body = pub.json() as { slides: (string | null)[] };
+  assert.equal(body.slides[0], jpg);
+
+  const tooMany = await app.inject({
+    method: 'PATCH', url: '/api/content/slides',
+    headers: { authorization: `Bearer ${admin}` },
+    payload: { value: [jpg, jpg, jpg, jpg, jpg, jpg, jpg] },
+  });
+  assert.equal(tooMany.statusCode, 400);
+
+  const badImg = await app.inject({
+    method: 'PATCH', url: '/api/content/slides',
+    headers: { authorization: `Bearer ${admin}` },
+    payload: { value: ['bukan-gambar'] },
+  });
+  assert.equal(badImg.statusCode, 400);
+
+  const notArray = await app.inject({
+    method: 'PATCH', url: '/api/content/slides',
+    headers: { authorization: `Bearer ${admin}` },
+    payload: { value: { foto: jpg } },
+  });
+  assert.equal(notArray.statusCode, 400);
+
+  const anon = await app.inject({ method: 'PATCH', url: '/api/content/slides', payload: { value: [] } });
+  assert.equal(anon.statusCode, 401);
+});
+
 test('QRIS: publik membaca, hanya admin mengganti, pelanggan ditolak', async () => {
   const anon = await app.inject({ method: 'GET', url: '/api/qris' });
   assert.equal(anon.statusCode, 200);
