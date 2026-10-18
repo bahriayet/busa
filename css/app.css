@@ -2970,6 +2970,7 @@ body[data-portal="landing"] .ld-nav { position: fixed; inset: 0 0 auto 0; z-inde
 .ld-arrows { position: absolute; right: clamp(14px, 3vw, 44px); bottom: clamp(14px, 2.2vh, 26px); display: flex; align-items: center; gap: 10px; z-index: 31; }
 .ld-arrow { width: 42px; height: 42px; border-radius: 50%; border: 0; display: grid; place-items: center; background: var(--orange); color: #fff; cursor: pointer; box-shadow: 0 12px 26px -14px rgba(0,0,0,.75); transition: transform .2s, background .2s; }
 .ld-arrow:hover { transform: translateY(-2px); background: color-mix(in oklab, var(--orange) 82%, #000); }
+.ld-arrow:disabled { opacity: .35; cursor: default; transform: none; }
 .ld-arrow .ico { width: 16px; height: 16px; }
 .ld-arrow.next .ico { transform: rotate(180deg); }
 .ld-count { color: var(--bone); font-size: 10px; letter-spacing: .16em; min-width: 62px; text-align: center; }

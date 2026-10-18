@@ -44,6 +44,18 @@ function ldSlide(idx) {
     const fr = qs('#ldSlider iframe[data-src]');
     if (fr) { fr.src = fr.getAttribute('data-src'); fr.removeAttribute('data-src'); }
   }
+  const prevBtn = qs('#ldPrev');
+  const nextBtn = qs('#ldNext');
+  if (prevBtn) prevBtn.disabled = i === 0;
+  if (nextBtn) nextBtn.disabled = i === n - 1;
+}
+
+/* Pindah satu babak tanpa membungkus: slide pertama/terakhir berhenti. */
+function ldStep(d) {
+  const n = qsa('.ld-slider .act').length;
+  if (!n) return;
+  const i = Math.min(Math.max(LDS.i + d, 0), n - 1);
+  if (i !== LDS.i) ldSlide(i);
 }
 
 /* Pra-muat gambar slide aktif + berikutnya (versi mobile dipakai di layar kecil). */
@@ -67,8 +79,8 @@ window.addEventListener('keydown', (e) => {
   if (!qs('#ldSlider')) return;
   const tg = (document.activeElement || {}).tagName || '';
   if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tg)) return;
-  if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); ldSlide(LDS.i + 1); }
-  if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); ldSlide(LDS.i - 1); }
+  if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); ldStep(1); }
+  if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); ldStep(-1); }
 });
 
 function quickFind(raw) {
@@ -408,14 +420,27 @@ VIEWS.landing = {
     if (deck) {
       ldSlide(LDS.i);
       qsa('.ld-thumb').forEach((b, i) => b.addEventListener('click', (e) => { e.preventDefault(); ldSlide(i); }));
-      const prev = qs('#ldPrev'); if (prev) prev.addEventListener('click', () => ldSlide(LDS.i - 1));
-      const next = qs('#ldNext'); if (next) next.addEventListener('click', () => ldSlide(LDS.i + 1));
-      deck.addEventListener('touchstart', (e) => { deck.dataset.sx = String(e.touches[0].clientX); }, { passive: true });
+      const prev = qs('#ldPrev'); if (prev) prev.addEventListener('click', () => ldStep(-1));
+      const next = qs('#ldNext'); if (next) next.addEventListener('click', () => ldStep(1));
+      deck.addEventListener('touchstart', (e) => {
+        const t = e.touches[0];
+        if (e.target && e.target.closest && e.target.closest('.ld-thumbs, .ld-arrows')) {
+          deck.dataset.sx = ''; deck.dataset.sy = ''; return;
+        }
+        deck.dataset.sx = String(t.clientX);
+        deck.dataset.sy = String(t.clientY);
+      }, { passive: true });
       deck.addEventListener('touchend', (e) => {
-        const sx = Number(deck.dataset.sx || 0); deck.dataset.sx = '';
+        const sx = Number(deck.dataset.sx || 0);
+        const sy = Number(deck.dataset.sy || 0);
+        deck.dataset.sx = ''; deck.dataset.sy = '';
         if (!sx) return;
-        const dx = e.changedTouches[0].clientX - sx;
-        if (Math.abs(dx) > 46) ldSlide(LDS.i + (dx < 0 ? 1 : -1));
+        const t = e.changedTouches[0];
+        const dx = t.clientX - sx;
+        const dy = t.clientY - sy;
+        /* Hanya swipe yang jelas mendatar — geseran scroll vertikal (yang
+           kadang sedikit miring) tidak boleh memindah slide. */
+        if (Math.abs(dx) > 56 && Math.abs(dx) > Math.abs(dy) * 1.4) ldStep(dx < 0 ? 1 : -1);
       }, { passive: true });
     }
     const ar = qs('#arq');
