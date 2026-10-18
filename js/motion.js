@@ -345,7 +345,9 @@ const MOTION = (function () {
       /* Refresh otomatis (animate=false) tidak memutar ulang reveal —
          elemen baru sudah terlihat oleh aturan CSS `body.gsap-on`. */
       if (animate) bindReveals(qs('#view'));
-      if (route === 'landing') landingDevices();
+      /* Landing mode slider: pin/parallax/reveal-scroll tidak dipakai —
+         babak tampil sebagai slide layar penuh dengan animasi sendiri. */
+      if (route === 'landing' && !qs('#ldSlider')) landingDevices();
       bindTilt(qs('#view'));
     }, qs('#view'));
 

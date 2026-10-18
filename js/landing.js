@@ -5,6 +5,45 @@
 
 const LDC = { weight: 6, slot: SLOTS[2], svc: 'setrika' };
 
+/* Slider landing: enam babak tampil sebagai slide layar penuh (gaya "magic slider").
+   Konten tiap babak tetap sama; hanya bingkainya berubah. */
+const LD_SLIDES = [
+  { id: 'a1', label: 'Sekarang', img: './img/slides/01.jpg' },
+  { id: 'a2', label: 'Masalah', img: './img/slides/02.jpg' },
+  { id: 'a3', label: 'Dalam drum', img: './img/slides/03.png' },
+  { id: 'a4', label: 'Kendalikan', img: './img/slides/05.jpg' },
+  { id: 'a5', label: 'Angka', img: './img/slides/04.jpg' },
+  { id: 'a6', label: 'Jadwalkan', img: './img/slides/01.jpg' },
+];
+const LDS = { i: 0 };
+
+function ldSlide(idx) {
+  const slides = qsa('.ld-slider .act');
+  if (!slides.length) return;
+  const n = slides.length;
+  const i = ((idx % n) + n) % n;
+  const dir = i > LDS.i ? 1 : -1;
+  LDS.i = i;
+  slides.forEach((el, k) => {
+    el.classList.toggle('on', k === i);
+    el.classList.toggle('from-next', k === i && dir > 0);
+    el.classList.toggle('from-prev', k === i && dir < 0);
+  });
+  qsa('.ld-thumb').forEach((el, k) => el.classList.toggle('on', k === i));
+  const c = qs('#ldCount');
+  if (c) c.textContent = String(i + 1).padStart(2, '0') + ' / ' + String(n).padStart(2, '0');
+  const cur = slides[i];
+  if (cur) cur.scrollTop = 0;
+}
+
+window.addEventListener('keydown', (e) => {
+  if (!qs('#ldSlider')) return;
+  const tg = (document.activeElement || {}).tagName || '';
+  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tg)) return;
+  if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); ldSlide(LDS.i + 1); }
+  if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); ldSlide(LDS.i - 1); }
+});
+
 function quickFind(raw) {
   const q = String(raw || '').trim().toUpperCase().replace(/\s+/g, '');
   if (!q) return { state: 'empty' };
@@ -112,7 +151,9 @@ VIEWS.landing = {
       </div>
     </header>
 
-    <section class="act act-live" id="a1">
+    <div class="ld-slider" id="ldSlider">
+    <section class="act act-live ld-slide" id="a1" data-slide="0">
+      <div class="ld-inner">
       <div class="act-head">
         <p class="mono act-name">Babak satu · sekarang</p>
         <h2 class="display hero">Ini yang sedang terjadi<br>di dalam, detik ini.</h2>
@@ -157,9 +198,11 @@ VIEWS.landing = {
         <li><b class="num lg">500</b><span>ribu rupiah proteksi per item bila hilang atau rusak di tangan kami</span></li>
         <li><b class="num lg">${doneToday}</b><span>pesanan sudah diserahkan hari ini</span></li>
       </ul>
+      </div>
     </section>
 
-    <section class="act act-quiet" id="a2" data-bc-reveal>
+    <section class="act act-quiet ld-slide" id="a2" data-slide="1">
+      <div class="ld-inner">
       <div class="quiet-strip">
         <span class="mono">${esc(stuck.code)}</span>
         <span class="stage-pill s-${stuck.stage}">${esc(STAGES[stuck.stage].label)}</span>
@@ -167,9 +210,11 @@ VIEWS.landing = {
       </div>
       <h2 class="display xl">“Hampir selesai” bukan informasi.</h2>
       <p class="lede">Kami membuat panel ini karena pertanyaan terbesar pelanggan selalu sama, dan jawaban laundry pada umumnya selalu sama: nanti ya, Mbak, tinggal setrika.</p>
+      </div>
     </section>
 
-    <section class="act act-peak" id="a3" data-bc-act="peak">
+    <section class="act act-peak ld-slide" id="a3" data-slide="2" data-bc-act="peak">
+      <div class="ld-inner">
       <div class="peak-stage">
         <figure class="peak-poster">
           <img class="peak-poster-base" src="./img/proses-laundry.jpg" alt="Infografis sembilan tahap proses laundry: menerima sampai siap" loading="lazy">
@@ -187,9 +232,11 @@ VIEWS.landing = {
         <span class="peak-led"></span>
         <p class="peak-done mono">Semua tahap di atas tercatat dengan jam, mesin, dan nama operator.</p>
       </div>
+      </div>
     </section>
 
-    <section class="act act-control" id="a4">
+    <section class="act act-control ld-slide" id="a4" data-slide="3">
+      <div class="ld-inner">
       <div class="act-head">
         <p class="mono act-name">Babak empat · kendalikan</p>
         <h2 class="display xl">Geser, dan permukaannya menjawab.</h2>
@@ -222,9 +269,11 @@ VIEWS.landing = {
           <button class="btn primary" data-act="ld-use">${icon('basket')} Pakai pilihan ini</button>
         </div>
       </div>
+      </div>
     </section>
 
-    <section class="act act-proof" id="a5">
+    <section class="act act-proof ld-slide" id="a5" data-slide="4">
+      <div class="ld-inner">
       <div class="proof-grid">
         <figure class="gal-carousel" data-bc-parallax="-0.14" data-reveal>
           <div class="gal-view">
@@ -243,9 +292,9 @@ VIEWS.landing = {
           <p class="mono act-name">Babak lima · angka</p>
           <h2 class="display xl">Angka yang bisa Anda tuntut ulang.</h2>
           <ul class="proof-list">
-            <li><b class="num lg" data-bc-count="${S.orders.length}">0</b><span>pesanan tercatat di panel ini, masing-masing dengan label dan jam</span></li>
-            <li><b class="num lg" data-bc-count="${Math.round(S.orders.reduce((a, o) => a + o.total, 0) / 1000)}">0</b><span>ribu rupiah nilai cucian berjalan, bukan proyeksi</span></li>
-            <li><b class="num lg" data-bc-count="${SEED.staff.length}">0</b><span>operator yang namanya muncul di kartu QC</span></li>
+            <li><b class="num lg">${S.orders.length}</b><span>pesanan tercatat di panel ini, masing-masing dengan label dan jam</span></li>
+            <li><b class="num lg">${Math.round(S.orders.reduce((a, o) => a + o.total, 0) / 1000)}</b><span>ribu rupiah nilai cucian berjalan, bukan proyeksi</span></li>
+            <li><b class="num lg">${SEED.staff.length}</b><span>operator yang namanya muncul di kartu QC</span></li>
           </ul>
           <blockquote class="quote">
             <p>“Dulu saya cuci sendiri tiap Minggu. Sekarang 26 kg naik kurir tiap Selasa, balik sudah rapi.”</p>
@@ -255,9 +304,11 @@ VIEWS.landing = {
             <p>Cuci + Setrika 48 jam sejak diterima; express 6 jam dengan antrean didahulukan. Untuk noda: kami foto sebelum-sesudah, dan bila tetap ada setelah dua kali treatment, biaya treatment dikembalikan seratus persen.</p></details>
         </div>
       </div>
+      </div>
     </section>
 
-    <section class="act act-close" id="a6">
+    <section class="act act-close ld-slide" id="a6" data-slide="5">
+      <div class="ld-inner">
       <div class="close-grid">
         <div>
           <p class="mono act-name">Babak enam · jadwalkan</p>
@@ -309,13 +360,38 @@ VIEWS.landing = {
         <p class="mono fine">BUSA Laundry Ops · Buahbatu, Bandung · 07.00–21.00 setiap hari · 0812-7781-4402</p>
         <p class="mono fine">© ${new Date().getFullYear()} · panel ini berjalan dengan data contoh; ganti angka dan testimoni dengan milik Anda sebelum tayang.</p>
       </div>
-    </section>`;
+      </div>
+    </section>
+
+    <nav class="ld-thumbs" aria-label="Pilih babak">
+      ${LD_SLIDES.map((s, i) => `<button class="ld-thumb" data-slide="${i}" aria-label="Babak ${i + 1}: ${esc(s.label)}"><span class="ld-thumb-bg" style="background-image:url('${s.img}')"></span><span class="ld-thumb-l mono">${esc(s.label)}</span></button>`).join('')}
+    </nav>
+    <div class="ld-arrows">
+      <button class="ld-arrow prev" id="ldPrev" aria-label="Slide sebelumnya">${icon('chev')}</button>
+      <span class="ld-count mono" id="ldCount">01 / 06</span>
+      <button class="ld-arrow next" id="ldNext" aria-label="Slide berikutnya">${icon('chev')}</button>
+    </div>
+    </div>`;
   },
   wire() {
     const sl = qs('#ldslider');
     if (sl) sl.addEventListener('input', (e) => { LDC.weight = +e.target.value; paintLDC(); });
-    const clk = qs('#ld-clock');
-    if (clk) clk.textContent = nowClock();
+    const clock = qs('#ld-clock');
+    if (clock) clock.textContent = nowClock();
+    const deck = qs('#ldSlider');
+    if (deck) {
+      ldSlide(LDS.i);
+      qsa('.ld-thumb').forEach((b, i) => b.addEventListener('click', (e) => { e.preventDefault(); ldSlide(i); }));
+      const prev = qs('#ldPrev'); if (prev) prev.addEventListener('click', () => ldSlide(LDS.i - 1));
+      const next = qs('#ldNext'); if (next) next.addEventListener('click', () => ldSlide(LDS.i + 1));
+      deck.addEventListener('touchstart', (e) => { deck.dataset.sx = String(e.touches[0].clientX); }, { passive: true });
+      deck.addEventListener('touchend', (e) => {
+        const sx = Number(deck.dataset.sx || 0); deck.dataset.sx = '';
+        if (!sx) return;
+        const dx = e.changedTouches[0].clientX - sx;
+        if (Math.abs(dx) > 46) ldSlide(LDS.i + (dx < 0 ? 1 : -1));
+      }, { passive: true });
+    }
     const ar = qs('#arq');
     if (ar) ar.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); areaCheck(ar.value); } });
     qsa('.kb img, .gal-shot img, .find-map img').forEach((im) => im.addEventListener('load', () => { if (typeof MOTION !== 'undefined' && MOTION.ok) MOTION.refresh(); }));

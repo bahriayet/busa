@@ -1943,6 +1943,10 @@ document.addEventListener('click', (e) => {
     }
     case 'area-check': areaCheck((qs('#arq') || {}).value); break;
     case 'bc-jump': {
+      if (typeof ldSlide === 'function' && qs('#ldSlider')) {
+        const idx = (typeof LD_SLIDES !== 'undefined' ? LD_SLIDES : []).findIndex((s) => s.id === t.dataset.v);
+        if (idx >= 0) { ldSlide(idx); break; }
+      }
       const el = qs('#' + t.dataset.v);
       if (el) el.scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block: 'start' });
       break;
@@ -1952,7 +1956,8 @@ document.addEventListener('click', (e) => {
       LDC.slot = t.dataset.v; paintLDC();
       if (S.route === 'landing' && !t.disabled) {
         setHintLanding('Slot ' + LDC.slot + ' dipilih. Tinggal dua kolom lagi di bawah.');
-        const el = qs('#a6'); if (el) el.scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block: 'start' });
+        if (typeof ldSlide === 'function' && qs('#ldSlider')) ldSlide(5);
+        else { const el = qs('#a6'); if (el) el.scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block: 'start' }); }
       }
       break;
     }
