@@ -153,7 +153,7 @@ function ldcPrice() {
 }
 
 VIEWS.landing = {
-  title: 'BUSA — Laundry Ops', kicker: 'Panel berjalan · data contoh',
+  title: 'BUSA - Laundry Ops', kicker: 'Laundry antar-jemput · Bandung',
   render() {
     /* Papan publik selalu memakai /api/live agar tampilan sama di semua
        perangkat — baik pengunjung anonim maupun yang sedang login. */
@@ -389,7 +389,7 @@ VIEWS.landing = {
       </section>` : ''}
       <div class="colophon">
         <p class="mono fine">BUSA Laundry Ops · Buahbatu, Bandung · 07.00–21.00 setiap hari · 0812-7781-4402</p>
-        <p class="mono fine">© ${new Date().getFullYear()} · panel ini berjalan dengan data contoh; ganti angka dan testimoni dengan milik Anda sebelum tayang.</p>
+        <p class="mono fine">© ${new Date().getFullYear()} · BUSA Laundry Ops — operasional cabang Buahbatu, Bandung.</p>
       </div>
       </div>
     </section>

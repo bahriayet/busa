@@ -655,7 +655,7 @@ async function slideApplyFile(idx, file) {
     return;
   }
   try {
-    const dataUrl = await prepareImageDataUrl(file);
+    const dataUrl = await prepareImageDataUrl(file, 600 * 1024);
     await slideCommit(idx, dataUrl);
     toast({ title: 'Background diperbarui', msg: 'Babak ' + (idx + 1) + ' memakai gambar baru.', tone: 'mint', icon: 'check' });
   } catch (err) { apiToastErr(err, 'Background gagal diunggah'); }

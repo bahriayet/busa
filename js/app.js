@@ -354,7 +354,12 @@ async function prepareImageDataUrl(file, maxBytes = IMAGE_MAX_BYTES) {
   canvas.getContext('2d').drawImage(img, 0, 0, w, h);
 
   let out = canvas.toDataURL('image/png');
-  if (dataUrlBytes(out) > maxBytes) out = canvas.toDataURL('image/jpeg', 0.92);
+  if (dataUrlBytes(out) > maxBytes) {
+    for (const q of [0.92, 0.86, 0.8, 0.72, 0.64]) {
+      out = canvas.toDataURL('image/jpeg', q);
+      if (dataUrlBytes(out) <= maxBytes) break;
+    }
+  }
   if (dataUrlBytes(out) > maxBytes) throw new Error('Gambar terlalu besar bahkan setelah dikompres.');
   return out;
 }
@@ -1378,7 +1383,8 @@ VIEWS.laporan = {
         <div class="kpi" data-reveal><p class="mono lbl">Utilisasi mesin</p>${gaugeSVG(load, 'blue')}</div>
       </div>
       <div class="range-chips">${[7, 14, 30].map((r) => `<button class="fchip ${(S.settings.range || 14) === r ? 'on' : ''}" data-act="range" data-v="${r}">${r} hari</button>`).join('')}
-        <button class="btn ghost sm" data-act="export">${icon('download')} CSV</button></div>
+        <button class="btn ghost sm" data-act="export">${icon('download')} CSV pesanan</button>
+        <button class="btn ghost sm" data-act="export-revenue">${icon('download')} CSV pendapatan</button></div>
     </div>
     <section class="rep-grid">
       <div class="panel" data-reveal>
@@ -1426,6 +1432,23 @@ function exportCSV() {
   a.href = url; a.download = `busa-pesanan-${todayISO()}.csv`; a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1500);
   toast({ title: 'CSV diunduh', msg: rows.length + ' baris pesanan', tone: 'mint', icon: 'download' });
+}
+
+/** Ekspor omzet harian sesuai rentang laporan yang sedang dipilih. */
+function exportRevenueCSV() {
+  const n = S.settings.range || 14;
+  const rev = ((S.revenue && S.revenue.length) ? S.revenue : SEED.revenue).slice(-n);
+  const sum = rev.reduce((a, d) => a + d.v, 0) * 1000;
+  const cnt = rev.reduce((a, d) => a + d.n, 0);
+  const head = ['hari', 'omzet_rupiah', 'transaksi'];
+  const rows = rev.map((d) => [d.d, d.v * 1000, d.n]);
+  rows.push(['TOTAL', sum, cnt]);
+  const csv = [head, ...rows].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\r\n');
+  const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  const a = document.createElement('a');
+  a.href = url; a.download = `busa-pendapatan-${todayISO()}.csv`; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+  toast({ title: 'CSV pendapatan diunduh', msg: n + ' hari terakhir', tone: 'mint', icon: 'download' });
 }
 
 /* ── VIEW: SETELAN ────────────────────────────────────── */
@@ -2046,6 +2069,7 @@ document.addEventListener('click', (e) => {
     case 'sort': S.settings.sortKey = t.dataset.v; save(); render(); break;
     case 'range': S.settings.range = +t.dataset.v; save(); render(); break;
     case 'export': exportCSV(); break;
+    case 'export-revenue': exportRevenueCSV(); break;
     case 'export-json': {
       const url = URL.createObjectURL(new Blob([JSON.stringify(S, null, 2)], { type: 'application/json' }));
       const lnk = document.createElement('a'); lnk.href = url; lnk.download = 'busa-backup.json'; lnk.click();
