@@ -2852,14 +2852,18 @@ body[data-portal="landing"] .ld-nav { position: fixed; inset: 0 0 auto 0; z-inde
   overflow: hidden;
 }
 .ld-slider .act.on { opacity: 1; visibility: visible; pointer-events: auto; transform: none; }
+.ld-slider .act.off { content-visibility: hidden; }
 
 .ld-slider .act::before {
   content: ''; position: absolute; inset: 0; z-index: 0;
-  background: var(--ldbg) var(--ldpos, center) / cover no-repeat;
-  transform: scale(1.055);
-  transition: transform 7s ease;
+  background: none;
+  transform: scale(1);
 }
-.ld-slider .act.on::before { transform: scale(1); }
+.ld-slider .act.on::before {
+  background: var(--ldbg) var(--ldpos, center) / cover no-repeat;
+  animation: ldKen 9s ease-out both;
+}
+@keyframes ldKen { from { transform: scale(1.06); } to { transform: scale(1); } }
 
 .ld-slider .act::after {
   content: ''; position: absolute; inset: 0; z-index: 1;
@@ -2870,7 +2874,7 @@ body[data-portal="landing"] .ld-nav { position: fixed; inset: 0 0 auto 0; z-inde
 
 .ld-slider #a1 { --ldbg: url('../img/slides/01.jpg'); --ldpos: center; }
 .ld-slider #a2 { --ldbg: url('../img/slides/02.jpg'); --ldpos: center 42%; }
-.ld-slider #a3 { --ldbg: url('../img/slides/03.png'); --ldpos: center; }
+.ld-slider #a3 { --ldbg: url('../img/slides/03.jpg'); --ldpos: center; }
 .ld-slider #a4 { --ldbg: url('../img/slides/05.jpg'); --ldpos: center 58%; }
 .ld-slider #a5 { --ldbg: url('../img/slides/04.jpg'); --ldpos: center 45%; }
 .ld-slider #a6 { --ldbg: url('../img/slides/01.jpg'); --ldpos: center 30%; }
@@ -2956,6 +2960,12 @@ body[data-portal="landing"] .ld-nav { position: fixed; inset: 0 0 auto 0; z-inde
 .ld-thumbs::-webkit-scrollbar { display: none; }
 .ld-thumb { position: relative; flex: none; width: 86px; height: 52px; border-radius: 14px; overflow: hidden; padding: 0; border: 1px solid color-mix(in oklab, var(--bone) 18%, transparent); background: #12151c; cursor: pointer; }
 .ld-thumb-bg { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: .5; transition: opacity .25s, transform .35s; }
+.ld-thumb:nth-child(1) .ld-thumb-bg { background-image: url('../img/slides/t/01.jpg'); }
+.ld-thumb:nth-child(2) .ld-thumb-bg { background-image: url('../img/slides/t/02.jpg'); }
+.ld-thumb:nth-child(3) .ld-thumb-bg { background-image: url('../img/slides/t/03.jpg'); }
+.ld-thumb:nth-child(4) .ld-thumb-bg { background-image: url('../img/slides/t/05.jpg'); }
+.ld-thumb:nth-child(5) .ld-thumb-bg { background-image: url('../img/slides/t/04.jpg'); }
+.ld-thumb:nth-child(6) .ld-thumb-bg { background-image: url('../img/slides/t/01.jpg'); }
 .ld-thumb-l { position: absolute; inset: auto 0 0 0; padding: 4px 7px 5px; text-align: left; font-size: 8px; letter-spacing: .12em; color: var(--bone); background: linear-gradient(180deg, transparent, rgba(5,7,11,.78)); }
 .ld-thumb:hover .ld-thumb-bg { opacity: .85; transform: scale(1.04); }
 .ld-thumb.on { border-color: var(--orange); box-shadow: 0 0 0 2px color-mix(in oklab, var(--orange) 40%, transparent), 0 10px 22px -14px rgba(0,0,0,.8); }
@@ -2977,6 +2987,25 @@ body[data-portal="landing"] .ld-nav { position: fixed; inset: 0 0 auto 0; z-inde
   .ld-arrows { right: 12px; bottom: 68px; }
   .ld-count { display: none; }
   .ld-slider #a2 .display.xl { font-size: clamp(30px, 8vw, 46px); }
+
+  /* versi gambar khusus HP + matikan efek berat */
+  .ld-slider #a1 { --ldbg: url('../img/slides/m/01.jpg'); }
+  .ld-slider #a2 { --ldbg: url('../img/slides/m/02.jpg'); }
+  .ld-slider #a3 { --ldbg: url('../img/slides/m/03.jpg'); }
+  .ld-slider #a4 { --ldbg: url('../img/slides/m/05.jpg'); }
+  .ld-slider #a5 { --ldbg: url('../img/slides/m/04.jpg'); }
+  .ld-slider #a6 { --ldbg: url('../img/slides/m/01.jpg'); }
+  .ld-slider .act.on::before { animation: none; transform: none; }
+  .ld-slider .act.on .ld-inner { animation: ldInM .5s ease both; }
+  body[data-portal="landing"]::before { display: none; }
+  body[data-portal="landing"] .grain { display: none; }
+  body[data-portal="landing"] .ld-nav { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--bone); }
+  .ld-thumbs { -webkit-backdrop-filter: none; backdrop-filter: none; background: color-mix(in oklab, #0b0d12 84%, transparent); }
+}
+
+@keyframes ldInM {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

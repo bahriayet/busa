@@ -28,12 +28,39 @@ function ldSlide(idx) {
     el.classList.toggle('on', k === i);
     el.classList.toggle('from-next', k === i && dir > 0);
     el.classList.toggle('from-prev', k === i && dir < 0);
+    if (k === i) {
+      el.classList.remove('off');
+    } else {
+      setTimeout(() => { if (!el.classList.contains('on')) el.classList.add('off'); }, 700);
+    }
   });
   qsa('.ld-thumb').forEach((el, k) => el.classList.toggle('on', k === i));
   const c = qs('#ldCount');
   if (c) c.textContent = String(i + 1).padStart(2, '0') + ' / ' + String(n).padStart(2, '0');
   const cur = slides[i];
   if (cur) cur.scrollTop = 0;
+  ldWarm(i);
+  if (slides[i] && slides[i].id === 'a6') {
+    const fr = qs('#ldSlider iframe[data-src]');
+    if (fr) { fr.src = fr.getAttribute('data-src'); fr.removeAttribute('data-src'); }
+  }
+}
+
+/* Pra-muat gambar slide aktif + berikutnya (versi mobile dipakai di layar kecil). */
+function ldImgFor(s) {
+  const mob = typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 1000px)').matches;
+  return mob ? s.img.replace('./img/slides/', './img/slides/m/') : s.img;
+}
+
+function ldWarm(i) {
+  const n = LD_SLIDES.length;
+  [i, (i + 1) % n].forEach((k) => {
+    const s = LD_SLIDES[((k % n) + n) % n];
+    if (!s) return;
+    s._pre = s._pre || {};
+    const src = ldImgFor(s);
+    if (!s._pre[src]) { const im = new Image(); im.src = src; s._pre[src] = im; }
+  });
 }
 
 window.addEventListener('keydown', (e) => {
@@ -352,7 +379,7 @@ VIEWS.landing = {
           <span class="find-tag mono">${icon('pin')} Lihat di peta</span>
         </a>` : `
         <div class="find-map live">
-          <iframe src="${esc(locEmbed)}" title="Peta lokasi ${esc(loc.name || 'BUSA Laundry')}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+          <iframe data-src="${esc(locEmbed)}" title="Peta lokasi ${esc(loc.name || 'BUSA Laundry')}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
           <a class="find-tag mono" href="${esc(locHref)}" target="_blank" rel="noopener">${icon('pin')} Buka di Google Maps</a>
         </div>`}
       </section>` : ''}
@@ -364,7 +391,7 @@ VIEWS.landing = {
     </section>
 
     <nav class="ld-thumbs" aria-label="Pilih babak">
-      ${LD_SLIDES.map((s, i) => `<button class="ld-thumb" data-slide="${i}" aria-label="Babak ${i + 1}: ${esc(s.label)}"><span class="ld-thumb-bg" style="background-image:url('${s.img}')"></span><span class="ld-thumb-l mono">${esc(s.label)}</span></button>`).join('')}
+      ${LD_SLIDES.map((s, i) => `<button class="ld-thumb" data-slide="${i}" aria-label="Babak ${i + 1}: ${esc(s.label)}"><span class="ld-thumb-bg"></span><span class="ld-thumb-l mono">${esc(s.label)}</span></button>`).join('')}
     </nav>
     <div class="ld-arrows">
       <button class="ld-arrow prev" id="ldPrev" aria-label="Slide sebelumnya">${icon('chev')}</button>
