@@ -273,7 +273,7 @@ VIEWS.landing = {
         <h2 class="display xl">Geser, dan permukaannya menjawab.</h2>
       </div>
       <div class="rail-wrap">
-        <ul class="rail">
+        <ul class="svc-rail">
           ${CATALOG.filter(svcOn).map((s) => `
             <li class="rail-i t-${s.tone} ${LDC.svc === s.id ? 'on' : ''}" data-act="ld-svc" data-id="${s.id}" tabindex="0" role="button">
               ${icon(s.icon)}<b class="display lg">${esc(s.name)}</b>

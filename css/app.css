@@ -2256,7 +2256,7 @@ body[data-theme="night"] .act-peak { background: #070A10; }
 /* babak kendalikan */
 .rail-wrap { overflow: hidden; margin-top: 26px; -webkit-mask: linear-gradient(90deg, #000 88%, transparent); mask: linear-gradient(90deg, #000 88%, transparent); }
 
-.rail-wrap .rail { list-style: none; margin: 0; padding: 0; display: flex; gap: 12px; width: max-content; }
+.rail-wrap .svc-rail { list-style: none; margin: 0; padding: 0; display: flex; gap: 12px; width: max-content; }
 
 .rail-wrap .rail-i { --c: var(--blue); width: 300px; display: grid; gap: 8px; align-content: start; padding: 18px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--r); cursor: pointer; transition: border-color .22s, background .22s, transform .22s; }
 
@@ -2590,19 +2590,6 @@ body[data-theme="night"] .pb-hint { background: var(--paper-2); border: 1px soli
 
 .pb-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; padding-top: 12px; border-top: 1px solid var(--line); }
 
-.lg { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
-
-.lg::before { content: ''; width: 12px; height: 10px; border-radius: 2px; background: var(--c, var(--line-2)); }
-
-.lg.t-wash { --c: var(--blue); }
-.lg.t-dry { --c: var(--cyan); }
-.lg.t-steam { --c: var(--orange); }
-.lg.t-dryclean { --c: var(--lilac); }
-
-.lg.free { --c: transparent; }
-
-.lg.free::before { border: 1px dashed var(--line-2); background: color-mix(in oklab, var(--paper) 70%, transparent); }
-
 .pb-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); gap: 14px; align-items: start; }
 
 .basket .bask-go { display: grid; justify-items: end; gap: 4px; }
@@ -2902,6 +2889,22 @@ body[data-portal="landing"] .ld-clock { color: var(--orange); letter-spacing: .1
 .ld-slider .act .signup .hold { color: var(--muted); }
 .ld-slider .act .console .num { color: var(--ink); }
 
+/* Kartu terang "live" (babak satu) — teks tetap gelap seperti aslinya. */
+.ld-slider .act .live-col { color: var(--ink-2); }
+.ld-slider .act .live-col :is(.display, h1, h2, h3, h4) { color: var(--ink); }
+.ld-slider .act .live-col .ll-b p { color: var(--ink-2); }
+.ld-slider .act .live-col .ll-eta { color: var(--muted); }
+.ld-slider .act .live-col .sb-lede { color: var(--ink-2); }
+
+/* Penanda akhir pin lama tidak dipakai di slider. */
+.ld-slider .peak-done, .ld-slider .peak-led { display: none; }
+
+/* Kartu lokasi (paper) di babak penutup — teks tetap gelap. */
+.ld-slider .act .find-us { color: var(--ink-2); }
+.ld-slider .act .find-us :is(.display, h1, h2, h3, h4) { color: var(--ink); }
+.ld-slider .act .find-us .lede { color: var(--ink-2); }
+.ld-slider .act .find-us .find-meta { color: var(--muted); }
+
 .ld-slider #a2 .ld-inner { display: grid; align-content: center; }
 .ld-slider #a2 .display.xl { font-size: clamp(34px, 5.6vw, 76px); max-width: 20ch; }
 .ld-slider #a2 .lede { max-width: 56ch; margin-top: 12px; }
@@ -2980,7 +2983,7 @@ body[data-portal="landing"] .ld-clock { color: var(--orange); letter-spacing: .1
 
 @media (max-width: 700px) {
   body[data-portal="landing"] .ld-clock { display: none; }
-  body[data-portal="landing"] .ld-cta .btn { padding: 7px 10px; font-size: 9.5px; letter-spacing: .08em; }
+  body[data-portal="landing"] .ld-cta .btn { padding: 7px 9px; font-size: 9px; letter-spacing: .06em; white-space: nowrap; }
   body[data-portal="landing"] .ld-brand b { font-size: 17px; }
 }
 
