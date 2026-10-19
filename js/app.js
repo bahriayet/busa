@@ -1743,6 +1743,7 @@ document.addEventListener('click', (e) => {
   if (!t) return;
   const a = t.dataset.act;
 
+  if (a === 'skip') { e.preventDefault(); const v = qs('#view'); if (v) { v.focus({ preventScroll: true }); v.scrollTop = 0; } return; }
   if (a === 'go') { e.preventDefault(); if (qs('#modalRoot.on')) closePalette(); go(t.dataset.route, t.dataset.portal); return; }
   if (a === 'portal') { switchPortal(t.dataset.v); return; }
   if (a === 'palette') { openPalette(); return; }

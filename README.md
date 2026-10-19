@@ -11,6 +11,9 @@ Frontend statis (HTML/CSS/JS), backend Fastify + PostgreSQL, realtime via WebSoc
 - **Dashboard admin/staf** — lantai mesin real-time, pindai tahap, antrean, pesanan,
   pelanggan, layanan/harga, pembayaran (QRIS), galeri, lokasi, laporan (CSV), pengguna.
 - **Halaman legal publik** — Kebijakan Privasi dan Syarat & Ketentuan (tautan di colophon landing).
+- **Aksesibilitas** — slider ber-ARIA (`region`/`group`/live region), slide nonaktif `inert`,
+  navigasi keyboard (←/→, PageUp/Down, Home/End), target sentuh ≥44 px, dukungan
+  `prefers-reduced-motion`, dan tombol "Lewati ke konten".
 - **Keamanan** — RBAC, rate limit login, audit log, CSP ketat, CORS terbatas.
 
 ## Struktur
@@ -113,13 +116,16 @@ npm run test:e2e:headed # melihat prosesnya
 ```
 
 Cakupan E2E: slider 6 babak & navigasi berurutan, regresi daftar layanan babak 4,
-header mobile tanpa overflow, halaman legal, serta login admin → unggah/hapus
+header mobile tanpa overflow, halaman legal, aksesibilitas slider (ARIA, inert,
+fokus keyboard, Home/End, reduced-motion), serta login admin → unggah/hapus
 background slide (API dimock, tidak menyentuh database).
 
 Checklist QA manual sebelum rilis:
 
 - login admin/staf/pelanggan, checkout, lalu pindai tahap 0→8
 - landing: panah, thumbnail, swipe/scroll (satu langkah), dark mode, HP
+- landing: Tab/Shift+Tab, ←/→, Home/End, fokus terlihat, screen reader singkat
+- aktifkan "kurangi gerakan" di OS → animasi slider tidak berjalan
 - admin: unggah background slide, lokasi, QRIS, galeri, ekspor CSV
 - pastikan tombol Portal & Jadwalkan di header landing berfungsi
 - buka `privasi` dan `syarat`, cek tautan colophon & tampilan HP

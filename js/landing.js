@@ -17,7 +17,7 @@ const LD_SLIDES = [
 ];
 const LDS = { i: 0 };
 
-function ldSlide(idx) {
+function ldSlide(idx, focus) {
   const slides = qsa('.ld-slider .act');
   if (!slides.length) return;
   const n = slides.length;
@@ -25,22 +25,42 @@ function ldSlide(idx) {
   const dir = i > LDS.i ? 1 : -1;
   LDS.i = i;
   slides.forEach((el, k) => {
-    el.classList.toggle('on', k === i);
-    el.classList.toggle('from-next', k === i && dir > 0);
-    el.classList.toggle('from-prev', k === i && dir < 0);
-    if (k === i) {
+    const active = k === i;
+    el.classList.toggle('on', active);
+    el.classList.toggle('from-next', active && dir > 0);
+    el.classList.toggle('from-prev', active && dir < 0);
+    if (active) {
       el.classList.remove('off');
+      el.removeAttribute('aria-hidden');
     } else {
+      el.setAttribute('aria-hidden', 'true');
       setTimeout(() => { if (!el.classList.contains('on')) el.classList.add('off'); }, 700);
     }
+    if ('inert' in el) el.inert = !active;
   });
-  qsa('.ld-thumb').forEach((el, k) => el.classList.toggle('on', k === i));
+  qsa('.ld-thumb').forEach((el, k) => {
+    el.classList.toggle('on', k === i);
+    if (k === i) el.setAttribute('aria-current', 'step');
+    else el.removeAttribute('aria-current');
+  });
   const c = qs('#ldCount');
   if (c) c.textContent = String(i + 1).padStart(2, '0') + ' / ' + String(n).padStart(2, '0');
   const cur = slides[i];
-  if (cur) cur.scrollTop = 0;
+  if (cur) {
+    const inner = cur.querySelector('.ld-inner');
+    if (inner) inner.scrollTop = 0;
+    if (focus) {
+      const h = cur.querySelector('.act-head h2, .act-head h1, h2, h1');
+      if (h) {
+        h.setAttribute('tabindex', '-1');
+        h.focus({ preventScroll: true });
+      }
+    }
+  }
+  const live = qs('#ldLive');
+  if (live) live.textContent = 'Babak ' + (i + 1) + ' dari ' + n + ': ' + ((LD_SLIDES[i] || {}).label || '');
   ldWarm(i);
-  if (slides[i] && slides[i].id === 'a6') {
+  if (cur && cur.id === 'a6') {
     const fr = qs('#ldSlider iframe[data-src]');
     if (fr) { fr.src = fr.getAttribute('data-src'); fr.removeAttribute('data-src'); }
   }
@@ -51,11 +71,11 @@ function ldSlide(idx) {
 }
 
 /* Pindah satu babak tanpa membungkus: slide pertama/terakhir berhenti. */
-function ldStep(d) {
+function ldStep(d, focus) {
   const n = qsa('.ld-slider .act').length;
   if (!n) return;
   const i = Math.min(Math.max(LDS.i + d, 0), n - 1);
-  if (i !== LDS.i) ldSlide(i);
+  if (i !== LDS.i) ldSlide(i, focus);
 }
 
 /* Pra-muat gambar slide aktif + berikutnya (versi mobile dipakai di layar kecil). */
@@ -77,10 +97,14 @@ function ldWarm(i) {
 
 window.addEventListener('keydown', (e) => {
   if (!qs('#ldSlider')) return;
-  const tg = (document.activeElement || {}).tagName || '';
-  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tg)) return;
-  if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); ldStep(1); }
-  if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); ldStep(-1); }
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const ae = document.activeElement;
+  const tg = (ae && ae.tagName) || '';
+  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tg) || (ae && ae.isContentEditable)) return;
+  if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); ldStep(1, true); return; }
+  if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); ldStep(-1, true); return; }
+  if (e.key === 'Home') { e.preventDefault(); ldSlide(0, true); return; }
+  if (e.key === 'End') { e.preventDefault(); ldSlide(qsa('.ld-slider .act').length - 1, true); }
 });
 
 function quickFind(raw) {
@@ -183,8 +207,10 @@ VIEWS.landing = {
       </div>
     </header>
 
-    <div class="ld-slider" id="ldSlider">
-    <section class="act act-live ld-slide" id="a1" data-slide="0">
+    <div class="ld-slider" id="ldSlider" role="region" aria-roledescription="carousel" aria-label="Enam babak BUSA Laundry">
+    <h1 class="sr-only">BUSA Laundry Ops — laundry antar-jemput di Bandung</h1>
+    <p class="sr-only" id="ldLive" aria-live="polite" aria-atomic="true"></p>
+    <section class="act act-live ld-slide" id="a1" data-slide="0" role="group" aria-roledescription="slide" aria-label="Babak 1 dari 6: Sekarang">
       <div class="ld-inner">
       <div class="act-head">
         <p class="mono act-name">Babak satu · sekarang</p>
@@ -233,7 +259,7 @@ VIEWS.landing = {
       </div>
     </section>
 
-    <section class="act act-quiet ld-slide" id="a2" data-slide="1">
+    <section class="act act-quiet ld-slide" id="a2" data-slide="1" role="group" aria-roledescription="slide" aria-label="Babak 2 dari 6: Masalah" aria-hidden="true" inert>
       <div class="ld-inner">
       <div class="quiet-strip">
         <span class="mono">${esc(stuck.code)}</span>
@@ -245,7 +271,7 @@ VIEWS.landing = {
       </div>
     </section>
 
-    <section class="act act-peak ld-slide" id="a3" data-slide="2">
+    <section class="act act-peak ld-slide" id="a3" data-slide="2" role="group" aria-roledescription="slide" aria-label="Babak 3 dari 6: Dalam drum" aria-hidden="true" inert>
       <div class="ld-inner">
       <div class="peak-stage">
         <figure class="peak-poster">
@@ -266,7 +292,7 @@ VIEWS.landing = {
       </div>
     </section>
 
-    <section class="act act-control ld-slide" id="a4" data-slide="3">
+    <section class="act act-control ld-slide" id="a4" data-slide="3" role="group" aria-roledescription="slide" aria-label="Babak 4 dari 6: Kendalikan" aria-hidden="true" inert>
       <div class="ld-inner">
       <div class="act-head">
         <p class="mono act-name">Babak empat · kendalikan</p>
@@ -303,7 +329,7 @@ VIEWS.landing = {
       </div>
     </section>
 
-    <section class="act act-proof ld-slide" id="a5" data-slide="4">
+    <section class="act act-proof ld-slide" id="a5" data-slide="4" role="group" aria-roledescription="slide" aria-label="Babak 5 dari 6: Angka" aria-hidden="true" inert>
       <div class="ld-inner">
       <div class="proof-grid">
         <figure class="gal-carousel">
@@ -338,7 +364,7 @@ VIEWS.landing = {
       </div>
     </section>
 
-    <section class="act act-close ld-slide" id="a6" data-slide="5">
+    <section class="act act-close ld-slide" id="a6" data-slide="5" role="group" aria-roledescription="slide" aria-label="Babak 6 dari 6: Jadwalkan" aria-hidden="true" inert>
       <div class="ld-inner">
       <div class="close-grid">
         <div>
@@ -400,11 +426,11 @@ VIEWS.landing = {
     </section>
 
     <nav class="ld-thumbs" aria-label="Pilih babak">
-      ${LD_SLIDES.map((s, i) => `<button class="ld-thumb" data-slide="${i}" aria-label="Babak ${i + 1}: ${esc(s.label)}"><span class="ld-thumb-bg"></span><span class="ld-thumb-l mono">${esc(s.label)}</span></button>`).join('')}
+      ${LD_SLIDES.map((s, i) => `<button class="ld-thumb" data-slide="${i}" aria-controls="${esc(s.id)}" aria-label="Babak ${i + 1}: ${esc(s.label)}"${i === 0 ? ' aria-current="step"' : ''}><span class="ld-thumb-bg"></span><span class="ld-thumb-l mono">${esc(s.label)}</span></button>`).join('')}
     </nav>
     <div class="ld-arrows">
       <button class="ld-arrow prev" id="ldPrev" aria-label="Slide sebelumnya">${icon('chev')}</button>
-      <span class="ld-count mono" id="ldCount">01 / 06</span>
+      <span class="ld-count mono" id="ldCount" aria-hidden="true">01 / 06</span>
       <button class="ld-arrow next" id="ldNext" aria-label="Slide berikutnya">${icon('chev')}</button>
     </div>
     </div>`;

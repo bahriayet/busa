@@ -15,6 +15,10 @@ type SlidesPatch = { value: (string | null)[] } | null;
 
 /** Mock login + seluruh endpoint bootstrap admin, termasuk simpan background. */
 async function mockAdminApi(page: Page) {
+  await page.route('https://fonts.googleapis.com/**', (route) =>
+    route.fulfill({ status: 200, contentType: 'text/css', body: '/* font eksternal diblokir saat E2E */' }));
+  await page.route('https://fonts.gstatic.com/**', (route) => route.abort());
+
   const state: { patch: SlidesPatch; patches: number } = { patch: null, patches: 0 };
 
   await page.route('**/api/**', async (route) => {
