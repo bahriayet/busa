@@ -2268,28 +2268,30 @@ body[data-theme="night"] .quote footer { color: var(--muted); }
   .find-us { grid-template-columns: 1fr; }
 }
 
-/* Laptop pendek: rapatkan babak penutup agar kartu lokasi + peta tidak
-   tertutup thumbnail di bawah. */
-@media (min-width: 1001px) and (max-height: 820px) {
+/* Laptop pendek: kartu lokasi ("Atau datang langsung") memanjang penuh
+   ke kanan, tepat di bawah form jadwal jemputan, lalu dirapatkan agar
+   peta tidak tertutup thumbnail di bawah. */
+@media (min-width: 1001px) and (max-height: 900px) {
   .ld-slider #a6 .ld-inner {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, .9fr);
-    grid-template-areas: "copy form" "map form" "colophon colophon";
+    grid-template-areas: "copy form" "map map" "colophon colophon";
     align-content: start;
     column-gap: clamp(22px, 4vw, 60px);
     row-gap: 0;
   }
   .ld-slider #a6 .close-grid { display: contents; }
   .ld-slider #a6 .close-grid > div:first-child { grid-area: copy; }
-  .ld-slider #a6 .signup { grid-area: form; align-self: start; gap: 8px; padding: 16px 20px; }
+  .ld-slider #a6 .signup { grid-area: form; align-self: start; gap: 5px; padding: 12px 16px; }
   .ld-slider #a6 .signup .in { padding: 8px 10px; }
   .ld-slider #a6 .signup .btn.big { padding: 10px 16px; }
-  .ld-slider #a6 .find-us { grid-area: map; margin-top: 12px; padding: 16px 20px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-  .ld-slider #a6 .find-copy { gap: 6px; }
+  .ld-slider #a6 .signup .hold { display: none; }
+  .ld-slider #a6 .find-us { grid-area: map; align-items: start; margin-top: 6px; padding: 14px 20px; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); }
+  .ld-slider #a6 .find-copy { align-self: center; gap: 6px; }
   .ld-slider #a6 .find-copy h3 { font-size: clamp(24px, 2.6vw, 34px); }
   .ld-slider #a6 .find-copy .btn { padding: 8px 12px; }
   .ld-slider #a6 .find-meta span { white-space: nowrap; }
-  .ld-slider #a6 .find-map, .ld-slider #a6 .find-map iframe { min-height: 180px; }
+  .ld-slider #a6 .find-map, .ld-slider #a6 .find-map iframe { min-height: clamp(150px, calc(100vh - 552px), 236px); }
   .ld-slider #a6 .find-map.live .find-tag { display: none; }
   .ld-slider #a6 .colophon { grid-area: colophon; }
 }

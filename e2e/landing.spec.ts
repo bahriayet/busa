@@ -97,19 +97,33 @@ test.describe('Landing slider', () => {
     expect(overflow).toBeLessThanOrEqual(1);
   });
 
-  test('peta lokasi tampil penuh di atas thumbnail pada laptop pendek', async ({ page }) => {
+  test('kartu lokasi memanjang ke kanan di bawah form jadwal pada laptop pendek', async ({ page }) => {
     await mockPublicApi(page);
     await page.goto('/#/', { waitUntil: 'domcontentloaded' });
-    await page.locator('.ld-thumbs .ld-thumb').nth(5).click();
+    await page.locator('.ld-thumbs .ld-thumb').nth(5).evaluate((el) => (el as HTMLElement).click());
+    await expect(page.locator('#a6')).toHaveClass(/\bon\b/);
+    await page.waitForTimeout(900);
 
     const map = page.locator('#a6 .find-map');
     await expect(map).toBeVisible();
     await expect(map.locator('iframe')).toHaveAttribute('src', /google\.com\/maps/);
 
     const mapBox = await map.boundingBox();
+    const formBox = await page.locator('#a6 .signup').boundingBox();
+    const findBox = await page.locator('#a6 .find-us').boundingBox();
     const thumbsBox = await page.locator('.ld-thumbs').boundingBox();
     expect(mapBox, 'peta harus terukur').not.toBeNull();
+    expect(formBox, 'form jadwal harus terukur').not.toBeNull();
+    expect(findBox, 'kartu lokasi harus terukur').not.toBeNull();
     expect(thumbsBox, 'thumbnail harus terukur').not.toBeNull();
+
+    // Kartu lokasi selebar area konten dan berada tepat di bawah form jadwal.
+    expect(findBox!.y, 'kartu lokasi harus di bawah form').toBeGreaterThanOrEqual(formBox!.y + formBox!.height - 1);
+    expect(findBox!.x + findBox!.width, 'kartu lokasi harus memanjang sampai kanan form')
+      .toBeGreaterThanOrEqual(formBox!.x + formBox!.width - 1);
+    expect(findBox!.width, 'kartu lokasi harus lebih lebar dari form').toBeGreaterThan(formBox!.width * 1.5);
+
+    expect(mapBox!.width, 'peta harus memanjang').toBeGreaterThan(mapBox!.height * 2);
     expect(mapBox!.y + mapBox!.height, 'peta tidak boleh tertutup thumbnail').toBeLessThanOrEqual(thumbsBox!.y + 1);
   });
 
