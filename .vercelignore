@@ -2,9 +2,6 @@
 # (berisi .env, kunci JWT, kode) tidak pernah diunggah.
 server
 .commandcode
-scrollcraft
 render.yaml
 opencode.json
 .gitignore
-Dockerfile
-poto

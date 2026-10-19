@@ -176,10 +176,6 @@ function doLogout() {
   toast({ title: 'Keluar berhasil', msg: 'Sesi Anda telah diakhiri', tone: 'lilac', icon: 'lock', ms: 2500 });
 }
 
-function authHeaders() {
-  return isAuthed() ? { Authorization: 'Bearer ' + S.auth.token } : {};
-}
-
 function newCart() {
   return {
     step: 0, items: {}, addons: {}, pieces: { kering: 0 },
@@ -277,7 +273,7 @@ function etaFor(stage, priority) {
 
 /** Gambar QRIS aktif: unggahan admin dari server, atau gambar bawaan. */
 function qrisSrc() {
-  return (S.qris && S.qris.dataUrl) ? S.qris.dataUrl : './img/qris.png';
+  return (S.qris && S.qris.dataUrl) ? S.qris.dataUrl : './img/qris.svg';
 }
 function qrisIsCustom() {
   return Boolean(S.qris && S.qris.dataUrl);
@@ -1332,7 +1328,7 @@ function paintEst() {
     `<li class="sum"><span>+ tambahan & antar-jemput</span><b class="mono">tergantung pilihan</b></li>`;
 }
 
-/* ── VIEW: DOMPET ─────────────────────────────────────── */
+/* ── VIEW: STATISTIK ──────────────────────────────────── */
 
 VIEWS.statistik = {
   title: 'Statistik', kicker: 'Pesanan & pengeluaran Anda',

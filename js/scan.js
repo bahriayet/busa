@@ -1,8 +1,8 @@
 /* ── PINDAI — lantai kerja berbasis event ───────────────
    Satu-satunya jalan masuk untuk mengubah tahap cucian adalah recordEvent().
    Tanpa backend, event disimpan lokal dan ditandai sync:'lokal'.
-   Begitu SCAN_API diisi, event dikirim ke POST /scan dan antrean sinkron
-   ikut pulih sendiri kalau jaringan sempat mati. */
+   Begitu SCAN_API tersedia dari config.js, event dikirim ke POST /scan dan
+   antrean sinkron ikut pulih sendiri kalau jaringan sempat mati. */
 
 const SCAN = { mode: 'muat', operator: 'Dodo P.', query: '', draft: '' };
 

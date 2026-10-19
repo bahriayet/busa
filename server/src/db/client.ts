@@ -309,10 +309,6 @@ export async function nextCounter(db: Db, name: string, step = 1): Promise<numbe
   return row?.value ?? step;
 }
 
-export async function peekCounter(db: Db, name: string): Promise<number> {
-  return (await db.get<{ value: number }>('SELECT value FROM counters WHERE name = ?', name))?.value ?? 0;
-}
-
 export async function setCounter(db: Db, name: string, value: number): Promise<void> {
   await db.run('INSERT INTO counters (name, value) VALUES (?, ?) ON CONFLICT(name) DO UPDATE SET value = ?', name, value, value);
 }

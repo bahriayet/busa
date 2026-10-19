@@ -45,11 +45,6 @@ export function unitTotalOf(items: OrderItem[], services: Service[]): number {
   }, 0);
 }
 
-/** Berat yang dipakai lantai: jumlah kg layanan per kg + jumlah unit layanan per unit. */
-export function weightOf(items: OrderItem[], services: Service[]): number {
-  return Math.round((kgTotalOf(items, services) + unitTotalOf(items, services)) * 10) / 10;
-}
-
 /**
  * Syarat promo, dalam kalimat yang bisa langsung dibaca pelanggan.
  * Mengembalikan null bila promo sah dipakai.

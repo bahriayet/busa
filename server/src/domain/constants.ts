@@ -90,24 +90,8 @@ export function clampInt(v: number, lo: number, hi: number): number {
   return Math.max(lo, Math.min(hi, n));
 }
 
-export function clampNum(v: number, lo: number, hi: number): number {
-  const n = Number.isFinite(v) ? v : lo;
-  return Math.max(lo, Math.min(hi, n));
-}
-
 export function pad2(n: number): string {
   return String(Math.floor(Math.abs(n))).padStart(2, '0');
-}
-
-export function clockOfMinute(min: number): string {
-  const t = DAY_START + clampInt(min, 0, DAY_MIN);
-  return `${pad2(Math.floor(t / 60))}:${pad2(t % 60)}`;
-}
-
-export function minutesOfClock(hhmm: string): number | null {
-  const m = /(\d{1,2}):(\d{2})/.exec(hhmm ?? '');
-  if (!m) return null;
-  return Number(m[1]) * 60 + Number(m[2]);
 }
 
 /** Durasi dalam menit → kalimat "1 jam 5 menit" / "45 menit". */
@@ -122,10 +106,6 @@ export function durText(min: number): string {
 export function clockLabel(atMs: number): string {
   const d = new Date(atMs);
   return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
-}
-
-export function isoOf(atMs: number): string {
-  return new Date(atMs).toISOString();
 }
 
 /** Label relatif ala kasir: "Hari ini 08:12", "Kemarin 16:44", "5 Okt 19:02". */

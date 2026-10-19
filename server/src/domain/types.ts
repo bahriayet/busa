@@ -251,13 +251,6 @@ export interface MixSlice {
   tone: string;
 }
 
-export interface ActivityRow {
-  t: string;
-  text: string;
-  tone: string;
-  icon: string;
-}
-
 export interface DayBlock {
   code: string;
   kind: MachineKind;
@@ -299,16 +292,4 @@ export interface DayPlan {
   waiting: WaitingBasket[];
   atRisk: AtRiskOrder[];
   freeHours: number;
-}
-
-export interface PublicOrder {
-  code: string;
-  customer: string;
-  weight: number;
-  stage: number;
-  stageLabel: string;
-  machine: string;
-  etaLabel: string;
-  etaMins: number;
-  serviceName: string;
 }

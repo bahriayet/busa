@@ -10,7 +10,7 @@ const LDC = { weight: 6, slot: SLOTS[2], svc: 'setrika' };
 const LD_SLIDES = [
   { id: 'a1', label: 'Sekarang', img: './img/slides/01.jpg' },
   { id: 'a2', label: 'Masalah', img: './img/slides/02.jpg' },
-  { id: 'a3', label: 'Dalam drum', img: './img/slides/03.png' },
+  { id: 'a3', label: 'Dalam drum', img: './img/slides/03.jpg' },
   { id: 'a4', label: 'Kendalikan', img: './img/slides/05.jpg' },
   { id: 'a5', label: 'Angka', img: './img/slides/04.jpg' },
   { id: 'a6', label: 'Jadwalkan', img: './img/slides/01.jpg' },

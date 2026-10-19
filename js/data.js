@@ -1,7 +1,3 @@
-/* Isi URL backend untuk mengirim event pindai ke POST /scan.
-   Dibiarkan kosong = aplikasi jalan penuh di perangkat (event ditandai 'lokal'). */
-const SCAN_API = '';
-
 const CATALOG = [
   { id: 'setrika', name: 'Cuci + Setrika', unit: 'kg', price: 8000, hours: 48, icon: 'shirt', tone: 'blue',
     desc: 'Rendam enzimatik 20 menit, cuci 40°C, bilas tiga kali, tumbling dry, setrika uap 160°C.',

@@ -1,5 +1,5 @@
 import {
-  b, getSetting, jparse, jstr, n, nextCounter, peekCounter, setSetting, unb, type Db, type SqlParam,
+  b, getSetting, jparse, jstr, n, nextCounter, setSetting, unb, type Db, type SqlParam,
 } from './client.ts';
 import { SLOTS, STAMP_CYCLE, LAST_STAGE, clockLabel, createdLabel, dayKey } from '../domain/constants.ts';
 import type {
@@ -411,10 +411,6 @@ export async function getOrderProof(db: Db, code: string): Promise<string | null
   return r?.pay_proof ?? null;
 }
 
-export async function peekOrderSeq(db: Db): Promise<number> {
-  return await peekCounter(db, 'order_seq');
-}
-
 /* ── Event lantai ────────────────────────────────────────── */
 
 export interface NewEventInput {
@@ -677,10 +673,6 @@ export async function passwordChangedAt(db: Db, id: string): Promise<number> {
   return r?.pass_changed_ms ?? 0;
 }
 
-export async function countUsers(db: Db): Promise<number> {
-  return await db.scalar<number>('SELECT COUNT(*) FROM users') ?? 0;
-}
-
 export async function listUsers(db: Db): Promise<User[]> {
   return (await db.all<UserRow>('SELECT * FROM users ORDER BY created_ms DESC')).map(toUser);
 }
@@ -777,10 +769,6 @@ export async function listTiers(db: Db): Promise<Tier[]> {
     id: r.id, name: r.name, price: r.price, unit: r.unit, tone: r.tone, best: r.best,
     perks: jparse<string[]>(r.perks_json, []), kgQuota: r.kg_quota,
   }));
-}
-
-export async function getTier(db: Db, id: string): Promise<Tier | undefined> {
-  return (await listTiers(db)).find((t) => t.id === id);
 }
 
 export async function upsertTier(db: Db, t: Tier, sort: number): Promise<void> {
