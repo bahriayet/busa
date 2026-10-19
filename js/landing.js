@@ -60,10 +60,6 @@ function ldSlide(idx, focus) {
   const live = qs('#ldLive');
   if (live) live.textContent = 'Babak ' + (i + 1) + ' dari ' + n + ': ' + ((LD_SLIDES[i] || {}).label || '');
   ldWarm(i);
-  if (cur && cur.id === 'a6') {
-    const fr = qs('#ldSlider iframe[data-src]');
-    if (fr) { fr.src = fr.getAttribute('data-src'); fr.removeAttribute('data-src'); }
-  }
   const prevBtn = qs('#ldPrev');
   const nextBtn = qs('#ldNext');
   if (prevBtn) prevBtn.disabled = i === 0;
@@ -409,7 +405,8 @@ VIEWS.landing = {
           <span class="find-tag mono">${icon('pin')} Lihat di peta</span>
         </a>` : `
         <div class="find-map live">
-          <iframe data-src="${esc(locEmbed)}" title="Peta lokasi ${esc(loc.name || 'BUSA Laundry')}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+          <iframe src="${esc(locEmbed)}" title="Peta lokasi ${esc(loc.name || 'BUSA Laundry')}" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+          <span class="find-load mono" aria-hidden="true">${icon('pin')} Memuat peta…</span>
           <a class="find-tag mono" href="${esc(locHref)}" target="_blank" rel="noopener">${icon('pin')} Buka di Google Maps</a>
         </div>`}
       </section>` : ''}
@@ -516,6 +513,10 @@ VIEWS.landing = {
     }
     const ar = qs('#arq');
     if (ar) ar.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); areaCheck(ar.value); } });
+    qsa('.find-map iframe').forEach((fr) => {
+      const map = fr.closest('.find-map');
+      if (map) fr.addEventListener('load', () => map.classList.add('ready'));
+    });
     qsa('.kb img, .gal-shot img, .find-map img').forEach((im) => im.addEventListener('load', () => { if (typeof MOTION !== 'undefined' && MOTION.ok) MOTION.refresh(); }));
     GAL.i = 0;
     galRestart();

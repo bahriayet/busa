@@ -2259,8 +2259,39 @@ body[data-theme="night"] .quote footer { color: var(--muted); }
 
 .find-tag .ico { width: 14px; height: 14px; color: var(--orange); }
 
+/* Placeholder lembut sampai iframe Google Maps selesai memuat. */
+.find-load { position: absolute; inset: 0; z-index: 1; display: grid; place-items: center; align-content: center; gap: 8px; background: color-mix(in oklab, var(--paper-2) 92%, var(--orange)); color: var(--muted); font-size: 10px; letter-spacing: .12em; text-align: center; pointer-events: none; transition: opacity .3s ease, visibility 0s linear .3s; }
+.find-load .ico { width: 18px; height: 18px; color: var(--orange); }
+.find-map.ready .find-load { opacity: 0; visibility: hidden; }
+
 @media (max-width: 1000px) {
   .find-us { grid-template-columns: 1fr; }
+}
+
+/* Laptop pendek: rapatkan babak penutup agar kartu lokasi + peta tidak
+   tertutup thumbnail di bawah. */
+@media (min-width: 1001px) and (max-height: 820px) {
+  .ld-slider #a6 .ld-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, .9fr);
+    grid-template-areas: "copy form" "map form" "colophon colophon";
+    align-content: start;
+    column-gap: clamp(22px, 4vw, 60px);
+    row-gap: 0;
+  }
+  .ld-slider #a6 .close-grid { display: contents; }
+  .ld-slider #a6 .close-grid > div:first-child { grid-area: copy; }
+  .ld-slider #a6 .signup { grid-area: form; align-self: start; gap: 8px; padding: 16px 20px; }
+  .ld-slider #a6 .signup .in { padding: 8px 10px; }
+  .ld-slider #a6 .signup .btn.big { padding: 10px 16px; }
+  .ld-slider #a6 .find-us { grid-area: map; margin-top: 12px; padding: 16px 20px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .ld-slider #a6 .find-copy { gap: 6px; }
+  .ld-slider #a6 .find-copy h3 { font-size: clamp(24px, 2.6vw, 34px); }
+  .ld-slider #a6 .find-copy .btn { padding: 8px 12px; }
+  .ld-slider #a6 .find-meta span { white-space: nowrap; }
+  .ld-slider #a6 .find-map, .ld-slider #a6 .find-map iframe { min-height: 180px; }
+  .ld-slider #a6 .find-map.live .find-tag { display: none; }
+  .ld-slider #a6 .colophon { grid-area: colophon; }
 }
 
 @media (max-width: 1000px) {

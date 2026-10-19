@@ -6,11 +6,13 @@ const CORS = {
   'access-control-allow-headers': 'content-type,authorization',
 };
 
-/** Matikan sumber daya eksternal (font) supaya test cepat & stabil. */
+/** Matikan sumber daya eksternal (font, peta) supaya test cepat & stabil. */
 async function blockExternal(page: Page) {
   await page.route('https://fonts.googleapis.com/**', (route) =>
     route.fulfill({ status: 200, contentType: 'text/css', body: '/* font eksternal diblokir saat E2E */' }));
   await page.route('https://fonts.gstatic.com/**', (route) => route.abort());
+  await page.route(/^https:\/\/www\.google\.com\/maps/, (route) =>
+    route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><title>Peta uji</title><body></body>' }));
 }
 
 /** Semua panggilan API diarahkan ke respons tiruan agar test stabil & offline. */
@@ -93,6 +95,22 @@ test.describe('Landing slider', () => {
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
     );
     expect(overflow).toBeLessThanOrEqual(1);
+  });
+
+  test('peta lokasi tampil penuh di atas thumbnail pada laptop pendek', async ({ page }) => {
+    await mockPublicApi(page);
+    await page.goto('/#/', { waitUntil: 'domcontentloaded' });
+    await page.locator('.ld-thumbs .ld-thumb').nth(5).click();
+
+    const map = page.locator('#a6 .find-map');
+    await expect(map).toBeVisible();
+    await expect(map.locator('iframe')).toHaveAttribute('src', /google\.com\/maps/);
+
+    const mapBox = await map.boundingBox();
+    const thumbsBox = await page.locator('.ld-thumbs').boundingBox();
+    expect(mapBox, 'peta harus terukur').not.toBeNull();
+    expect(thumbsBox, 'thumbnail harus terukur').not.toBeNull();
+    expect(mapBox!.y + mapBox!.height, 'peta tidak boleh tertutup thumbnail').toBeLessThanOrEqual(thumbsBox!.y + 1);
   });
 
   test('slider aksesibel: ARIA, inert, fokus keyboard, Home/End', async ({ page }) => {
