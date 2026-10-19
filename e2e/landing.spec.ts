@@ -73,6 +73,14 @@ test.describe('Landing slider', () => {
     await expect(page.locator('.ld-nav .ld-clock')).toBeHidden();
     await expect(page.locator('.ld-thumbs .ld-thumb')).toHaveCount(6);
 
+    const slideLabels = page.locator('.ld-thumb-l');
+    await expect(slideLabels).toHaveCount(6);
+    await expect(slideLabels.first()).toBeVisible();
+    const labelClipped = await slideLabels.evaluateAll(
+      (els) => els.some((el) => el.scrollWidth > el.clientWidth + 1),
+    );
+    expect(labelClipped, 'label thumbnail tidak boleh terpotong di HP').toBe(false);
+
     const navBox = await page.locator('.ld-nav').boundingBox();
     expect(navBox, 'header landing harus terukur').not.toBeNull();
     expect(navBox!.height).toBeLessThan(70);

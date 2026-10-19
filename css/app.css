@@ -2740,8 +2740,8 @@ body[data-portal="landing"] .ld-brand:focus-visible { outline-color: var(--bone)
 
 @media (max-width: 1000px) {
   .ld-slider .ld-inner { padding-top: calc(var(--ldnav-h, 60px) + 10px); padding-bottom: 136px; }
-  .ld-thumb { width: 68px; height: 44px; border-radius: 11px; }
-  .ld-thumb-l { display: none; }
+  .ld-thumb { width: 72px; height: 46px; border-radius: 11px; }
+  .ld-thumb-l { padding: 3px 4px 4px; font-size: 7.5px; line-height: 1.25; letter-spacing: .03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ld-thumbs { gap: 6px; padding: 5px; }
   .ld-arrows { right: 12px; bottom: 68px; }
   .ld-count { display: none; }
