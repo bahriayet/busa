@@ -97,6 +97,37 @@ test.describe('Landing slider', () => {
     expect(overflow).toBeLessThanOrEqual(1);
   });
 
+  test('babak tiga: catatan tahap tidak tertutup thumbnail di laptop pendek & HP', async ({ page }) => {
+    await mockPublicApi(page);
+    await page.setViewportSize({ width: 1366, height: 690 });
+    await page.goto('/#/', { waitUntil: 'domcontentloaded' });
+    await page.locator('.ld-thumb').nth(2).click();
+    await expect(page.locator('#a3')).toHaveClass(/\bon\b/);
+    await expect(page.locator('#a3 .peak-drum')).toBeVisible();
+    await expect(page.locator('#a3 .pd-read li')).toHaveCount(9);
+    await page.waitForTimeout(1500);
+
+    const noteAboveThumbs = async () => {
+      const noteBox = await page.locator('#a3 .peak-note').boundingBox();
+      const thumbsBox = await page.locator('.ld-thumbs').boundingBox();
+      expect(noteBox, 'catatan tahap harus terukur').not.toBeNull();
+      expect(thumbsBox, 'thumbnail harus terukur').not.toBeNull();
+      expect(noteBox!.y + noteBox!.height, 'catatan tahap tidak boleh tertutup thumbnail')
+        .toBeLessThanOrEqual(thumbsBox!.y + 1);
+    };
+
+    // Laptop pendek: seluruh manifest harus selesai di atas thumbnail.
+    await noteAboveThumbs();
+
+    // HP: isi lebih tinggi dari viewport, jadi gulir sampai bawah dulu.
+    await page.setViewportSize({ width: 390, height: 780 });
+    await page.waitForTimeout(300);
+    const inner = page.locator('#a3 .ld-inner');
+    await inner.evaluate((el) => { el.scrollTop = el.scrollHeight; });
+    await page.waitForTimeout(300);
+    await noteAboveThumbs();
+  });
+
   test('kartu lokasi memanjang ke kanan di bawah form jadwal pada laptop pendek', async ({ page }) => {
     await mockPublicApi(page);
     await page.goto('/#/', { waitUntil: 'domcontentloaded' });

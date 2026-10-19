@@ -270,20 +270,33 @@ VIEWS.landing = {
     <section class="act act-peak ld-slide" id="a3" data-slide="2" role="group" aria-roledescription="slide" aria-label="Babak 3 dari 6: Dalam drum" aria-hidden="true" inert>
       <div class="ld-inner">
       <div class="peak-stage">
-        <figure class="peak-poster">
-          <img class="peak-poster-base" src="./img/proses-laundry.jpg" alt="Infografis sembilan tahap proses laundry: menerima sampai siap" loading="lazy">
-          <div class="peak-lens" aria-hidden="true"><img src="./img/proses-laundry.jpg" alt=""></div>
-        </figure>
         <div class="peak-copy">
           <p class="mono act-name">Babak tiga · di dalam</p>
           <h2 class="display hero">Sembilan tahap,<br>dibakar satu per satu.</h2>
-          <p class="lede">Gulir, dan cucian Anda berjalan. Tahan, dan ia berhenti di tahap yang sama dengan Anda.</p>
+          <p class="lede">Setiap tahap menyala bergiliran — nomor, nama, catatan, dan perkiraan menitnya.</p>
+        </div>
+        <div class="peak-drum" aria-hidden="true">
+          <div class="pd-face">
+            <span class="pd-slat s1"></span>
+            <span class="pd-slat s2"></span>
+            <span class="pd-bub b1"></span>
+            <span class="pd-bub b2"></span>
+            <span class="pd-bub b3"></span>
+            <span class="pd-bub b4"></span>
+            <ol class="pd-read">
+              ${STAGES.map((s, i) => `<li style="--i:${i + 1}"><b class="display">${pad(i + 1)}</b><span>${esc(s.label)}</span><i>${esc(s.note)}</i></li>`).join('')}
+            </ol>
+            <p class="pd-static"><b class="display">09</b><span class="mono">tahap · semuanya terekam</span></p>
+          </div>
+          <span class="pd-sweep"></span>
+          <ol class="pd-nodes">
+            ${STAGES.map((s, i) => `<li style="--i:${i + 1}"><b class="mono">${pad(i + 1)}</b></li>`).join('')}
+          </ol>
         </div>
         <ol class="peak-list">
-          ${STAGES.map((s, i) => `<li class="peak-i"><b class="mono">${pad(i + 1)}</b>${icon(s.icon)}<span>${esc(s.label)}</span><i class="mono">${esc(s.note)}</i></li>`).join('')}
+          ${STAGES.map((s, i) => `<li class="peak-i" style="--i:${i + 1}"><b class="mono">${pad(i + 1)}</b>${icon(s.icon)}<span>${esc(s.label)}</span><em class="mono">${STAGE_MIN[i] ? '±' + STAGE_MIN[i] + ' mnt' : '—'}</em></li>`).join('')}
         </ol>
-        <span class="peak-led"></span>
-        <p class="peak-done mono">Semua tahap di atas tercatat dengan jam, mesin, dan nama operator.</p>
+        <p class="peak-note mono">Setiap tahap terekam — jam, mesin, dan nama operator.</p>
       </div>
       </div>
     </section>

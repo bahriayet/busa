@@ -2068,45 +2068,295 @@ body.gsap-on [data-reveal] { opacity: 1; transform: none; transition: none; }
 
 .act-quiet .lede { margin-top: 14px; }
 
-/* puncak: masuk ke dalam drum */
-.act-peak { background: var(--dark); color: var(--bone); border-bottom: 0; overflow: hidden; }
+/* puncak: konsol drum. Satu jam master (--burn) = satu siklus penuh
+   sembilan tahap; simpul rim, readout tengah, dan baris daftar menyala
+   berurutan dari satu sumber yang sama. */
+@property --arc { syntax: '<angle>'; inherits: true; initial-value: 0deg; }
+
+.act-peak {
+  /* Section ini selalu gelap (terang di tema bone, gelap di tema malam),
+     jadi palet teksnya dikunci di sini — kalau ikut --bone, di tema malam
+     teksnya ikut gelap dan hilang di atas latar gelap. */
+  --bone: #F8F4F1;
+  background: var(--dark); color: var(--bone); border-bottom: 0; overflow: hidden;
+}
 
 body[data-theme="night"] .act-peak { background: #070A10; }
 
-.peak-stage { position: relative; min-height: 88vh; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: clamp(20px, 4vw, 60px); }
+.peak-stage {
+  --burn: 18s;
+  --tick: calc(var(--burn) / 9);
+  position: relative;
+  min-height: 88vh;
+  display: grid;
+  grid-template-columns: minmax(0, 460px) minmax(0, 1fr);
+  grid-template-rows: auto auto auto;
+  align-content: center;
+  gap: clamp(6px, 1.2vh, 16px) clamp(24px, 4vw, 72px);
+}
 
-.peak-poster { position: absolute; right: 0; top: 50%; width: min(56vw, 700px); margin: 0; transform: translateY(-50%); border-radius: var(--r); overflow: hidden; border: 1px solid color-mix(in oklab, var(--bone) 16%, transparent); box-shadow: 0 50px 100px -50px rgba(0, 0, 0, .95); background: #101826; }
-
-.peak-poster-base { width: 100%; display: block; }
-
-.peak-lens { position: absolute; inset: 0; clip-path: circle(16% at 22% 28%); }
-
-.peak-lens img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-
-.peak-copy { position: relative; z-index: 3; max-width: 46ch; }
+.peak-copy { grid-column: 1; grid-row: 1; max-width: 46ch; }
 
 .peak-copy .hero { margin: 4px 0 14px; text-wrap: balance; }
 
 .peak-copy .lede { color: color-mix(in oklab, var(--bone) 74%, transparent); }
 
-.peak-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; position: relative; z-index: 2; grid-column: 1 / -1; margin-top: 26px; }
+/* ── bodi drum: cincin krom, kaca, bilah, gelembung ── */
+.peak-drum {
+  --sz: min(38vw, 60vh, 520px);
+  --chip: clamp(26px, calc(var(--sz) * .082), 36px);
+  grid-column: 2; grid-row: 1 / -1;
+  position: relative;
+  align-self: center;
+  justify-self: center;
+  width: var(--sz); height: var(--sz);
+  border-radius: 50%;
+  background:
+    radial-gradient(closest-side, transparent 86%, rgba(0, 0, 0, .45)),
+    conic-gradient(from 205deg, #20283a, #4d5668 9%, #141a26 22%, #3a4354 34%, #10151f 48%, #495264 62%, #161c28 76%, #333c4d 90%, #20283a);
+  border: 1px solid color-mix(in oklab, var(--bone) 20%, transparent);
+  box-shadow:
+    0 46px 90px -44px rgba(0, 0, 0, .95),
+    inset 0 1px 1px rgba(255, 255, 255, .16),
+    inset 0 -18px 34px rgba(0, 0, 0, .6);
+}
 
-.peak-i { display: grid; grid-template-columns: 34px 22px minmax(0, 170px) 1fr; align-items: center; gap: 14px; padding: 7px 0; border-bottom: 1px solid color-mix(in oklab, var(--bone) 12%, transparent); opacity: .1; }
+/* halo lembut di belakang drum */
+.peak-drum::before {
+  content: '';
+  position: absolute; inset: -16%; z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in oklab, var(--cyan) 16%, transparent), transparent 70%);
+  filter: blur(6px);
+}
 
-.peak-i > b { color: var(--orange); }
+/* cincin progres: bertambah 40° setiap tahap */
+.peak-drum::after {
+  content: '';
+  position: absolute; inset: 3.2%; z-index: 1;
+  border-radius: 50%;
+  background: conic-gradient(var(--orange) var(--arc, 0deg), transparent var(--arc, 0deg));
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+  animation: pdArc var(--burn) steps(9, end) infinite;
+}
 
-.peak-i .ico { color: var(--cyan); }
+@keyframes pdArc {
+  from { --arc: 0deg; }
+  to { --arc: 360deg; }
+}
 
-.peak-i span { font-family: var(--display); font-weight: 800; font-size: 17px; letter-spacing: -.02em; }
+.pd-face {
+  position: absolute; inset: 8%; z-index: 0;
+  border-radius: 50%; overflow: hidden;
+  background:
+    radial-gradient(110% 110% at 26% 16%, color-mix(in oklab, var(--cyan) 34%, transparent), transparent 52%),
+    radial-gradient(120% 120% at 80% 90%, rgba(4, 8, 14, .9), transparent 62%),
+    linear-gradient(165deg, #121a26, #060a11 72%);
+  border: 1px solid rgba(255, 255, 255, .09);
+  box-shadow: inset 0 0 70px rgba(0, 0, 0, .75), inset 0 6px 22px rgba(3, 8, 14, .9);
+}
 
-.peak-i i { font-style: normal; color: color-mix(in oklab, var(--bone) 55%, transparent); }
+.pd-face::before {
+  content: '';
+  position: absolute; inset: auto 0 0 0; height: 38%;
+  background: linear-gradient(180deg, transparent, color-mix(in oklab, var(--cyan) 22%, transparent));
+  opacity: .55;
+}
 
-.peak-led { position: absolute; left: clamp(16px, 4vw, 54px); bottom: 18px; width: 10px; height: 10px; border-radius: 50%; background: var(--mint); opacity: .2; box-shadow: 0 0 14px var(--mint); }
+/* sisa cahaya penyapu yang masuk ke dalam kaca (di bawah readout) */
+.pd-face::after {
+  content: '';
+  position: absolute; inset: 0; z-index: 1;
+  background: conic-gradient(from 0deg,
+    color-mix(in oklab, var(--orange) 22%, transparent),
+    transparent 34deg);
+  mix-blend-mode: screen;
+  opacity: .34;
+  animation: pdSweep var(--burn) linear infinite;
+}
 
-.peak-done { position: absolute; left: calc(clamp(16px, 4vw, 54px) + 24px); bottom: 15px; color: color-mix(in oklab, var(--bone) 58%, transparent); opacity: 0; }
+.pd-slat { position: absolute; border-radius: 50%; }
+
+.pd-slat.s1 { inset: 10%; border: 1.5px dashed color-mix(in oklab, var(--bone) 15%, transparent); animation: pdSpin 46s linear infinite; }
+
+.pd-slat.s2 { inset: 24%; border: 1px dashed color-mix(in oklab, var(--bone) 10%, transparent); animation: pdSpin 28s linear infinite reverse; }
+
+@keyframes pdSpin { to { transform: rotate(1turn); } }
+
+.pd-bub {
+  position: absolute; z-index: 1;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: color-mix(in oklab, var(--bone) 70%, transparent);
+  opacity: 0;
+  animation: pdBub 6s linear infinite;
+}
+
+.pd-bub.b1 { left: 58%; bottom: 18%; animation-delay: 0s; }
+
+.pd-bub.b2 { left: 67%; bottom: 14%; width: 4px; height: 4px; animation-delay: 1.4s; }
+
+.pd-bub.b3 { left: 52%; bottom: 12%; width: 5px; height: 5px; animation-delay: 2.9s; }
+
+.pd-bub.b4 { left: 62%; bottom: 23%; width: 3px; height: 3px; animation-delay: 4.3s; }
+
+@keyframes pdBub {
+  0% { transform: translateY(0) scale(.5); opacity: 0; }
+  12% { opacity: .75; }
+  100% { transform: translateY(calc(var(--sz) * -.3)) scale(1.05); opacity: 0; }
+}
+
+/* readout tengah: nomor, nama, dan catatan tahap yang sedang dibakar */
+.pd-read {
+  position: absolute; inset: 0; z-index: 3;
+  list-style: none; margin: 0; padding: 0;
+  display: grid;
+}
+
+.pd-read li {
+  grid-area: 1 / 1;
+  display: grid; place-content: center; justify-items: center; gap: 4px;
+  text-align: center; padding: 0 16%;
+  opacity: 0;
+  animation: pdRead var(--burn) linear infinite;
+  animation-delay: calc((var(--i) - 1) * var(--tick));
+}
+
+.pd-read b { font-size: clamp(38px, calc(var(--sz) * .17), 84px); line-height: .86; letter-spacing: -.04em; }
+
+.pd-read span { font-family: var(--display); font-weight: 800; font-size: clamp(14px, calc(var(--sz) * .046), 21px); letter-spacing: -.02em; }
+
+.pd-read i {
+  font-family: var(--mono); font-style: normal;
+  font-size: clamp(9px, calc(var(--sz) * .028), 12px);
+  letter-spacing: .04em;
+  color: color-mix(in oklab, var(--bone) 60%, transparent);
+}
+
+@keyframes pdRead {
+  0% { opacity: 0; transform: translateY(12px); }
+  0.9% { opacity: 1; transform: none; }
+  9.6% { opacity: 1; transform: none; }
+  11%, 100% { opacity: 0; transform: translateY(-10px); }
+}
+
+/* cadangan saat animasi dimatikan (prefers-reduced-motion) */
+.pd-static { display: none; position: absolute; inset: 0; z-index: 3; place-content: center; justify-items: center; gap: 6px; text-align: center; }
+
+.pd-static b { font-size: clamp(40px, calc(var(--sz) * .19), 92px); line-height: .86; letter-spacing: -.04em; }
+
+.pd-static span { font-size: 11px; letter-spacing: .1em; color: color-mix(in oklab, var(--bone) 60%, transparent); }
+
+/* berkas penyapu: menyala saat lewat satu simpul. Cincin luar menyala penuh,
+   kaca dalam hanya kena sisa cahaya — teks readout tetap terbaca. */
+.pd-sweep {
+  position: absolute; inset: 0; z-index: 2; border-radius: 50%;
+  background: conic-gradient(from 0deg,
+    color-mix(in oklab, var(--orange) 46%, transparent),
+    color-mix(in oklab, var(--orange) 14%, transparent) 22deg,
+    transparent 58deg);
+  -webkit-mask: radial-gradient(farthest-side, transparent 91.5%, #000 92.5%);
+  mask: radial-gradient(farthest-side, transparent 91.5%, #000 92.5%);
+  mix-blend-mode: screen;
+  filter: blur(1px);
+  animation: pdSweep var(--burn) linear infinite;
+  pointer-events: none;
+}
+
+@keyframes pdSweep {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* sembilan simpul di tepi cincin */
+.pd-nodes {
+  position: absolute; inset: 0; z-index: 4;
+  list-style: none; margin: 0; padding: 0;
+}
+
+.pd-nodes li {
+  --a: calc((var(--i) - 1) * 40deg - 90deg);
+  position: absolute; left: 50%; top: 50%;
+  width: var(--chip); height: var(--chip); margin: calc(var(--chip) / -2);
+  display: grid; place-items: center;
+  border-radius: 50%;
+  font-family: var(--mono); font-size: clamp(10px, calc(var(--sz) * .024), 12px); font-weight: 600;
+  color: color-mix(in oklab, var(--bone) 62%, transparent);
+  background: #0b1017;
+  border: 1px solid color-mix(in oklab, var(--bone) 26%, transparent);
+  transform: rotate(var(--a)) translate(calc(var(--sz) * .478)) rotate(calc(-1 * var(--a)));
+  animation: pdNode var(--burn) linear infinite;
+  animation-delay: calc((var(--i) - 1) * var(--tick));
+}
+
+@keyframes pdNode {
+  0% {
+    color: #0b1017; background: var(--orange);
+    border-color: var(--orange);
+    box-shadow: 0 0 26px color-mix(in oklab, var(--orange) 85%, transparent);
+    scale: 1.24;
+  }
+  6% {
+    color: #0b1017; background: var(--orange);
+    border-color: var(--orange);
+    box-shadow: 0 0 14px color-mix(in oklab, var(--orange) 55%, transparent);
+    scale: 1.06;
+  }
+  9.6% {
+    color: #0b1017; background: color-mix(in oklab, var(--orange) 58%, #0b1017);
+    border-color: color-mix(in oklab, var(--orange) 58%, transparent);
+    box-shadow: none; scale: 1.05;
+  }
+  11%, 100% {
+    color: color-mix(in oklab, var(--bone) 62%, transparent); background: #0b1017;
+    border-color: color-mix(in oklab, var(--bone) 26%, transparent);
+    box-shadow: none; scale: 1;
+  }
+}
+
+/* daftar tahap: manifest, satu baris menyala bersama simpulnya */
+.peak-list {
+  grid-column: 1; grid-row: 2;
+  list-style: none; margin: 0; padding: 0;
+  display: grid; gap: 1px;
+}
+
+.peak-i {
+  display: grid;
+  grid-template-columns: 26px 18px minmax(0, 1fr) auto;
+  align-items: center; gap: 12px;
+  padding: clamp(3px, .62vh, 8px) 12px clamp(3px, .62vh, 8px) 8px;
+  border-radius: 8px;
+  border-bottom: 1px solid color-mix(in oklab, var(--bone) 10%, transparent);
+  color: color-mix(in oklab, var(--bone) 76%, transparent);
+  animation: pdRow var(--burn) linear infinite;
+  animation-delay: calc((var(--i) - 1) * var(--tick));
+}
+
+.peak-i > b {
+  color: color-mix(in oklab, var(--bone) 40%, transparent);
+  animation: pdNum var(--burn) linear infinite;
+  animation-delay: inherit;
+}
+
+.peak-i span { font-family: var(--display); font-weight: 800; font-size: clamp(14px, 1.5vw, 17px); letter-spacing: -.02em; }
+
+.peak-i em { font-style: normal; font-size: 10.5px; letter-spacing: .08em; color: color-mix(in oklab, var(--bone) 48%, transparent); white-space: nowrap; }
+
+@keyframes pdRow {
+  0%, 9.6% { background: linear-gradient(90deg, color-mix(in oklab, var(--orange) 20%, transparent), transparent 70%); color: var(--bone); }
+  11%, 100% { background: transparent; color: color-mix(in oklab, var(--bone) 76%, transparent); }
+}
+
+@keyframes pdNum {
+  0%, 9.6% { color: var(--orange); }
+  11%, 100% { color: color-mix(in oklab, var(--bone) 40%, transparent); }
+}
+
+.peak-note { grid-column: 1; grid-row: 3; font-size: 11px; letter-spacing: .06em; color: color-mix(in oklab, var(--bone) 52%, transparent); }
 
 /* Layar besar: babak tiga di-pin, jadi tingginya WAJIB muat satu layar penuh —
-   kalau tidak, bagian bawah poster & daftar tahap terpotong `overflow: hidden`
+   kalau tidak, bagian bawah drum & daftar tahap terpotong `overflow: hidden`
    dan tidak bisa dijangkau gulir. Semua ukuran ikut mengecil di layar pendek. */
 @media (min-width: 1001px) {
   /* Jarak atas = tinggi header landing (diukur JS → --ldnav-h, fallback 53px
@@ -2115,28 +2365,14 @@ body[data-theme="night"] .act-peak { background: #070A10; }
      tertutup header. */
   .act-peak { height: 100vh; height: 100dvh; padding-top: calc(var(--ldnav-h, 53px) + clamp(8px, 1.2vh, 32px)); padding-bottom: clamp(18px, 2.6vh, 52px); }
 
-  /* Poster dibuat sebesar mungkin: mengisi tinggi babak (atas-bawah) selama
-     tidak menabrak kolom teks. Lebar mengikuti rasio asli gambar (1376:768 =
-     1,7917) dan menjorok sampai tepi kanan viewport (bleed). */
-  .peak-copy { max-width: clamp(300px, 28vw, 420px); }
+  .peak-stage { min-height: 0; height: 100%; align-content: safe center; gap: clamp(6px, 1.2vh, 16px) clamp(24px, 4vw, 72px); }
 
-  .peak-poster {
-    right: calc(-1 * clamp(16px, 4vw, 54px));
-    width: min(calc(100% + clamp(16px, 4vw, 54px) - clamp(300px, 28vw, 420px) - clamp(24px, 2.4vw, 40px)), calc((100vh - var(--ldnav-h, 53px) - 44px) * 1.7917));
-  }
-
-  .peak-stage { min-height: 0; height: 100%; align-content: center; align-content: safe center; gap: clamp(14px, min(4vw, 2.4vh), 52px); }
-
-  .peak-copy .hero { font-size: clamp(26px, min(4.6vw, 5.4vh), 58px); }
-
-  .peak-list { margin-top: clamp(9px, 1.8vh, 24px); }
-
-  .peak-i { padding: clamp(3px, 0.65vh, 8px) 0; }
+  .peak-copy .hero { font-size: clamp(26px, min(4.4vw, 5.4vh), 56px); }
 }
 
-/* Layar pendek: paragraf pengantar disembunyikan supaya poster + sembilan
+/* Layar pendek: paragraf pengantar disembunyikan supaya drum + sembilan
    tahap tetap utuh dalam satu layar. */
-@media (min-width: 1001px) and (max-height: 640px) {
+@media (min-width: 1001px) and (max-height: 699px) {
   .peak-copy .lede { display: none; }
 }
 
@@ -2146,16 +2382,25 @@ body[data-theme="night"] .act-peak { background: #070A10; }
   .peak-copy .lede { display: none; }
 }
 
-/* Lebar sempit + layar pendek: rapatkan lagi supaya poster + sembilan
-   tahap tetap utuh dalam satu layar. */
-@media (min-width: 1001px) and (max-width: 1340px) and (max-height: 660px) {
-  .peak-stage { gap: clamp(12px, min(4vw, 2.1vh), 40px); }
+/* Layar sempit: satu kolom — judul, drum, lalu manifest tahap. */
+@media (max-width: 1000px) {
+  .peak-stage {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto auto;
+    align-content: start;
+    min-height: 0;
+    gap: clamp(10px, 1.6vh, 20px);
+  }
 
-  .peak-copy .hero { font-size: clamp(24px, min(4.4vw, 5.4vh), 58px); }
+  .peak-copy { grid-column: 1; grid-row: 1; max-width: none; }
 
-  .peak-list { margin-top: clamp(8px, 1.5vh, 20px); }
+  .peak-drum { grid-column: 1; grid-row: 2; --sz: min(76vw, 330px); margin: 10px auto 6px; }
 
-  .peak-i { padding: clamp(2px, 0.5vh, 6px) 0; }
+  .peak-list { grid-column: 1; grid-row: 3; }
+
+  .peak-note { grid-column: 1; grid-row: 4; padding-top: 12px; }
+
+  .peak-i { grid-template-columns: 24px 17px minmax(0, 1fr) auto; gap: 10px; padding-left: 6px; }
 }
 
 /* babak kendalikan */
@@ -2301,14 +2546,6 @@ body[data-theme="night"] .quote footer { color: var(--muted); }
   .live-facts { grid-template-columns: 1fr 1fr; }
   .live-facts li:nth-child(2) { border-right: 0; }
   .con-r { border-left: 0; padding-left: 0; border-top: 1px dashed var(--line-2); padding-top: 16px; }
-  .peak-stage { grid-template-columns: 1fr; min-height: auto; }
-  .peak-poster { position: relative; right: auto; top: auto; transform: none; width: 100%; order: 2; margin: 6px 0 20px; }
-  .peak-lens { display: none; }
-  .peak-copy { order: 1; }
-  .peak-list { order: 3; }
-  .peak-led, .peak-done { display: none; }
-  .peak-i { opacity: 1; grid-template-columns: 30px 20px 1fr; }
-  .peak-i i { display: none; }
 }
 
 @media (max-width: 640px) {
@@ -2585,14 +2822,14 @@ body[data-theme="night"] .scan-hint { color: var(--muted); }
   .ink-slash::after { transform: skewX(-14deg) scaleX(1); }
   .kb img { animation: none; transform: none; }
   .act-peak { border-bottom: 1px solid var(--line); }
-  .peak-i { opacity: 1; }
-  .peak-done { opacity: 1; }
+  .pd-read, .pd-sweep { display: none; }
+  .pd-static { display: grid; }
   .btn, .fchip, .chip { transition: background .12s linear, border-color .12s linear, color .12s linear; }
 }
 
 /* -- Bentuk sesuai acuan: kartu sudut membulat besar + tombol rounded -- */
 .btn { border-radius: 12px; }
-.panel, .find-map, .peak-poster { border-radius: var(--r-lg); }
+.panel, .find-map { border-radius: var(--r-lg); }
 .qris-drop, .gal-add { border-radius: 22px; }
 
 /* ==== LANDING SLIDER (gaya magic slider) ==== */
@@ -2663,8 +2900,9 @@ body[data-portal="landing"] .ld-brand:focus-visible { outline-color: var(--bone)
 
 .ld-slider #a3::after {
   background:
-    linear-gradient(90deg, rgba(7,9,14,.94) 0%, rgba(7,9,14,.74) 52%, rgba(7,9,14,.48) 100%),
-    linear-gradient(0deg, rgba(7,9,14,.9), rgba(7,9,14,.34));
+    radial-gradient(56% 50% at 64% 46%, rgba(7,9,14,.72), transparent 74%),
+    linear-gradient(90deg, rgba(7,9,14,.97) 0%, rgba(7,9,14,.93) 50%, rgba(7,9,14,.87) 100%),
+    linear-gradient(0deg, rgba(7,9,14,.94), rgba(7,9,14,.55));
 }
 
 .ld-slider .ld-inner {
@@ -2713,9 +2951,6 @@ body[data-portal="landing"] .ld-brand:focus-visible { outline-color: var(--bone)
 .ld-slider .act .live-col .ll-eta { color: var(--muted); }
 .ld-slider .act .live-col .sb-lede { color: var(--ink-2); }
 
-/* Penanda akhir pin lama tidak dipakai di slider. */
-.ld-slider .peak-done, .ld-slider .peak-led { display: none; }
-
 /* Kartu lokasi (paper) di babak penutup — teks tetap gelap. */
 .ld-slider .act .find-us { color: var(--ink-2); }
 .ld-slider .act .find-us :is(.display, h1, h2, h3, h4) { color: var(--ink); }
@@ -2727,9 +2962,13 @@ body[data-portal="landing"] .ld-brand:focus-visible { outline-color: var(--bone)
 .ld-slider #a2 .lede { max-width: 56ch; margin-top: 12px; }
 
 .ld-slider .act.act-peak { padding: 0; }
-.ld-slider .act-peak .peak-stage { min-height: 0; }
-.ld-slider .act .peak-i { opacity: 1; }
-.ld-slider .act .peak-done { opacity: 1; }
+.ld-slider .act-peak .peak-stage { min-height: 0; height: 100%; }
+
+/* Di HP/tablet drum, daftar, dan catatan bertumpuk melebihi satu layar —
+   biarkan stage tumbuh agar seluruh daftar bisa digulir di atas thumbnail. */
+@media (max-width: 1000px) {
+  .ld-slider .act-peak .peak-stage { height: auto; }
+}
 
 .ld-slider .act-control .act-head { margin-bottom: 8px; }
 .ld-slider .rail-wrap { overflow-x: auto; -webkit-mask: none; mask: none; padding-bottom: 8px; scrollbar-width: thin; }
