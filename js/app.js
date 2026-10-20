@@ -1468,10 +1468,12 @@ function exportRevenueCSV() {
 /* ── VIEW: SETELAN ────────────────────────────────────── */
 
 VIEWS.setelan = {
-  title: () => (S.portal === 'c' ? 'Profil' : 'Setelan'),
-  kicker: () => (S.portal === 'c' ? 'Alamat, notifikasi, tema' : 'Preferensi operasional'),
+  title: () => (S.portal === 'c' ? 'Profil' : 'Profil & setelan'),
+  kicker: () => (S.portal === 'c' ? 'Alamat, notifikasi, tema' : 'Akun & preferensi operasional'),
   render() {
     const u = (S.auth && S.auth.user) || null;
+    const adminPortal = S.portal === 'a';
+    const owner = adminPortal && u && u.role === 'admin';
     const roleLabel = u ? ((typeof ROLE_LABEL !== 'undefined' && ROLE_LABEL[u.role]) || u.role) : '';
     const ident = u ? (u.username || u.phone || u.id || '') : '';
     const profilPanel = (isAuthed() && u) ? `
@@ -1486,16 +1488,13 @@ VIEWS.setelan = {
       </div>` : '';
     const extras = navFor(S.portal).filter((n) => !n.mobile);
     const menuPanel = extras.length ? `
-      <div class="panel" data-reveal>
-        <header class="p-head"><h3 class="display">Menu</h3><span class="mono note">${S.portal === 'a' ? 'Operasional' : 'Akun Anda'}</span></header>
+      <div class="panel set-menu" data-reveal>
+        <header class="p-head"><h3 class="display">Menu</h3><span class="mono note">${adminPortal ? 'Operasional' : 'Akun Anda'}</span></header>
         <ul class="menu-list">
           ${extras.map((n) => `<li><button class="menu-i" data-act="go" data-portal="${S.portal}" data-route="${n.id}">${icon(n.icon)}<b>${esc(n.label)}</b>${icon('chev', 'chev')}</button></li>`).join('')}
         </ul>
       </div>` : '';
-    return `
-    <section class="set-grid">
-      ${profilPanel}
-      ${menuPanel}
+    const themePanel = `
       <div class="panel" data-reveal>
         <header class="p-head"><h3 class="display">Wajah aplikasi</h3><span class="mono note">tersimpan di perangkat</span></header>
         <div class="theme-pick">
@@ -1504,34 +1503,40 @@ VIEWS.setelan = {
               <span class="tp-sw"><i></i><i></i><i></i></span><b class="display">${l}</b><p class="mono fine">${d}</p>
               ${S.theme === id ? `<span class="tp-on">${icon('check')}</span>` : ''}</button>`).join('')}
         </div>
-      </div>
+      </div>`;
+    const notifPanel = !adminPortal ? `
       <div class="panel" data-reveal>
         <header class="p-head"><h3 class="display">Notifikasi</h3></header>
         ${[['push', 'Getaran siklus', 'Setiap tahap bergeser'], ['sms', 'SMS kurir', 'Saat driver berangkat'], ['promo', 'Promo & stempel', 'Maks. 2 per minggu'], ['protect', 'Proteksi otomatis', 'Tergantung ke order berikutnya']].map(([k, l, d]) => `
           <label class="sw-row"><div><b>${l}</b><p class="mono fine">${d}</p></div>
             <input type="checkbox" hidden data-act="setting" data-k="${k}" ${S.settings[k] ? 'checked' : ''}>
             <span class="sw ${S.settings[k] ? 'on' : ''}"><i></i></span></label>`).join('')}
-      </div>
+      </div>` : '';
+    const addrPanel = !adminPortal ? `
       <div class="panel" data-reveal>
         <header class="p-head"><h3 class="display">Alamat</h3><span class="mono note">${S.addresses.length} tersimpan</span></header>
         <ul class="addr-list">${S.addresses.map((a) => `<li><i class="av">${icon('pin')}</i><div><b>${esc(a.tag)} ${a.def ? '<span class="mono chip tiny">utama</span>' : ''}</b><p class="mono fine">${esc(a.label)}</p></div>
           ${a.def ? '' : `<button class="btn-icon" data-act="addr-def" data-id="${a.id}" title="Jadikan utama">${icon('check')}</button>`}
           <button class="btn-icon dim" data-act="addr-del" data-id="${a.id}" title="Hapus">${icon('x')}</button></li>`).join('')}</ul>
         <button class="btn ghost sm" data-act="addr-add">${icon('plus')} Tambah alamat</button>
-      </div>
+      </div>` : '';
+    const dataPanel = owner ? `
       <div class="panel" data-reveal>
-        <header class="p-head"><h3 class="display">Data & pintasan</h3></header>
-        <div class="kbd-list">
-          ${[['⌘/Ctrl + K', 'Palet perintah'], ['/ atau F', 'Cari pesanan'], ['N', 'Order baru'], ['S', 'Layar pindai operator'], ['T', 'Ganti tema'], ['Esc', 'Tutup panel']].map(([k, l]) => `<div class="kbd-row"><kbd class="mono">${k}</kbd><span>${l}</span></div>`).join('')}
-        </div>
+        <header class="p-head"><h3 class="display">Data & cadangan</h3><span class="mono note">ekspor operasional</span></header>
         <div class="data-acts">
-          ${isAuthed() ? `<button class="btn ghost sm" data-act="go" data-route="changePassword" data-portal="${S.portal}">${icon('key')} Ganti password</button>` : ''}
           <button class="btn ghost sm" data-act="export">${icon('download')} Ekspor pesanan CSV</button>
           <button class="btn ghost sm" data-act="export-json">${icon('box')} Cadangkan JSON</button>
-          <button class="btn danger sm" data-act="reset-all">${icon('alert')} Reset ke data contoh</button>
         </div>
         <p class="mono fine mt">Versi MAHA Dewi Ops 1.0 · ${S.orders.length} pesanan · ${S.events.length} event lantai.</p>
-      </div>
+      </div>` : '';
+    return `
+    <section class="set-grid">
+      ${profilPanel}
+      ${menuPanel}
+      ${themePanel}
+      ${notifPanel}
+      ${addrPanel}
+      ${dataPanel}
     </section>`;
   },
 };
@@ -1561,16 +1566,20 @@ function toggleNotif() {
 
 let paletteItems = [];
 function openPalette() {
+  const adminOn = isAdminAuthed();
+  const customerOn = isCustomerAuthed();
   const cmds = [
     ...navFor(S.portal).map((n) => ({ t: 'Ke ' + n.label + ' · ' + PORTALS[S.portal].label, i: n.icon, run: () => go(n.id, S.portal) })),
-    { t: 'Buka panel Pelanggan', i: 'user', run: () => switchPortal('c') },
-    { t: 'Buka panel Admin', i: 'sliders', run: () => switchPortal('a') },
+    ...(adminOn ? [
+      { t: 'Buka panel Pelanggan', i: 'user', run: () => switchPortal('c') },
+      { t: 'Pindai label lantai', i: 'scan', run: () => go('scan', 'a') },
+      { t: 'Unduh CSV pesanan', i: 'download', run: exportCSV },
+    ] : []),
+    ...(!adminOn ? [{ t: 'Buka panel Admin', i: 'sliders', run: () => switchPortal('a') }] : []),
+    ...(customerOn ? [{ t: 'Order baru', i: 'plus', run: () => { S.cart = newCart(); go('order', 'c'); } }] : []),
     { t: 'Buka halaman situs', i: 'store', run: () => go('landing') },
-    { t: 'Order baru', i: 'plus', run: () => { S.cart = newCart(); go('order', 'c'); } },
-    { t: 'Pindai label lantai', i: 'scan', run: () => go('scan', 'a') },
     { t: 'Ganti tema bone/night', i: 'moon', run: toggleTheme },
     { t: 'Buka bantuan', i: 'mail', run: openChat },
-    { t: 'Unduh CSV pesanan', i: 'download', run: exportCSV },
     ...visibleOrders().slice(0, 6).map((o) => ({ t: `${o.code} · ${o.customer}`, i: 'truck', run: () => { trackCode = o.code; go('lacak', S.portal); } })),
   ];
   qs('#modalRoot').innerHTML = `<div class="scrim" data-act="palette-close"></div>
@@ -2086,19 +2095,18 @@ document.addEventListener('click', (e) => {
     case 'export': exportCSV(); break;
     case 'export-revenue': exportRevenueCSV(); break;
     case 'export-json': {
-      const url = URL.createObjectURL(new Blob([JSON.stringify(S, null, 2)], { type: 'application/json' }));
+      /* Jangan pernah menaruh token sesi di berkas cadangan. */
+      const { auth, ...rest } = S;
+      const backup = Object.assign({}, rest, {
+        auth: { user: auth.user, loggedIn: auth.loggedIn },
+        exportedAt: new Date().toISOString(),
+      });
+      const url = URL.createObjectURL(new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' }));
       const lnk = document.createElement('a'); lnk.href = url; lnk.download = 'maha-dewi-backup.json'; lnk.click();
       setTimeout(() => URL.revokeObjectURL(url), 1500);
       toast({ title: 'Cadangan JSON diunduh', tone: 'mint', icon: 'box' });
       break;
     }
-    case 'reset-all':
-      openModal(`<p class="mono kicker">Aksi ini permanen</p><h2 class="display lg">Reset ke data contoh?</h2>
-        <p class="lede">Pesanan, saldo, dan stempel yang Anda buat kembali hilang semuanya.</p>
-        <div class="m-acts"><button class="btn danger" data-act="reset-yes">${icon('alert')} Ya, reset</button>
-        <button class="btn ghost" data-act="modal-close">Batal</button></div>`);
-      break;
-    case 'reset-yes': localStorage.removeItem(KEY); closeModal(); location.reload(); break;
     case 'step': S.cart.step = +t.dataset.i; render(); break;
     case 'next': {
       const r = calc();

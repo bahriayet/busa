@@ -174,7 +174,7 @@ VIEWS.pengguna = {
       </div>
     </div>
     <section class="panel tbl-wrap" data-reveal>
-      <header class="p-head"><h3 class="display">Daftar akun</h3><span class="mono note">JWT + password scrypt</span></header>
+      <header class="p-head"><h3 class="display">Daftar akun</h3><span class="mono note">Akses &amp; peran</span></header>
       <table class="tbl">
         <thead><tr><th>Nama</th><th>Login</th><th>Peran</th><th>Status</th><th class="r">Aksi</th></tr></thead>
         <tbody>

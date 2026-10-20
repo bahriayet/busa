@@ -1405,6 +1405,12 @@ body[data-theme="night"] .est .lbl { color: var(--muted); }
 /* ── VIEW: setelan ───────────────────────────────── */
 .set-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; align-items: start; }
 
+/* Di desktop, sidebar sudah memuat menu yang sama. Panel Menu hanya
+   berguna di layar kecil tempat sidebar disembunyikan. */
+@media (min-width: 1001px) {
+  .set-menu { display: none; }
+}
+
 .menu-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
 
 .menu-i { display: flex; align-items: center; gap: 11px; width: 100%; padding: 11px 12px; background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--r); font: inherit; color: var(--ink); cursor: pointer; text-align: left; transition: border-color .2s, transform .2s; }
@@ -1472,12 +1478,6 @@ body[data-theme="night"] .est .lbl { color: var(--muted); }
 
 .addr-list p { color: var(--muted); }
 
-.kbd-list { display: grid; gap: 7px; margin-bottom: 18px; }
-
-.kbd-row { display: flex; align-items: center; gap: 12px; font-size: 14px; }
-
-kbd { font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em; padding: 4px 8px; background: var(--paper-2); border: 1px solid var(--line-2); border-bottom-width: 2px; border-radius: 3px; white-space: nowrap; }
-
 .data-acts { display: flex; flex-wrap: wrap; gap: 8px; }
 
 /* ── drawer / modal ──────────────────────────────── */
@@ -1534,7 +1534,7 @@ kbd { font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em; paddin
 
 .pal-i .ico { color: var(--c, var(--blue)); }
 
-.pal-i kbd { margin-left: auto; opacity: 0; }
+.pal-i kbd { margin-left: auto; opacity: 0; font-family: var(--mono); font-size: 10px; padding: 2px 5px; border: 1px solid var(--line-2); border-radius: 3px; }
 
 .pal-i.on, .pal-i:hover { background: var(--ink); color: var(--bone); }
 

@@ -65,6 +65,30 @@ async function mockAdminApi(page: Page) {
   return state;
 }
 
+test.describe('Admin — profil', () => {
+  test('hanya satu tombol ganti password dan tanpa panel pintasan', async ({ page }) => {
+    await mockAdminApi(page);
+    await page.goto('/#/a/loginA', { waitUntil: 'domcontentloaded' });
+    await page.locator('[data-act="login-a-id"]').fill('admin');
+    await page.locator('[data-act="login-a-pw"]').fill('busa1234');
+    await page.locator('[data-act="login-a-pw"]').press('Enter');
+
+    await page.locator('.avatar').click();
+    await expect(page.locator('#route-title')).toHaveText('Profil & setelan');
+    await expect(page.getByRole('heading', { name: 'Profil' })).toBeVisible();
+
+    await expect(page.locator('[data-act="go"][data-route="changePassword"]')).toHaveCount(1);
+    await expect(page.getByText('Data & pintasan')).toHaveCount(0);
+    await expect(page.locator('.kbd-list')).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: 'Notifikasi' })).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: 'Alamat' })).toHaveCount(0);
+    await expect(page.getByText('Data & cadangan')).toBeVisible();
+    await expect(page.locator('[data-act="export"]')).toBeVisible();
+    await expect(page.locator('[data-act="export-json"]')).toBeVisible();
+    await expect(page.locator('[data-act="reset-all"]')).toHaveCount(0);
+  });
+});
+
 test.describe('Admin — background slide', () => {
   test('login, unggah, lalu hapus background babak 1', async ({ page }) => {
     const state = await mockAdminApi(page);
