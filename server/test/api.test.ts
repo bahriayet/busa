@@ -152,7 +152,7 @@ test('pelanggan: profil, dompet, dan checkout server-side', async () => {
     headers: { authorization: `Bearer ${token}` },
     payload: {
       items: [{ id: 'setrika', qty: 4 }], addons: ['premium'], mode: 'pickup',
-      slotDate: '2026-10-10', slotTime: '10:00–12:00', pay: 'qris',
+      slotDate: '2026-10-10', slotTime: '19:00–20:00', pay: 'qris',
     },
   });
   assert.equal(co.statusCode, 200, co.body);
@@ -169,7 +169,7 @@ test('pelanggan: profil, dompet, dan checkout server-side', async () => {
     headers: { authorization: `Bearer ${token}` },
     payload: {
       items: [{ id: 'setrika', qty: 2 }], addons: [], mode: 'pickup',
-      slotDate: '2026-10-10', slotTime: '12:00–14:00', pay: 'qris',
+      slotDate: '2026-10-10', slotTime: '20:00–21:00', pay: 'qris',
     },
   });
   assert.equal(bad.statusCode, 400);
@@ -218,7 +218,7 @@ test('batalkan hanya sebelum masuk lantai', async () => {
     headers: { authorization: `Bearer ${token}` },
     payload: {
       items: [{ id: 'setrika', qty: 3 }], addons: [], mode: 'pickup',
-      slotDate: '2026-10-11', slotTime: '08:00–10:00', pay: 'qris',
+      slotDate: '2026-10-11', slotTime: '18:00–19:00', pay: 'qris',
     },
   });
   const code = (co.json() as { order: { code: string } }).order.code;
@@ -243,7 +243,7 @@ test('reslot: pelanggan memindah jam sendiri, gugur setelah masuk lantai', async
     headers: { authorization: `Bearer ${token}` },
     payload: {
       items: [{ id: 'setrika', qty: 3 }], addons: [], mode: 'pickup',
-      slotDate: '2026-10-12', slotTime: '08:00–10:00', pay: 'qris',
+      slotDate: '2026-10-12', slotTime: '18:00–19:00', pay: 'qris',
     },
   });
   assert.equal(co.statusCode, 200, co.body);
@@ -252,10 +252,10 @@ test('reslot: pelanggan memindah jam sendiri, gugur setelah masuk lantai', async
   const ok = await app.inject({
     method: 'POST', url: `/api/orders/${code}/reslot`,
     headers: { authorization: `Bearer ${token}` },
-    payload: { slotTime: '10:00–12:00' },
+    payload: { slotTime: '19:00–20:00' },
   });
   assert.equal(ok.statusCode, 200, ok.body);
-  assert.equal((ok.json() as { order: { slot: { time: string } } }).order.slot.time, '10:00–12:00');
+  assert.equal((ok.json() as { order: { slot: { time: string } } }).order.slot.time, '19:00–20:00');
 
   const bad = await app.inject({
     method: 'POST', url: `/api/orders/${code}/reslot`,
@@ -269,7 +269,7 @@ test('reslot: pelanggan memindah jam sendiri, gugur setelah masuk lantai', async
   const late = await app.inject({
     method: 'POST', url: '/api/orders/MD-4468/reslot',
     headers: { authorization: `Bearer ${staff}` },
-    payload: { slotTime: '10:00–12:00' },
+    payload: { slotTime: '19:00–20:00' },
   });
   assert.equal(late.statusCode, 409);
 });
@@ -281,7 +281,7 @@ test('bayar hanya untuk staf: pelanggan tidak bisa menandai lunas sendiri', asyn
     headers: { authorization: `Bearer ${token}` },
     payload: {
       items: [{ id: 'setrika', qty: 3 }], addons: [], mode: 'pickup',
-      slotDate: '2026-10-12', slotTime: '12:00–14:00', pay: 'cash',
+      slotDate: '2026-10-12', slotTime: '20:00–21:00', pay: 'cash',
     },
   });
   assert.equal(co.statusCode, 200, co.body);
@@ -311,7 +311,7 @@ test('bukti bayar QRIS: pelanggan mengunggah, admin memverifikasi', async () => 
     headers: { authorization: `Bearer ${token}` },
     payload: {
       items: [{ id: 'setrika', qty: 3 }], addons: [], mode: 'pickup',
-      slotDate: '2026-10-12', slotTime: '14:00–16:00', pay: 'qris',
+      slotDate: '2026-10-12', slotTime: '18:00–19:00', pay: 'qris',
     },
   });
   assert.equal(co.statusCode, 200, co.body);

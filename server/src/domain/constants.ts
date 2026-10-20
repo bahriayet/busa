@@ -30,7 +30,7 @@ export const STAGE_MACHINE: Record<number, MachineKind> = {
   6: 'steam',
 };
 
-export const SLOTS = ['07:00–09:00', '08:00–10:00', '10:00–12:00', '12:00–14:00', '14:00–16:00', '16:00–18:00', '18:00–20:00'];
+export const SLOTS = ['17:00–18:00', '18:00–19:00', '19:00–20:00', '20:00–21:00'];
 
 export const ACTION_LABEL: Record<ScanAction, string> = {
   terima: 'diterima di kasir',
