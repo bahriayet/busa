@@ -1,4 +1,4 @@
-/* Lapisan gerak BUSA — GSAP core + timeline + ScrollTrigger + utils.
+/* Lapisan gerak MAHA Dewi — GSAP core + timeline + ScrollTrigger + utils.
    Tanpa GSAP (file vendor hilang / offline) aplikasi tetap berjalan:
    fallback IntersectionObserver di ui.js yang mengambil alih. */
 

@@ -245,11 +245,25 @@ body[data-theme="night"] .grain { mix-blend-mode: screen; opacity: .16; }
 
 .brand { display: grid; justify-items: center; gap: 8px; margin-bottom: 10px; text-decoration: none; }
 
-.brand-mark { width: 34px; height: 34px; color: var(--orange); animation: tumble 9s linear infinite; }
+.brand-monogram {
+  width: 34px; height: 34px; position: relative;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: var(--orange); color: var(--ink);
+  font-family: var(--display); font-weight: 900; font-size: 13px;
+  letter-spacing: -.06em; line-height: 1;
+  box-shadow: inset 0 0 0 2px color-mix(in oklab, var(--ink) 16%, transparent);
+}
+
+.brand-monogram::after {
+  content: ''; position: absolute; right: -1px; bottom: 1px;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--mint); border: 2px solid var(--ink);
+}
 
 .brand b { font-family: var(--display); font-size: 15px; letter-spacing: .02em; }
 
-.brand span { font-family: var(--mono); font-size: 8px; letter-spacing: .18em; color: color-mix(in oklab, var(--bone) 55%, transparent); writing-mode: vertical-rl; text-orientation: mixed; margin-top: 4px; }
+.brand .brand-sub { font-family: var(--mono); font-size: 8px; letter-spacing: .18em; color: color-mix(in oklab, var(--bone) 55%, transparent); writing-mode: vertical-rl; text-orientation: mixed; margin-top: 4px; }
 
 @keyframes tumble { to { transform: rotate(360deg); } }
 
@@ -2487,6 +2501,9 @@ body[data-theme="night"] .quote footer { color: var(--muted); }
 
 .find-meta i { color: var(--muted); font-style: normal; }
 
+.find-meta a { color: inherit; text-decoration: none; border-bottom: 1px dotted color-mix(in oklab, currentColor 45%, transparent); }
+.find-meta a:hover { color: var(--orange); }
+
 .find-map { position: relative; display: block; min-height: 236px; border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; background: color-mix(in oklab, var(--orange) 5%, var(--paper-2)); transition: transform .22s, box-shadow .22s; }
 
 .find-map:hover { transform: translateY(-3px); box-shadow: 0 18px 32px -24px rgba(30, 24, 10, .65); }
@@ -2847,9 +2864,9 @@ body[data-portal="landing"] .ld-nav {
   border-bottom: 1px solid color-mix(in oklab, var(--bone) 12%, transparent);
   color: var(--bone);
 }
-body[data-portal="landing"] .ld-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; flex: none; color: var(--bone); }
-body[data-portal="landing"] .ld-brand .drum { --sz: 26px; }
-body[data-portal="landing"] .ld-brand b { font-family: var(--display); font-weight: 800; font-size: 20px; letter-spacing: -.02em; color: var(--bone); }
+body[data-portal="landing"] .ld-brand { display: flex; align-items: center; gap: 9px; text-decoration: none; flex: none; color: var(--bone); }
+body[data-portal="landing"] .ld-brand .brand-monogram { width: 28px; height: 28px; font-size: 10.5px; }
+body[data-portal="landing"] .ld-brand b { font-family: var(--display); font-weight: 800; font-size: 18px; letter-spacing: .01em; color: var(--bone); }
 body[data-portal="landing"] .ld-cta { display: flex; align-items: center; gap: 8px; margin-left: auto; min-width: 0; }
 body[data-portal="landing"] .ld-clock { color: var(--orange); letter-spacing: .14em; font-size: 11px; padding-right: 8px; border-right: 1px solid color-mix(in oklab, var(--bone) 16%, transparent); margin-right: 2px; }
 body[data-portal="landing"] .ld-cta .btn:focus-visible,
@@ -3043,6 +3060,10 @@ body[data-portal="landing"] .ld-brand:focus-visible { outline-color: var(--bone)
   body[data-portal="landing"] .ld-clock { display: none; }
   body[data-portal="landing"] .ld-cta .btn { padding: 7px 9px; font-size: 9px; letter-spacing: .06em; white-space: nowrap; }
   body[data-portal="landing"] .ld-brand b { font-size: 17px; }
+}
+
+@media (max-width: 480px) {
+  body[data-portal="landing"] .ld-brand .brand-word { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

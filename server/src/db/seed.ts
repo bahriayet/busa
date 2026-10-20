@@ -161,7 +161,7 @@ export async function seedIfEmpty(db: Db, cfg: Config): Promise<SeedResult> {
         await R.insertTx(db, {
           id: t.id, customerId: personaId, type: t.type, label: t.label, amount: t.amount,
           atMs: notFuture(atTime(today, t.dayOffset, t.hh, t.mm), now), status: t.status,
-          orderCode: /BUSA-\d+/.exec(t.label)?.[0] ?? null, source: 'seed',
+          orderCode: /MD-\d+/.exec(t.label)?.[0] ?? null, source: 'seed',
         });
       }
       for (const [i, a] of SEED_ADDRESSES.entries()) {

@@ -2,7 +2,7 @@
   "name": "busa-laundry-ops",
   "version": "1.0.0",
   "private": true,
-  "description": "BUSA Laundry Ops — situs publik, portal pelanggan, dan dasbor operasional.",
+  "description": "MAHA Dewi Laundry Ops — situs publik, portal pelanggan, dan dasbor operasional Laundry MAHA Dewi Mataram.",
   "scripts": {
     "serve": "node e2e/serve.mjs",
     "test:e2e": "playwright test",

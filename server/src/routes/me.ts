@@ -104,7 +104,7 @@ function botReply(text: string, name: string): string {
     return 'Cuci + Setrika Rp 8.000/kg (min. 3 kg). Express 6 jam Rp 25.000. Mau saya hitungkan total keranjang Anda?';
   }
   if (/(status|sampai|posisi|lacak)/.test(t)) {
-    return 'Buka tab Lacak dan ketik nomor order (misal BUSA-4471). Saya juga bisa cekkan untuk Anda — kirim 4 digit terakhirnya.';
+    return 'Buka tab Lacak dan ketik nomor order (misal MD-4471). Saya juga bisa cekkan untuk Anda — kirim 4 digit terakhirnya.';
   }
   if (/(noda|kunyit|kopi)/.test(t)) {
     return 'Treatment noda Rp 4.000/kg dengan rendam enzimatik 20 menit. Success rate 94% untuk linen katun.';

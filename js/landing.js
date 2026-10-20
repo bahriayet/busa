@@ -118,7 +118,7 @@ function quickOut(r) {
   const box = qs('#ldtk-out');
   if (!box) return;
   box.hidden = false;
-  if (r.state === 'empty') { box.className = 'quick-out warn'; box.innerHTML = `<p>${icon('alert')} Tulis dulu kodenya. Contoh yang benar: <b class="mono">${esc((S.orders[0] || { code: 'BUSA-0000' }).code)}</b></p>`; return; }
+  if (r.state === 'empty') { box.className = 'quick-out warn'; box.innerHTML = `<p>${icon('alert')} Tulis dulu kodenya. Contoh yang benar: <b class="mono">${esc((S.orders[0] || { code: 'MD-0000' }).code)}</b></p>`; return; }
   if (r.state === 'none') {
     box.className = 'quick-out err';
     box.innerHTML = `<p>${icon('x')} <b>${esc(r.q)}</b> tidak kami temukan. Cek lagi angkanya, atau tanyakan lewat ${'<button class="lnk" data-act="chat">bantuan</button>'}.</p>`;
@@ -134,7 +134,7 @@ function quickOut(r) {
       : `${drumMarkup({ rpm: (o.stage >= 7 ? 8 : 3.2) + 's', size: 44, state: o.stage >= 7 ? 'vent' : 'run', rags: 5, screws: false })}<b class="display lg">${esc(o.code)}</b>`}
     </div>
     ${r.state === 'done'
-      ? `<p class="qo-line">${esc(o.customer.split(' ')[0])} · ${kg(o.weight)} kg · ${esc(o.created)}. Ambil di cabang sebelum 21.00, atau kami antar kalau mode Anda jemputan.</p>`
+      ? `<p class="qo-line">${esc(o.customer.split(' ')[0])} · ${kg(o.weight)} kg · ${esc(o.created)}. Ambil di cabang sebelum 17.30, atau pilih antar-jemput sore (17.00–21.00).</p>`
       : `<p class="qo-line">${esc(o.customer.split(' ')[0])} · ${kg(o.weight)} kg · ${esc(items)}</p>
          <p class="qo-stage"><span class="stage-pill s-${o.stage}"${o.live ? '' : ` data-live="order" data-id="${o.code}"`}>${esc(STAGES[o.stage].label)}</span>
             <b class="mono">siap sekitar <span${o.live ? '' : ` data-live="eta" data-id="${o.code}"`}>${esc(e.label)}</span></b>
@@ -173,7 +173,7 @@ function ldcPrice() {
 }
 
 VIEWS.landing = {
-  title: 'BUSA - Laundry Ops', kicker: 'Laundry antar-jemput · Bandung',
+  title: 'Laundry MAHA Dewi Mataram', kicker: 'Laundry antar-jemput · Mataram',
   render() {
     /* Papan publik selalu memakai /api/live agar tampilan sama di semua
        perangkat — baik pengunjung anonim maupun yang sedang login. */
@@ -185,16 +185,19 @@ VIEWS.landing = {
     const doneToday = (serverLive && typeof API.live.doneToday === 'number')
       ? API.live.doneToday
       : S.orders.filter((o) => o.stage === 8).length;
-    const stuck = S.orders.find((o) => o.stage === 0) || S.orders[0] || { code: 'BUSA-0000', stage: 0 };
+    const stuck = S.orders.find((o) => o.stage === 0) || S.orders[0] || { code: 'MD-0000', stage: 0 };
     const gallery = galleryShown();
     const loc = locOn() ? locInfo() : null;
     const locImg = loc ? locImage(loc) : null;
     const locHref = loc ? locLink(loc) : '';
     const locEmbed = (loc && !locImg) ? locEmbedUrl(loc) : '';
+    const locTel = (loc && loc.phone)
+      ? 'tel:+62' + String(loc.phone).replace(/^0/, '').replace(/\D/g, '')
+      : '';
     return `
     <header class="ld-nav">
-      <a class="ld-brand" href="#/" data-act="go" data-route="landing" aria-label="BUSA, halaman awal">
-        ${drumMarkup({ rpm: '7s', size: 26, state: 'run', rags: 4, screws: false })}<b>BUSA</b>
+      <a class="ld-brand" href="#/" data-act="go" data-route="landing" aria-label="MAHA Dewi, halaman awal">
+        <span class="brand-monogram" aria-hidden="true">MD</span><b>MAHA <span class="brand-word">DEWI</span></b>
       </a>
       <div class="ld-cta">
         <time class="ld-clock mono" id="ld-clock">--:--</time>
@@ -203,8 +206,8 @@ VIEWS.landing = {
       </div>
     </header>
 
-    <div class="ld-slider" id="ldSlider" role="region" aria-roledescription="carousel" aria-label="Enam babak BUSA Laundry">
-    <h1 class="sr-only">BUSA Laundry Ops — laundry antar-jemput di Bandung</h1>
+    <div class="ld-slider" id="ldSlider" role="region" aria-roledescription="carousel" aria-label="Enam babak Laundry MAHA Dewi Mataram">
+    <h1 class="sr-only">Laundry MAHA Dewi Mataram — laundry antar-jemput di Mataram</h1>
     <p class="sr-only" id="ldLive" aria-live="polite" aria-atomic="true"></p>
     <section class="act act-live ld-slide" id="a1" data-slide="0" role="group" aria-roledescription="slide" aria-label="Babak 1 dari 6: Sekarang">
       <div class="ld-inner">
@@ -234,9 +237,9 @@ VIEWS.landing = {
         <div class="live-col">
           <p class="mono lbl">Cek cucian Anda</p>
           <h3 class="display lg">Masukkan kodenya, lihat posisinya sekarang.</h3>
-          <p class="sb-lede">Kode ada di struk, bentuknya BUSA-0000. Ini panel yang sama yang dibaca kasir kami saat Anda menelepon.</p>
+          <p class="sb-lede">Kode ada di struk, bentuknya MD-0000. Ini panel yang sama yang dibaca kasir kami saat Anda menelepon.</p>
           <form class="quick-form" novalidate>
-            <input id="ldtk" class="in mono big" placeholder="BUSA-4471" autocomplete="off" spellcheck="false" aria-label="Kode pesanan">
+            <input id="ldtk" class="in mono big" placeholder="MD-4471" autocomplete="off" spellcheck="false" aria-label="Kode pesanan">
             <button class="btn primary" data-act="ld-track" type="submit">${icon('search')} Cek</button>
           </form>
           <div class="quick-try">
@@ -345,14 +348,14 @@ VIEWS.landing = {
           <div class="gal-view">
             ${gallery.map((it, i) => `
               <div class="gal-shot ${i === 0 ? 'on' : ''}">
-                <img src="${gallerySrc(it)}" alt="${esc(it.label || 'Foto BUSA Laundry')}"${i === 0 ? '' : ' loading="lazy"'}>
+                <img src="${gallerySrc(it)}" alt="${esc(it.label || 'Foto MAHA Dewi')}"${i === 0 ? '' : ' loading="lazy"'}>
               </div>`).join('')}
           </div>
           ${gallery.length > 1 ? `
             <button class="gal-nav prev" data-act="gal-prev" aria-label="Foto sebelumnya">${icon('chev')}</button>
             <button class="gal-nav next" data-act="gal-next" aria-label="Foto berikutnya">${icon('chev')}</button>
             <div class="gal-dots">${gallery.map((_, i) => `<button class="gal-dot ${i === 0 ? 'on' : ''}" data-act="gal-go" data-i="${i}" aria-label="Foto ${i + 1}"></button>`).join('')}</div>` : ''}
-          <figcaption class="mono" id="gal-cap">${esc(gallery.length ? galleryCaption(gallery[0]) : 'BUSA Laundry Ops')}</figcaption>
+          <figcaption class="mono" id="gal-cap">${esc(gallery.length ? galleryCaption(gallery[0]) : 'Laundry MAHA Dewi Mataram')}</figcaption>
         </figure>
         <div>
           <p class="mono act-name">Babak lima · angka</p>
@@ -383,13 +386,13 @@ VIEWS.landing = {
         </div>
         <form class="signup" data-act="ld-form" autocomplete="off">
           <label class="fld"><span class="mono lbl">Nama</span><input class="in" id="ldname" placeholder="Rania" required></label>
-          <label class="fld"><span class="mono lbl">Telepon</span><input class="in mono" id="ldtel" type="tel" placeholder="0812 7781 4402" required></label>
-          <label class="fld"><span class="mono lbl">Kecamatan</span>
+          <label class="fld"><span class="mono lbl">Telepon</span><input class="in mono" id="ldtel" type="tel" placeholder="0895 3193 3194" required></label>
+          <label class="fld"><span class="mono lbl">Kecamatan / kelurahan</span>
             <div class="ar-check">
-              <input class="in mono" id="arq" placeholder="Buahbatu" data-act="area-input" aria-label="Cek area">
+              <input class="in mono" id="arq" placeholder="Pagutan" data-act="area-input" aria-label="Cek area">
               <button class="btn sm" data-act="area-check" type="button">${icon('pin')} Cek</button>
             </div>
-            <p class="ar-out" id="arout">Tulis kecamatan untuk melihat sisa slot hari ini.</p></label>
+            <p class="ar-out" id="arout">Tulis kecamatan atau kelurahan untuk melihat sisa slot hari ini.</p></label>
           <div class="signup-sum">
             <span class="mono">${esc(ldcPrice().s.name)} · <b id="ld-sum-w">${kg(LDC.weight)}</b> kg · <b id="ld-slot">${esc(LDC.slot)}</b></span>
             <b class="num" id="ld-sum-price">${rp(ldcPrice().total)}</b>
@@ -402,30 +405,34 @@ VIEWS.landing = {
       <section class="find-us">
         <div class="find-copy">
           <p class="mono act-name">Atau datang langsung</p>
-          <h3 class="display xl">${esc(loc.name || 'BUSA Laundry')}</h3>
+          <h3 class="display xl">${esc(loc.name || 'Laundry MAHA Dewi Mataram')}</h3>
           ${loc.address ? `<p class="lede sm">${esc(loc.address)}</p>` : ''}
-          ${(loc.hours || loc.phone) ? `
+          ${loc.hours ? `
           <p class="find-meta mono">
-            ${loc.hours ? `${icon('clock')}<span>${esc(loc.hours)}</span>` : ''}
-            ${(loc.hours && loc.phone) ? '<i>·</i>' : ''}
-            ${loc.phone ? `${icon('phone')}<span>${esc(loc.phone)}</span>` : ''}
+            ${icon('clock')}<span>${esc(loc.hours)}</span>
+          </p>` : ''}
+          ${(loc.pickupHours || loc.phone) ? `
+          <p class="find-meta mono">
+            ${loc.pickupHours ? `${icon('truck')}<span>${esc(loc.pickupHours)}</span>` : ''}
+            ${(loc.pickupHours && loc.phone) ? '<i>·</i>' : ''}
+            ${loc.phone ? `${icon('phone')}<a href="${esc(locTel)}">${esc(loc.phone)}</a>` : ''}
           </p>` : ''}
           <a class="btn primary" href="${esc(locHref)}" target="_blank" rel="noopener">${icon('pin')} Buka di Google Maps</a>
         </div>
         ${locImg ? `
         <a class="find-map" href="${esc(locHref)}" target="_blank" rel="noopener" aria-label="Buka lokasi di peta (tab baru)">
-          <img src="${locImg}" alt="Peta lokasi ${esc(loc.name || 'BUSA Laundry')}" loading="lazy">
+          <img src="${locImg}" alt="Peta lokasi ${esc(loc.name || 'Laundry MAHA Dewi Mataram')}" loading="lazy">
           <span class="find-tag mono">${icon('pin')} Lihat di peta</span>
         </a>` : `
         <div class="find-map live">
-          <iframe src="${esc(locEmbed)}" title="Peta lokasi ${esc(loc.name || 'BUSA Laundry')}" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+          <iframe src="${esc(locEmbed)}" title="Peta lokasi ${esc(loc.name || 'Laundry MAHA Dewi Mataram')}" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
           <span class="find-load mono" aria-hidden="true">${icon('pin')} Memuat peta…</span>
           <a class="find-tag mono" href="${esc(locHref)}" target="_blank" rel="noopener">${icon('pin')} Buka di Google Maps</a>
         </div>`}
       </section>` : ''}
       <div class="colophon">
-        <p class="mono fine">BUSA Laundry Ops · Buahbatu, Bandung · 07.00–21.00 setiap hari · 0812-7781-4402</p>
-        <p class="mono fine">© ${new Date().getFullYear()} · BUSA Laundry Ops — operasional cabang Buahbatu, Bandung.</p>
+        <p class="mono fine">Laundry MAHA Dewi Mataram · Mataram, NTB · Sen–Kam &amp; Sab 09.00–17.30 · Jum 09.00–17.00 · Min tutup · antar-jemput 17.00–21.00 · 0895-3193-3194</p>
+        <p class="mono fine">© ${new Date().getFullYear()} · Laundry MAHA Dewi Mataram — operasional cabang Mataram, Nusa Tenggara Barat.</p>
         <p class="mono fine colophon-legal">
           <a href="./privasi">Kebijakan privasi</a>
           <span aria-hidden="true">·</span>
@@ -576,7 +583,7 @@ function ldSubmit() {
   const name = ((qs('#ldname') || {}).value || '').trim();
   const tel = ((qs('#ldtel') || {}).value || '').trim();
   if (!name || !tel) { toast({ title: 'Nama dan telepon dulu', msg: 'Dua kolom pertama wajib diisi.', tone: 'red', icon: 'alert', ms: 2600 }); return; }
-  if (!/^0\d{9,13}$/.test(tel.replace(/[\s-]/g, ''))) { toast({ title: 'Nomor belum pas', msg: 'Contoh yang kami kenali: 081277814402.', tone: 'red', icon: 'phone', ms: 3200 }); return; }
+  if (!/^0\d{9,13}$/.test(tel.replace(/[\s-]/g, ''))) { toast({ title: 'Nomor belum pas', msg: 'Contoh yang kami kenali: 089531933194.', tone: 'red', icon: 'phone', ms: 3200 }); return; }
   const p = ldcPrice();
   S.cart = newCart();
   S.cart.items[LDC.svc] = p.s.unit === 'kg' ? LDC.weight : Math.max(1, Math.round(LDC.weight / 3));
@@ -619,13 +626,13 @@ function paintLDC() {
 function areaCheck(name) {
   const out = qs('#arout'); if (!out) return;
   const q = String(name || '').trim().toLowerCase();
-  if (!q) { out.textContent = 'Tulis nama kecamatan dulu.'; out.className = 'ar-out'; return; }
+  if (!q) { out.textContent = 'Tulis nama kecamatan atau kelurahan dulu.'; out.className = 'ar-out'; return; }
   const hit = SEED.areas.find((a) => a.kec.toLowerCase().includes(q) || a.kode.toLowerCase().includes(q));
   if (hit) {
     out.innerHTML = `<b>${esc(hit.kec)}</b> terlayani · jemput <b>${esc(hit.eta)}</b> · <b>${hit.slot}</b> slot hari ini`;
     out.className = 'ar-out ok t-mint';
   } else {
-    out.innerHTML = `<b>“${esc(name)}”</b> di luar radius 8 km. Titipkan lewat kurir tetangga, atau ambil di cabang Buahbatu.`;
+    out.innerHTML = `<b>“${esc(name)}”</b> di luar radius 8 km. Titipkan lewat kurir tetangga, atau ambil di cabang Mataram.`;
     out.className = 'ar-out no t-red';
   }
 }

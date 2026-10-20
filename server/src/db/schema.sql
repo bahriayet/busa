@@ -1,4 +1,4 @@
--- BUSA Laundry Ops — skema PostgreSQL (Neon).
+-- MAHA Dewi Laundry Ops — skema PostgreSQL (Neon).
 --
 -- `order_events` adalah sumber kebenaran: append-only, bernomor urut, dan
 -- setiap perubahan tahap cucian harus lewat satu baris di sana. Tabel `orders`

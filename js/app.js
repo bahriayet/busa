@@ -74,10 +74,10 @@ let S = {
   promos: SEED.promos,
   settings: { push: true, sms: false, promo: true, protect: true, sortKey: 'total', range: 14, pindaiSaja: false },
   notifs: [
-    { id: 'n1', tone: 'mint', icon: 'star', title: 'BUSA-4469 siap diambil', msg: 'Kode rak C-07 · berlaku 3 hari', at: '10:12', read: false },
-    { id: 'n2', tone: 'orange', icon: 'bolt', title: 'Express BUSA-4467 jalan', msg: 'Didahulukan di M-03, ETA 15:20', at: '09:51', read: false },
-    { id: 'n3', tone: 'red', icon: 'alert', title: 'QC menandai 1 item', msg: 'Noda kopi BUSA-4463 masuk treatment ulang', at: '09:33', read: false },
-    { id: 'n4', tone: 'lilac', icon: 'spark', title: 'Cashback 5% masuk', msg: rp(12400) + ' kembali ke Dompet BUSA', at: 'Kemarin', read: true },
+    { id: 'n1', tone: 'mint', icon: 'star', title: 'MD-4469 siap diambil', msg: 'Kode rak C-07 · berlaku 3 hari', at: '10:12', read: false },
+    { id: 'n2', tone: 'orange', icon: 'bolt', title: 'Express MD-4467 jalan', msg: 'Didahulukan di M-03, ETA 15:20', at: '09:51', read: false },
+    { id: 'n3', tone: 'red', icon: 'alert', title: 'QC menandai 1 item', msg: 'Noda kopi MD-4463 masuk treatment ulang', at: '09:33', read: false },
+    { id: 'n4', tone: 'lilac', icon: 'spark', title: 'Cashback 5% masuk', msg: rp(12400) + ' kembali ke Dompet MAHA Dewi', at: 'Kemarin', read: true },
   ],
   chat: SEED.chat.map((c) => ({ ...c })),
   cart: null,
@@ -293,7 +293,7 @@ function qrisDownload() {
   const ext = /svg/i.test(src) ? 'svg' : m ? m[1].replace('jpeg', 'jpg') : 'png';
   const a = document.createElement('a');
   a.href = src;
-  a.download = 'qris-busa.' + ext;
+  a.download = 'qris-maha-dewi.' + ext;
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -393,23 +393,31 @@ function galleryItems() {
 /** Foto yang tampil di situs — kalau galeri kosong, pakai satu contoh. */
 function galleryShown() {
   const items = galleryItems();
-  return items.length ? items : [{ seed: 'laundry-drum-interior', label: 'BUSA Laundry Ops' }];
+  return items.length ? items : [{ seed: 'laundry-drum-interior', label: 'Laundry MAHA Dewi Mataram' }];
 }
 function gallerySrc(it) {
   return (it && it.dataUrl) ? it.dataUrl
-    : 'https://picsum.photos/seed/' + encodeURIComponent((it && it.seed) || 'busa') + '/900/1100';
+    : 'https://picsum.photos/seed/' + encodeURIComponent((it && it.seed) || 'mahadewi') + '/900/1100';
 }
 function galleryCaption(it) {
   const label = it && it.label ? String(it.label) : '';
   const meta = it && it.meta ? String(it.meta) : '';
-  return label && meta ? label + ' · ' + meta : (label || meta || 'BUSA Laundry Ops');
+  return label && meta ? label + ' · ' + meta : (label || meta || 'Laundry MAHA Dewi Mataram');
 }
 
 /* ── LOKASI & PETA SITUS ──────────────────────────────── */
 
 /** Data lokasi aktif: dari server/lokal, fallback contoh. */
 function locInfo() {
-  if (S.location && typeof S.location === 'object' && !Array.isArray(S.location)) return S.location;
+  if (S.location && typeof S.location === 'object' && !Array.isArray(S.location)) {
+    /* Transisi rebrand: database lama masih menyimpan lokasi BUSA. Tampilkan
+       lokasi MAHA Dewi sampai admin menyimpan ulang dari panel Lokasi. */
+    const old = `${S.location.name || ''} ${S.location.address || ''} ${S.location.url || ''}`;
+    if (/BUSA|Buahbatu|Bandung/i.test(old)) {
+      return (SEED.location && typeof SEED.location === 'object') ? SEED.location : S.location;
+    }
+    return S.location;
+  }
   return (SEED.location && typeof SEED.location === 'object') ? SEED.location : {};
 }
 
@@ -424,14 +432,14 @@ function locLink(it) {
   const l = it || locInfo();
   if (l.url) return String(l.url);
   const q = [l.name, l.address].filter(Boolean).join(' ');
-  return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q || 'BUSA Laundry');
+  return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q || 'Laundry MAHA Dewi Mataram');
 }
 
 /** Peta Google tertanam (tanpa kunci API): dipakai bila belum ada gambar peta. */
 function locEmbedUrl(it) {
   const l = it || locInfo();
   const q = [l.name, l.address].filter(Boolean).join(' ');
-  return 'https://www.google.com/maps?q=' + encodeURIComponent(q || 'BUSA Laundry') + '&z=15&hl=id&output=embed';
+  return 'https://www.google.com/maps?q=' + encodeURIComponent(q || 'Laundry MAHA Dewi Mataram') + '&z=15&hl=id&output=embed';
 }
 
 /** Bagian lokasi tampil di situs? Ikuti saklar admin; sembunyikan bila kosong. */
@@ -559,7 +567,7 @@ function render(animate = true) {
   const kicker = typeof meta.kicker === 'function' ? meta.kicker() : meta.kicker;
   qs('#route-title').textContent = title;
   qs('#route-kicker').textContent = kicker;
-  document.title = title + ' — BUSA';
+  document.title = /MAHA Dewi/i.test(title) ? title : title + ' — MAHA Dewi';
   qs('#view').innerHTML = meta.render();
   renderNav();
   renderTicker();
@@ -586,7 +594,7 @@ VIEWS.loginC = {
         <div class="login-head">
           ${icon('user', 'big-ico')}
           <h2 class="display xl">Portal Pelanggan</h2>
-          <p class="lede sm">Masuk dengan nomor telepon yang terdaftar di BUSA.</p>
+          <p class="lede sm">Masuk dengan nomor telepon yang terdaftar di MAHA Dewi.</p>
         </div>
         <form class="login-form" data-act="login-customer-form">
           <label class="field">
@@ -630,7 +638,7 @@ VIEWS.loginA = {
         <div class="login-head">
           ${icon('sliders', 'big-ico')}
           <h2 class="display xl">Portal Admin</h2>
-          <p class="lede sm">Masuk dengan username staf atau admin BUSA.</p>
+          <p class="lede sm">Masuk dengan username staf atau admin MAHA Dewi.</p>
         </div>
         <form class="login-form" data-act="login-admin-form">
           <label class="field">
@@ -673,7 +681,7 @@ VIEWS.register = {
         <div class="login-head">
           ${icon('plus', 'big-ico')}
           <h2 class="display xl">Daftar Akun</h2>
-          <p class="lede sm">Buat akun pelanggan BUSA untuk mulai memesan.</p>
+          <p class="lede sm">Buat akun pelanggan MAHA Dewi untuk mulai memesan.</p>
         </div>
         <form class="login-form" data-act="register-form">
           <label class="field">
@@ -967,7 +975,7 @@ function orderStep1() {
         </div>
         ${c.mode === 'pickup' ? `<div class="addr-pick">${S.addresses.map((a) => `
           <label class="addr ${c.addr === a.id ? 'on' : ''}"><input type="radio" name="addr" hidden data-act="addr" data-id="${a.id}" ${c.addr === a.id ? 'checked' : ''}>
-            <b>${esc(a.tag)}</b><p>${esc(a.label)}</p></label>`).join('')}</div>` : `<p class="hint">${icon('pin')} Cabang Buahbatu · Jl. Soekarno-Ha No. 44, buka 07.00–21.00.</p>`}
+            <b>${esc(a.tag)}</b><p>${esc(a.label)}</p></label>`).join('')}</div>` : `<p class="hint">${icon('pin')} Cabang Mataram · Jl. Pantai Senggigi No.43, Pagutan · buka 09.00–17.30, antar-jemput 17.00–21.00.</p>`}
       </div>
       <div class="field">
         <p class="mono lbl">Tanggal ${c.mode === 'pickup' ? 'penjemputan' : 'menitipkan'}</p>
@@ -997,7 +1005,7 @@ function orderStep2() {
   return `
     <h2 class="display xl">Kode promo & bayar</h2>
     <div class="promo-row">
-      <input class="in mono" data-act="promo-input" value="${esc(c.code)}" placeholder="BUSA10" aria-label="Kode promo">
+      <input class="in mono" data-act="promo-input" value="${esc(c.code)}" placeholder="MAHA10" aria-label="Kode promo">
       <button class="btn" data-act="promo-apply">${icon('tag')} Pakai</button>
     </div>
     <div class="promo-hints">${S.promos.map((p) => `
@@ -1013,14 +1021,14 @@ function orderStep2() {
       </div>
       ${c.pay === 'qris' ? `
         <div class="qris-box">
-          <img id="qris-img" src="${qrisSrc()}" alt="Kode QRIS BUSA">
+          <img id="qris-img" src="${qrisSrc()}" alt="Kode QRIS MAHA Dewi">
           <div>
             <b class="display lg">Scan & bayar ${rp(r.total)}</b>
             <p>Buka aplikasi e-wallet atau m-banking, pindai QR di samping, lalu masukkan nominal <b>${rp(r.total)}</b>. Tunjukkan bukti pembayaran ke kurir atau kasir saat penjemputan.</p>
             ${qrisIsCustom() ? `
               <div class="qris-acts">
                 <button class="btn ghost sm" data-act="qris-download">${icon('download')} Unduh QRIS</button>
-                <span class="mono fine">QRIS resmi BUSA${S.qris.updatedAt ? ' · diperbarui ' + qrisDate(S.qris.updatedAt) : ''}</span>
+                <span class="mono fine">QRIS resmi MAHA Dewi${S.qris.updatedAt ? ' · diperbarui ' + qrisDate(S.qris.updatedAt) : ''}</span>
               </div>` : `
               <p class="mono fine">QRIS resmi belum diunggah admin — tanyakan kasir bila QR ini belum berlaku.</p>`}
           </div>
@@ -1038,7 +1046,7 @@ function orderStep2() {
 
 function orderSuccess() {
   const o = S.orders.find((x) => x.code === S.cart.created) || S.orders[0]
-    || { code: S.cart.created || 'BUSA-0000', stage: 0, weight: 0, mode: 'pickup', slot: { date: '—', time: '—' } };
+    || { code: S.cart.created || 'MD-0000', stage: 0, weight: 0, mode: 'pickup', slot: { date: '—', time: '—' } };
   return `
   <div class="success" data-reveal>
     <div class="ok-drums">
@@ -1061,7 +1069,7 @@ function receiptHTML() {
   const lines = r.lines.map((l) => `<tr><td>${esc(l.n)}<i class="mono"> · ${kg(l.q)} ${esc(l.unit)}</i></td><td class="mono num">${rp(l.amt)}</td></tr>`).join('');
   return `<div class="receipt" data-reveal>
     <div class="rc-perf"></div>
-    <header class="rc-top"><b class="display">BUSA</b><span class="mono">kwitansi sementara</span></header>
+    <header class="rc-top"><b class="display">MAHA DEWI</b><span class="mono">kwitansi sementara</span></header>
     ${r.lines.length ? `<table class="rc-table"><tbody>${lines}</tbody></table>`
       : `<p class="rc-empty mono">Belum ada layanan dipilih.<br>Kwitansi mengisi sendiri saat Anda mencentang.</p>`}
     <div class="rc-rows">
@@ -1208,7 +1216,7 @@ VIEWS.lacak = {
     const o = trackCode ? visibleOrders().find((x) => x.code.toUpperCase() === trackCode.toUpperCase()) : null;
     if (trackCode && !o) {
       return `<div class="empty-state">${icon('search', 'big-ico')}<h2 class="display">Kode tidak ditemukan</h2>
-        <p class="lede">“${esc(trackCode)}” ${S.portal === 'c' ? 'bukan bagian dari pesanan Anda' : 'tidak terdaftar'}. Cek kembali — format kami BUSA-0000.</p>
+        <p class="lede">“${esc(trackCode)}” ${S.portal === 'c' ? 'bukan bagian dari pesanan Anda' : 'tidak terdaftar'}. Cek kembali — format kami MD-0000.</p>
         <div class="try-row">${visibleOrders().slice(0, 3).map((x) => `<button class="chip mono" data-act="try" data-code="${x.code}">${x.code}</button>`).join('')}</div></div>`;
     }
     if (!o) {
@@ -1217,7 +1225,7 @@ VIEWS.lacak = {
         <p class="mono kicker">Tanya apa pun soal cucian yang sedang jalan</p>
         <h2 class="display hero">Di mana kemeja saya?</h2>
         <form class="track-form" data-act="track-form">
-          <input class="in big mono" data-act="track-input" value="${esc(trackCode)}" placeholder="BUSA-4470" aria-label="Kode pesanan">
+          <input class="in big mono" data-act="track-input" value="${esc(trackCode)}" placeholder="MD-4470" aria-label="Kode pesanan">
           <button class="btn primary big" type="submit">${icon('search')} Lacak</button>
         </form>
         <div class="try-row"><span class="mono lbl">Punya pesanan aktif:</span>
@@ -1353,7 +1361,7 @@ VIEWS.statistik = {
       <p class="lede sm">Tujuh kali order, satu kilogram cuci gratis. Stempel bertambah otomatis saat pesanan berstatus Selesai.</p>
       <div class="ref">
         <p class="mono lbl">Kode referralsaya</p>
-        <div class="ref-row"><b class="mono">BUSA-RANIA-7742</b><button class="btn-icon" data-act="copy" data-v="BUSA-RANIA-7742" aria-label="Salin">${icon('copy')}</button></div>
+        <div class="ref-row"><b class="mono">MD-RANIA-7742</b><button class="btn-icon" data-act="copy" data-v="MD-RANIA-7742" aria-label="Salin">${icon('copy')}</button></div>
         <p class="mono fine">Teman mendapat Rp 25.000, Anda dapat 1 stempel.</p>
       </div>
     </section>
@@ -1435,7 +1443,7 @@ function exportCSV() {
   const csv = [head, ...rows].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\r\n');
   const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
   const a = document.createElement('a');
-  a.href = url; a.download = `busa-pesanan-${todayISO()}.csv`; a.click();
+  a.href = url; a.download = `maha-dewi-pesanan-${todayISO()}.csv`; a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1500);
   toast({ title: 'CSV diunduh', msg: rows.length + ' baris pesanan', tone: 'mint', icon: 'download' });
 }
@@ -1452,7 +1460,7 @@ function exportRevenueCSV() {
   const csv = [head, ...rows].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\r\n');
   const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
   const a = document.createElement('a');
-  a.href = url; a.download = `busa-pendapatan-${todayISO()}.csv`; a.click();
+  a.href = url; a.download = `maha-dewi-pendapatan-${todayISO()}.csv`; a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1500);
   toast({ title: 'CSV pendapatan diunduh', msg: n + ' hari terakhir', tone: 'mint', icon: 'download' });
 }
@@ -1522,7 +1530,7 @@ VIEWS.setelan = {
           <button class="btn ghost sm" data-act="export-json">${icon('box')} Cadangkan JSON</button>
           <button class="btn danger sm" data-act="reset-all">${icon('alert')} Reset ke data contoh</button>
         </div>
-        <p class="mono fine mt">Versi BUSA Ops 1.0 · ${S.orders.length} pesanan · ${S.events.length} event lantai.</p>
+        <p class="mono fine mt">Versi MAHA Dewi Ops 1.0 · ${S.orders.length} pesanan · ${S.events.length} event lantai.</p>
       </div>
     </section>`;
   },
@@ -1595,13 +1603,13 @@ function closePalette() { const r = qs('#modalRoot'); r.classList.remove('on'); 
 
 const CHAT_REPLIES = {
   harga: 'Cuci + Setrika Rp 8.000/kg, minimum 3 kg. Bedcover Rp 40.000/pcs. Cuci kering mulai Rp 35.000/item.',
-  jam: 'Shift kami 07.00–21.00. Express 6 jam hanya untuk penjemputan sebelum 12.00.',
+  jam: 'Kami buka Senin–Kamis dan Sabtu 09.00–17.30, Jumat 09.00–17.00, Minggu tutup. Antar-jemput Senin–Sabtu 17.00–21.00. Express 6 jam untuk penjemputan sebelum 18.00.',
   noda: 'Treatment noda Rp 4.000/kg, pakai enzimatik + uap. Noda kunyit dan kopi naik 94% pada linen katun.',
   kurir: 'Antar-jemput gratis di atas Rp 80.000 dalam radius 8 km. Di bawah itu Rp 12.000 sekali jalan.',
 };
 function openChat() {
   openDrawer(`
-    <header class="dr-head"><div class="chat-id"><i class="av bot">${icon('drum')}</i><div><b class="display">Bantuan BUSA</b><p class="mono fine">balasan rata-rata 40 detik</p></div></div>
+    <header class="dr-head"><div class="chat-id"><i class="av bot">${icon('drum')}</i><div><b class="display">Bantuan MAHA Dewi</b><p class="mono fine">balasan rata-rata 40 detik</p></div></div>
       <button class="btn-icon" data-act="drawer-close" aria-label="Tutup">${icon('x')}</button></header>
     <div class="chat-log" id="chatlog"></div>
     <div class="chat-quick">${Object.entries({ 'Cek harga': 'harga', 'Jam operasional': 'jam', 'Soal noda': 'noda', 'Kurir': 'kurir' }).map(([l, k]) => `<button class="chip" data-act="chat-q" data-k="${k}">${esc(l)}</button>`).join('')}</div>
@@ -1610,7 +1618,7 @@ function openChat() {
 }
 function paintChat() {
   const log = qs('#chatlog'); if (!log) return;
-  log.innerHTML = S.chat.map((m, i) => `<div class="msg ${m.from}" style="--i:${i}"><p>${esc(m.text)}</p>${m.q ? `<button class="lnk" data-act="chat-add">Tambahkan ke BUSA-4466</button>` : ''}</div>`).join('');
+  log.innerHTML = S.chat.map((m, i) => `<div class="msg ${m.from}" style="--i:${i}"><p>${esc(m.text)}</p>${m.q ? `<button class="lnk" data-act="chat-add">Tambahkan ke MD-4466</button>` : ''}</div>`).join('');
   log.scrollTop = log.scrollHeight;
 }
 
@@ -1673,7 +1681,7 @@ function submitOrder() {
   if (!r.lines.length) { toast({ title: 'Belum ada layanan', msg: 'Centang minimal satu layanan.', tone: 'red', icon: 'alert' }); return; }
   if (kgTotal() > 0 && kgTotal() < 3) { toast({ title: 'Di bawah minimum', msg: 'Cucian per kg minimal 3 kg.', tone: 'red', icon: 'alert' }); return; }
   if (typeof API !== 'undefined' && API.on && isAuthed()) { apiSubmitOrder(c, r); return; }
-  const code = 'BUSA-' + S.seq++;
+  const code = 'MD-' + S.seq++;
   const items = Object.entries(c.items).filter(([, q]) => q > 0).map(([id, qty]) => ({ id, qty }));
   const o = {
     code, customer: 'Rania Sekar', phone: '0812-7781-4402', stage: 0, weight: Math.round((kgTotal() + unitTotal()) * 10) / 10,
@@ -2079,7 +2087,7 @@ document.addEventListener('click', (e) => {
     case 'export-revenue': exportRevenueCSV(); break;
     case 'export-json': {
       const url = URL.createObjectURL(new Blob([JSON.stringify(S, null, 2)], { type: 'application/json' }));
-      const lnk = document.createElement('a'); lnk.href = url; lnk.download = 'busa-backup.json'; lnk.click();
+      const lnk = document.createElement('a'); lnk.href = url; lnk.download = 'maha-dewi-backup.json'; lnk.click();
       setTimeout(() => URL.revokeObjectURL(url), 1500);
       toast({ title: 'Cadangan JSON diunduh', tone: 'mint', icon: 'box' });
       break;
@@ -2111,7 +2119,7 @@ document.addEventListener('click', (e) => {
       const inp = qs('[data-act="promo-input"]');
       S.cart.code = (inp ? inp.value : '').toUpperCase();
       const p = S.promos.find((x) => x.code === S.cart.code);
-      toast(p ? { title: p.label + ' aktif', msg: p.terms, tone: 'mint', icon: 'spark' } : { title: 'Kode tidak dikenal', msg: 'Coba BUSA10, KURIRHEMAT, atau SPREI2', tone: 'red', icon: 'alert' });
+      toast(p ? { title: p.label + ' aktif', msg: p.terms, tone: 'mint', icon: 'spark' } : { title: 'Kode tidak dikenal', msg: 'Coba MAHA10, KURIRHEMAT, atau SPREI2', tone: 'red', icon: 'alert' });
       render(); break;
     }
     case 'submit': submitOrder(); break;
@@ -2513,7 +2521,7 @@ function boot() {
   const padCode = (n) => String(n).padStart(4, '0');
   if (!Array.isArray(S.orders)) S.orders = SEED.orders.map((o) => ({ ...o }));
   S.orders = S.orders.filter((o) => o && typeof o === 'object').map((o, i) => Object.assign({
-    code: 'BUSA-' + padCode(1000 + i),
+    code: 'MD-' + padCode(1000 + i),
     customer: 'Pelanggan',
     stage: 0,
     total: 0,

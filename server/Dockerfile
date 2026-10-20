@@ -1,4 +1,4 @@
-# Backend BUSA — image universal untuk Render/Fly/VPS.
+# Backend MAHA Dewi Laundry Ops — image universal untuk Render/Fly/VPS.
 # Node 24+ menjalankan TypeScript langsung (type stripping), tanpa build step.
 FROM node:24-alpine
 

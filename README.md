@@ -1,7 +1,10 @@
-# BUSA Laundry Ops
+# MAHA Dewi Laundry Ops
 
-Panel operasional laundry + halaman situs publik dengan slider enam babak.
+Panel operasional **Laundry MAHA Dewi Mataram** + halaman situs publik dengan slider enam babak.
 Frontend statis (HTML/CSS/JS), backend Fastify + PostgreSQL, realtime via WebSocket.
+
+Alamat: Jl. Pantai Senggigi No.43, Pagutan Bar., Kec. Mataram, Kota Mataram, NTB 83117 · Telepon: 0895-3193-3194
+Jam buka: Senin–Kamis & Sabtu 09.00–17.30, Jumat 09.00–17.00, Minggu tutup · Antar-jemput: Senin–Sabtu 17.00–21.00.
 
 ## Fitur
 
@@ -25,7 +28,7 @@ syarat.html           Syarat & Ketentuan (publik, statis)
 css/app.css           seluruh gaya aplikasi (landing, portal, admin)
 css/legal.css         gaya halaman legal
 js/                   config, data seed, ui, app, api, landing, motion, views.*, scan
-img/                  aset situs (poster, slide 01-05 + varian mobile/thumbnail)
+img/                  aset situs (slide 01-05 + varian mobile/thumbnail)
 server/               API Fastify (routes, db repo, seed, test)
 e2e/                  test E2E Playwright + server statis
 render.yaml           blueprint backend Render
@@ -81,6 +84,10 @@ di domain online alamat backend diambil dari
 | `BUSA_PORT` / `PORT` | port server (default 8080) |
 | `BUSA_SERVE_STATIC` | `true` = server ikut menyajikan frontend |
 | `BUSA_SIMULATE` | `true` hanya untuk demo (tahap bergerak otomatis) |
+
+> Nama variabel lingkungan `BUSA_*`, nama meta `busa-api-base`, dan domain API lama
+> dipertahankan agar deployment yang sudah berjalan tetap kompatibel. Nama brand
+> yang tampil ke pengunjung sudah memakai MAHA Dewi.
 
 ## Deploy
 

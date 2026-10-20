@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Backend BUSA Laundry Ops — Fastify + Neon PostgreSQL, event-sourced floor state",
+  "description": "Backend MAHA Dewi Laundry Ops — Fastify + Neon PostgreSQL, event-sourced floor state",
   "license": "UNLICENSED",
   "engines": {
     "node": ">=24.0.0"

@@ -1,4 +1,4 @@
-/* Konfigurasi alamat backend BUSA.
+/* Konfigurasi alamat backend MAHA Dewi.
    - Sumber pertama: <meta name="busa-api-base"> di index.html — ganti backend
      cukup dengan mengubah satu baris itu, tanpa menyentuh JS.
    - Lokal (localhost / satu domain): kosong = relatif, backend menyajikan frontend.

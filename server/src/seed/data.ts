@@ -63,11 +63,11 @@ export const SEED_ADDONS: Addon[] = [
 ];
 
 export const SEED_MACHINES: Machine[] = [
-  { id: 'M-01', model: 'Front Load 12 kg', cap: 12, kind: 'wash', stage: 5, rpm: 5, temp: 62, load: 78, left: 22, ticket: 'BUSA-4470', state: 'run' },
-  { id: 'M-02', model: 'Front Load 18 kg', cap: 18, kind: 'wash', stage: 3, rpm: 8, temp: 41, load: 92, left: 47, ticket: 'BUSA-4468', state: 'run' },
-  { id: 'M-03', model: 'Top Load 9 kg', cap: 9, kind: 'wash', stage: 2, rpm: 11, temp: 34, load: 41, left: 31, ticket: 'BUSA-4467', state: 'run' },
-  { id: 'M-04', model: 'Dryer 15 kg', cap: 15, kind: 'dry', stage: 4, rpm: 3, temp: 71, load: 66, left: 14, ticket: 'BUSA-4463', state: 'hot' },
-  { id: 'M-05', model: 'Steam Press', cap: 6, kind: 'steam', stage: 6, rpm: 0, temp: 128, load: 24, left: 8, ticket: 'BUSA-4464', state: 'vent' },
+  { id: 'M-01', model: 'Front Load 12 kg', cap: 12, kind: 'wash', stage: 5, rpm: 5, temp: 62, load: 78, left: 22, ticket: 'MD-4470', state: 'run' },
+  { id: 'M-02', model: 'Front Load 18 kg', cap: 18, kind: 'wash', stage: 3, rpm: 8, temp: 41, load: 92, left: 47, ticket: 'MD-4468', state: 'run' },
+  { id: 'M-03', model: 'Top Load 9 kg', cap: 9, kind: 'wash', stage: 2, rpm: 11, temp: 34, load: 41, left: 31, ticket: 'MD-4467', state: 'run' },
+  { id: 'M-04', model: 'Dryer 15 kg', cap: 15, kind: 'dry', stage: 4, rpm: 3, temp: 71, load: 66, left: 14, ticket: 'MD-4463', state: 'hot' },
+  { id: 'M-05', model: 'Steam Press', cap: 6, kind: 'steam', stage: 6, rpm: 0, temp: 128, load: 24, left: 8, ticket: 'MD-4464', state: 'vent' },
   { id: 'M-06', model: 'Dry Clean 10 kg', cap: 10, kind: 'dryclean', stage: 0, rpm: 0, temp: 26, load: 0, left: 0, ticket: '—', state: 'idle' },
 ];
 
@@ -102,67 +102,67 @@ export interface SeedOrder {
 
 export const SEED_ORDERS: SeedOrder[] = [
   {
-    code: 'BUSA-4471', customer: 'Rania Sekar', phone: '0812-7781-4402', stage: 3, weight: 6.5, mode: 'pickup',
+    code: 'MD-4471', customer: 'Rania Sekar', phone: '0812-7781-4402', stage: 3, weight: 6.5, mode: 'pickup',
     items: [{ id: 'setrika', qty: 6.5 }], addons: ['premium'], pay: 'wallet', paid: true, priority: 'reguler',
-    slotDayOffset: -1, slotTime: '10:00–12:00', courier: '—', machine: 'M-03',
+    slotDayOffset: -1, slotTime: '19:00–20:00', courier: '—', machine: 'M-03',
     notes: 'Pisahkan baju bayi, jangan dicampur.', created: { dayOffset: 0, hh: 8, mm: 12 }, stageAgoMin: 34,
   },
   {
-    code: 'BUSA-4470', customer: 'Bagaswirawan', phone: '0811-2043-9987', stage: 7, weight: 11, mode: 'delivery',
+    code: 'MD-4470', customer: 'Bagaswirawan', phone: '0811-2043-9987', stage: 7, weight: 11, mode: 'delivery',
     items: [{ id: 'setrika', qty: 8 }, { id: 'bedcover', qty: 1 }, { id: 'kasar', qty: 3 }], addons: ['stain'],
-    pay: 'qris', paid: true, priority: 'express', slotDayOffset: -2, slotTime: '14:00–16:00',
+    pay: 'qris', paid: true, priority: 'express', slotDayOffset: -2, slotTime: '18:00–19:00',
     courier: 'Yudha P.', machine: 'M-01', notes: 'Bedcover motif daun, lipat jadi dua.',
     created: { dayOffset: -1, hh: 16, mm: 44 }, stageAgoMin: 18,
   },
   {
-    code: 'BUSA-4469', customer: 'Nadira Ayu Lestari', phone: '0857-3300-1188', stage: 8, weight: 4, mode: 'pickup',
+    code: 'MD-4469', customer: 'Nadira Ayu Lestari', phone: '0857-3300-1188', stage: 8, weight: 4, mode: 'pickup',
     items: [{ id: 'kering', qty: 2 }, { id: 'sepatu', qty: 1 }], addons: [], pay: 'wallet', paid: true,
-    priority: 'reguler', slotDayOffset: -3, slotTime: '08:00–10:00', courier: '—', machine: 'M-05',
+    priority: 'reguler', slotDayOffset: -3, slotTime: '18:00–19:00', courier: '—', machine: 'M-05',
     notes: '', collected: true, created: { dayOffset: -3, hh: 19, mm: 2 }, stageAgoMin: 240,
   },
   {
-    code: 'BUSA-4468', customer: 'Kantor Desa Mekarjaya', phone: '022-445-1177', stage: 5, weight: 28, mode: 'delivery',
+    code: 'MD-4468', customer: 'Kantor Desa Mekarjaya', phone: '022-445-1177', stage: 5, weight: 28, mode: 'delivery',
     items: [{ id: 'setrika', qty: 20 }, { id: 'steam', qty: 8 }], addons: ['vakum', 'stain'],
-    pay: 'cash', paid: false, priority: 'reguler', slotDayOffset: 0, slotTime: '07:00–09:00',
+    pay: 'cash', paid: false, priority: 'reguler', slotDayOffset: 0, slotTime: '17:00–18:00',
     courier: 'Sinta R.', machine: 'M-02', notes: 'Seragam ASN. Kerah harus rapi, kirim 3 dus.',
     created: { dayOffset: 0, hh: 6, mm: 30 }, stageAgoMin: 27,
   },
   {
-    code: 'BUSA-4467', customer: 'Tommy Halim', phone: '0819-6650-0021', stage: 2, weight: 7.2, mode: 'pickup',
+    code: 'MD-4467', customer: 'Tommy Halim', phone: '0819-6650-0021', stage: 2, weight: 7.2, mode: 'pickup',
     items: [{ id: 'setrika', qty: 7.2 }], addons: ['express'], pay: 'wallet', paid: true, priority: 'express',
-    slotDayOffset: -1, slotTime: '16:00–18:00', courier: '—', machine: 'M-04',
+    slotDayOffset: -1, slotTime: '19:00–20:00', courier: '—', machine: 'M-04',
     notes: 'Butuh sebelum acara 20:00.', created: { dayOffset: 0, hh: 9, mm: 40 }, stageAgoMin: 72,
   },
   {
-    code: 'BUSA-4466', customer: 'Aisyah Ramdhani', phone: '0813-2277-5590', stage: 1, weight: 3.4, mode: 'delivery',
+    code: 'MD-4466', customer: 'Aisyah Ramdhani', phone: '0813-2277-5590', stage: 1, weight: 3.4, mode: 'delivery',
     items: [{ id: 'bedcover', qty: 2 }], addons: [], pay: 'qris', paid: false, priority: 'reguler',
-    slotDayOffset: 1, slotTime: '10:00–12:00', courier: 'Yudha P.', machine: '—', notes: '',
+    slotDayOffset: 1, slotTime: '19:00–20:00', courier: 'Yudha P.', machine: '—', notes: '',
     created: { dayOffset: 0, hh: 10, mm: 5 }, stageAgoMin: 22,
   },
   {
-    code: 'BUSA-4465', customer: 'Hendra Wijaya', phone: '0878-1120-3345', stage: 0, weight: 15, mode: 'pickup',
+    code: 'MD-4465', customer: 'Hendra Wijaya', phone: '0878-1120-3345', stage: 0, weight: 15, mode: 'pickup',
     items: [{ id: 'setrika', qty: 10 }, { id: 'steam', qty: 5 }], addons: ['premium', 'stain'],
-    pay: 'cash', paid: false, priority: 'reguler', slotDayOffset: 1, slotTime: '12:00–14:00',
+    pay: 'cash', paid: false, priority: 'reguler', slotDayOffset: 1, slotTime: '20:00–21:00',
     courier: '—', machine: '—', notes: 'Baju kerja + sprei dua set.',
     created: { dayOffset: 0, hh: 10, mm: 58 }, stageAgoMin: 9,
   },
   {
-    code: 'BUSA-4464', customer: 'Kirana Buana', phone: '0812-9900-7733', stage: 8, weight: 9, mode: 'delivery',
+    code: 'MD-4464', customer: 'Kirana Buana', phone: '0812-9900-7733', stage: 8, weight: 9, mode: 'delivery',
     items: [{ id: 'setrika', qty: 9 }], addons: [], pay: 'wallet', paid: true, priority: 'reguler',
-    slotDayOffset: -4, slotTime: '08:00–10:00', courier: 'Sinta R.', machine: 'M-06', notes: '',
+    slotDayOffset: -4, slotTime: '18:00–19:00', courier: 'Sinta R.', machine: 'M-06', notes: '',
     collected: true, created: { dayOffset: -4, hh: 11, mm: 20 }, stageAgoMin: 900,
   },
   {
-    code: 'BUSA-4463', customer: 'Depot Kopi Tuku', phone: '0821-4477-0910', stage: 4, weight: 22, mode: 'delivery',
+    code: 'MD-4463', customer: 'Depot Kopi Tuku', phone: '0821-4477-0910', stage: 4, weight: 22, mode: 'delivery',
     items: [{ id: 'setrika', qty: 14 }, { id: 'bedcover', qty: 8 }], addons: ['stain'],
-    pay: 'cash', paid: true, priority: 'reguler', slotDayOffset: 0, slotTime: '16:00–18:00',
+    pay: 'cash', paid: true, priority: 'reguler', slotDayOffset: 0, slotTime: '19:00–20:00',
     courier: 'Bagas W.', machine: 'M-02', notes: 'Apron kena kopi, butuh treatment noda.',
     created: { dayOffset: 0, hh: 7, mm: 15 }, stageAgoMin: 96,
   },
   {
-    code: 'BUSA-4462', customer: 'Meilani Putri', phone: '0896-3312-8845', stage: 6, weight: 5.5, mode: 'pickup',
+    code: 'MD-4462', customer: 'Meilani Putri', phone: '0896-3312-8845', stage: 6, weight: 5.5, mode: 'pickup',
     items: [{ id: 'kering', qty: 5.5 }], addons: ['lipat'], pay: 'wallet', paid: true, priority: 'reguler',
-    slotDayOffset: -1, slotTime: '18:00–20:00', courier: '—', machine: 'M-05', notes: '',
+    slotDayOffset: -1, slotTime: '20:00–21:00', courier: '—', machine: 'M-05', notes: '',
     created: { dayOffset: -1, hh: 13, mm: 31 }, stageAgoMin: 41,
   },
 ];
@@ -188,10 +188,10 @@ export interface SeedTx {
 }
 
 export const SEED_TXNS: SeedTx[] = [
-  { id: 'TX-9921', type: 'pay', label: 'Bayar BUSA-4471', amount: -64000, dayOffset: -1, hh: 8, mm: 14, status: 'sukses' },
+  { id: 'TX-9921', type: 'pay', label: 'Bayar MD-4471', amount: -64000, dayOffset: -1, hh: 8, mm: 14, status: 'sukses' },
   { id: 'TX-9915', type: 'topup', label: 'Top up via GoPay', amount: 300000, dayOffset: -2, hh: 20, mm: 2, status: 'sukses' },
   { id: 'TX-9908', type: 'cashback', label: 'Cashback loyalitas 5%', amount: 12400, dayOffset: -3, hh: 17, mm: 30, status: 'sukses' },
-  { id: 'TX-9901', type: 'pay', label: 'Bayar BUSA-4464', amount: -72000, dayOffset: -4, hh: 12, mm: 5, status: 'sukses' },
+  { id: 'TX-9901', type: 'pay', label: 'Bayar MD-4464', amount: -72000, dayOffset: -4, hh: 12, mm: 5, status: 'sukses' },
   { id: 'TX-9894', type: 'refund', label: 'Refund treatment noda', amount: 15000, dayOffset: -5, hh: 9, mm: 44, status: 'diproses' },
   { id: 'TX-9887', type: 'topup', label: 'Transfer bank BCA', amount: 500000, dayOffset: -7, hh: 15, mm: 20, status: 'sukses' },
 ];
@@ -203,7 +203,7 @@ export const SEED_TXNS: SeedTx[] = [
  */
 export const SEED_PROMOS: Promo[] = [
   {
-    code: 'BUSA10', kind: 'pct', value: 10, cap: 20000, label: 'Potongan 10%',
+    code: 'MAHA10', kind: 'pct', value: 10, cap: 20000, label: 'Potongan 10%',
     terms: 'Maks. Rp 20.000 · min. 3 kg · tidak berlaku express', active: true,
     minKg: 3, minSub: 0, courierOnly: false, requiresService: [], excludesAddon: ['express'],
   },
@@ -220,14 +220,14 @@ export const SEED_PROMOS: Promo[] = [
 ];
 
 export const SEED_AREAS: Area[] = [
-  { kec: 'Buahbatu', eta: '2 jam', kode: 'BBU', slot: 6 },
-  { kec: 'Mandalajung', eta: '3 jam', kode: 'MDJ', slot: 5 },
-  { kec: 'Cicadas', eta: '3 jam', kode: 'CCA', slot: 4 },
-  { kec: 'Panyileukan', eta: '4 jam', kode: 'PNY', slot: 4 },
-  { kec: 'Cinambo', eta: '4 jam', kode: 'CNB', slot: 3 },
-  { kec: 'Arcamanik', eta: '5 jam', kode: 'ARM', slot: 5 },
-  { kec: 'Coblong', eta: '6 jam', kode: 'CBL', slot: 2 },
-  { kec: 'Sukajadi', eta: '6 jam', kode: 'SKJ', slot: 3 },
+  { kec: 'Pagutan', eta: '1 jam', kode: 'PGT', slot: 6 },
+  { kec: 'Mataram', eta: '1 jam', kode: 'MTR', slot: 6 },
+  { kec: 'Pagesangan', eta: '2 jam', kode: 'PGS', slot: 5 },
+  { kec: 'Cakranegara', eta: '2 jam', kode: 'CKR', slot: 5 },
+  { kec: 'Ampenan', eta: '3 jam', kode: 'AMP', slot: 4 },
+  { kec: 'Selaparang', eta: '3 jam', kode: 'SLP', slot: 4 },
+  { kec: 'Sekarbela', eta: '4 jam', kode: 'SKB', slot: 3 },
+  { kec: 'Sandubaya', eta: '4 jam', kode: 'SDB', slot: 3 },
 ];
 
 export const SEED_TIERS: Tier[] = [
@@ -249,12 +249,12 @@ export const SEED_TIERS: Tier[] = [
 ];
 
 export const SEED_ADDRESSES: { tag: string; label: string; def: boolean }[] = [
-  { tag: 'Rumah', label: 'Jl. Cendana Raya No. 12, Bandung 40115', def: true },
-  { tag: 'Kantor', label: 'Gedung Sabda Lt. 4, Jl. Riau No. 88', def: false },
+  { tag: 'Rumah', label: 'Jl. Cendana Raya No. 12, Mataram 83115', def: true },
+  { tag: 'Kantor', label: 'Gedung Sabda Lt. 4, Jl. Pejanggik No. 88, Mataram', def: false },
 ];
 
 export const SEED_CHAT: ChatMessage[] = [
-  { id: 'ch-1', from: 'bot', text: 'Selamat datang di BUSA. Ada yang bisa dibantu soal cucian hari ini?', at: '' },
+  { id: 'ch-1', from: 'bot', text: 'Selamat datang di MAHA Dewi. Ada yang bisa dibantu soal cucian hari ini?', at: '' },
   { id: 'ch-2', from: 'me', text: 'Paket bedcover saya bisa kena noda kunyit nggak?', at: '' },
   {
     id: 'ch-3', from: 'bot', at: '',
@@ -296,11 +296,13 @@ export const SEED_CONTENT: Record<string, unknown> = {
   ],
   location: {
     active: true,
-    name: 'BUSA Laundry — Cabang Buahbatu',
-    address: 'Jl. Buahbatu No. 108, Bandung 40286',
-    hours: '07.00–21.00 setiap hari',
-    phone: '0812-7781-4402',
-    url: 'https://www.google.com/maps/search/?api=1&query=BUSA+Laundry+Buahbatu+Bandung',
+    name: 'Laundry MAHA Dewi Mataram',
+    address: 'Jl. Pantai Senggigi No.43, Pagutan Bar., Kec. Mataram, Kota Mataram, Nusa Tenggara Bar. 83117, Indonesia',
+    plusCode: '94Q3+JR Pagutan Bar., Kota Mataram, Nusa Tenggara Bar., Indonesia',
+    hours: 'Sen–Kam 09.00–17.30 · Jum 09.00–17.00 · Sab 09.00–17.30 · Min tutup',
+    pickupHours: 'Antar-jemput Sen–Sab 17.00–21.00 · Min tutup',
+    phone: '0895-3193-3194',
+    url: 'https://www.google.com/maps/search/?api=1&query=Laundry+MAHA+Dewi+Mataram+Jl.+Pantai+Senggigi+No.43+Mataram',
     image: null,
   },
   slides: [null, null, null, null, null, null],

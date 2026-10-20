@@ -38,7 +38,7 @@ test.describe('Landing slider', () => {
     await mockPublicApi(page);
 
     await page.goto('/#/', { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('.ld-nav .ld-brand b')).toHaveText('BUSA');
+    await expect(page.locator('.ld-nav .ld-brand b')).toHaveText(/MAHA DEWI/);
     await expect(page.locator('.ld-thumbs .ld-thumb')).toHaveCount(6);
     await expect(page.locator('.ld-slider .act.on')).toHaveCount(1);
     await expect(page.locator('.ld-slider .act.on')).toHaveAttribute('id', 'a1');
@@ -138,6 +138,9 @@ test.describe('Landing slider', () => {
     const map = page.locator('#a6 .find-map');
     await expect(map).toBeVisible();
     await expect(map.locator('iframe')).toHaveAttribute('src', /google\.com\/maps/);
+    await expect(page.locator('#a6 .find-us')).toContainText('Laundry MAHA Dewi Mataram');
+    await expect(page.locator('#a6 .find-us')).toContainText('0895-3193-3194');
+    await expect(page.locator('#a6 .find-us')).toContainText(/antar-jemput/i);
 
     const mapBox = await map.boundingBox();
     const formBox = await page.locator('#a6 .signup').boundingBox();
@@ -165,7 +168,7 @@ test.describe('Landing slider', () => {
     const deck = page.locator('#ldSlider');
     await expect(deck).toHaveAttribute('role', 'region');
     await expect(deck).toHaveAttribute('aria-roledescription', 'carousel');
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText(/BUSA Laundry Ops/);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(/Laundry MAHA Dewi Mataram/);
 
     const active = page.locator('.ld-slider .act.on');
     const second = page.locator('#a2');

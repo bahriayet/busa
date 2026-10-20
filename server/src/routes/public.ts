@@ -76,7 +76,7 @@ export function registerPublicRoutes(app: FastifyInstance, db: Db, cfg: Config):
     return { ok: true, date, slots: await R.slotLoad(db, date) };
   });
 
-  /* Kode pesanan berurutan (BUSA-44xx): endpoint publik ini dibatasi per IP
+  /* Kode pesanan berurutan (MD-44xx): endpoint publik ini dibatasi per IP
      agar tidak bisa disapu berurutan untuk memanen data pelanggan. */
   app.get(
     '/api/track/:code',

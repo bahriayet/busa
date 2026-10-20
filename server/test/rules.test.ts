@@ -7,13 +7,13 @@ import { LAST_STAGE } from '../src/domain/constants.ts';
 
 const MACHINES: Machine[] = [
   { id: 'M-01', model: 'Front Load 12 kg', cap: 12, kind: 'wash', stage: 2, rpm: 5, temp: 40, load: 0, left: 0, ticket: '—', state: 'idle' },
-  { id: 'M-02', model: 'Front Load 18 kg', cap: 18, kind: 'wash', stage: 3, rpm: 8, temp: 41, load: 92, left: 47, ticket: 'BUSA-4468', state: 'run' },
-  { id: 'M-04', model: 'Dryer 15 kg', cap: 15, kind: 'dry', stage: 4, rpm: 3, temp: 71, load: 66, left: 14, ticket: 'BUSA-4463', state: 'hot' },
+  { id: 'M-02', model: 'Front Load 18 kg', cap: 18, kind: 'wash', stage: 3, rpm: 8, temp: 41, load: 92, left: 47, ticket: 'MD-4468', state: 'run' },
+  { id: 'M-04', model: 'Dryer 15 kg', cap: 15, kind: 'dry', stage: 4, rpm: 3, temp: 71, load: 66, left: 14, ticket: 'MD-4463', state: 'hot' },
 ];
 
 function order(over: Partial<Order> = {}): Order {
   return {
-    code: 'BUSA-9999', customerId: 'c1', customer: 'Tes', phone: '08', stage: 0,
+    code: 'MD-9999', customerId: 'c1', customer: 'Tes', phone: '08', stage: 0,
     weight: 5, mode: 'pickup', items: [{ id: 'setrika', qty: 5 }], addons: [],
     subtotal: 0, ship: 0, disc: 0, protect: 0, total: 0, promoCode: null,
     pay: 'cash', payStatus: 'belum', hasProof: false, priority: 'reguler',
@@ -70,7 +70,7 @@ test('muat menolak drum yang terlalu kecil dengan usulan', () => {
 test('muat menolak drum yang sedang dipakai order lain', () => {
   const v = decide({ action: 'muat', order: order({ stage: 1, weight: 15 }), machines: MACHINES, requestedMachine: 'M-02' });
   assert.equal(v.ok, false);
-  if (!v.ok) assert.ok(v.reason.includes('BUSA-4468'));
+  if (!v.ok) assert.ok(v.reason.includes('MD-4468'));
 });
 
 test('muat sukses mengisi drum dan menghitung beban', () => {
@@ -80,7 +80,7 @@ test('muat sukses mengisi drum dan menghitung beban', () => {
   if (v.ok) {
     assert.equal(v.machine, 'M-01');
     assert.equal(v.to, 2);
-    assert.equal(v.effects[0]?.ticket, 'BUSA-9999');
+    assert.equal(v.effects[0]?.ticket, 'MD-9999');
     assert.equal(v.effects[0]?.load, 50); // 6/12
     assert.equal(v.effects[0]?.state, 'run');
   }

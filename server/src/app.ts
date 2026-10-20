@@ -125,7 +125,7 @@ export function buildApp({ db, cfg }: BuildOpts): FastifyInstance {
   void app.register(rateLimit, { global: true, max: cfg.rateLimitMax, timeWindow: '1 minute' });
   void app.register(swagger, {
     openapi: {
-      info: { title: 'BUSA Laundry Ops', version: '1.0.0' },
+      info: { title: 'MAHA Dewi Laundry Ops', version: '1.0.0' },
       servers: [{ url: `http://${cfg.host}:${cfg.port}` }],
     },
   });

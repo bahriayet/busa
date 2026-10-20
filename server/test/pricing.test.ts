@@ -6,7 +6,7 @@ import { SEED_ADDONS, SEED_PROMOS, SEED_SERVICES } from '../src/seed/data.ts';
 
 const book = { services: SEED_SERVICES, addons: SEED_ADDONS, promos: SEED_PROMOS };
 
-test('tagihan BUSA-4471 dihitung ulang, bukan angka hardcode', () => {
+test('tagihan MD-4471 dihitung ulang, bukan angka hardcode', () => {
   const q = quote({ items: [{ id: 'setrika', qty: 6.5 }], addons: ['premium'], mode: 'pickup' }, book);
   assert.equal(q.sub, 64_000); // 6.5 kg × 8.000 + pewangi 12.000
   assert.equal(q.ship, 12_000); // sub < 80.000 → ongkir
@@ -21,16 +21,16 @@ test('minimum 3 kg dilaporkan sebagai kekurangan, bukan disamarkan', () => {
   assert.ok(errs.some((e) => e.includes('minimal 3 kg')));
 });
 
-test('BUSA10: 10% dengan batas Rp 20.000, ditolak bila ada express', () => {
-  const promo = SEED_PROMOS.find((p) => p.code === 'BUSA10')!;
+test('MAHA10: 10% dengan batas Rp 20.000, ditolak bila ada express', () => {
+  const promo = SEED_PROMOS.find((p) => p.code === 'MAHA10')!;
   const q = quote({
-    items: [{ id: 'setrika', qty: 10 }], addons: [], mode: 'pickup', promoCode: 'BUSA10',
+    items: [{ id: 'setrika', qty: 10 }], addons: [], mode: 'pickup', promoCode: 'MAHA10',
   }, book);
   assert.equal(q.disc, 8_000); // 10% dari 80.000
-  assert.equal(q.promo?.code, 'BUSA10');
+  assert.equal(q.promo?.code, 'MAHA10');
 
   const rejected = quote({
-    items: [{ id: 'setrika', qty: 10 }], addons: ['express'], mode: 'pickup', promoCode: 'BUSA10',
+    items: [{ id: 'setrika', qty: 10 }], addons: ['express'], mode: 'pickup', promoCode: 'MAHA10',
   }, book);
   assert.equal(rejected.promo, null);
   assert.ok(rejected.promoReject?.includes('tidak bisa digabung'));

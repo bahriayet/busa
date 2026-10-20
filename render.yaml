@@ -1,4 +1,4 @@
-# Blueprint Render — backend BUSA (Fastify + Neon).
+# Blueprint Render — backend MAHA Dewi Laundry Ops (Fastify + Neon).
 # Cara pakai: push repo ini ke GitHub, lalu di Render pilih "New → Blueprint".
 # Isi nilai rahasia lewat dashboard Render (sync: false).
 services:

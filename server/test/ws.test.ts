@@ -90,13 +90,13 @@ test('ws pelanggan tidak menerima data mesin dan hanya pesanannya sendiri', asyn
     machines: [{ id: 'M-01' }],
     events: [{ id: 'e1' }],
     orders: [
-      { code: 'BUSA-1', customerId, stage: 3 },
-      { code: 'BUSA-2', customerId: 'c-pelanggan-lain', stage: 2 },
+      { code: 'MD-1', customerId, stage: 3 },
+      { code: 'MD-2', customerId: 'c-pelanggan-lain', stage: 2 },
     ],
   });
   const floor = await floorMsg;
   assert.equal(floor.type, 'floor');
   assert.equal(floor.machines, undefined);
-  assert.deepEqual((floor.orders as { code: string }[]).map((o) => o.code), ['BUSA-1']);
+  assert.deepEqual((floor.orders as { code: string }[]).map((o) => o.code), ['MD-1']);
   ws.close();
 });

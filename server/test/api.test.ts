@@ -45,14 +45,14 @@ test('meta dan katalog publik', async () => {
 });
 
 test('lacak publik memakai digit terakhir', async () => {
-  const full = await app.inject({ method: 'GET', url: '/api/track/BUSA-4471' });
+  const full = await app.inject({ method: 'GET', url: '/api/track/MD-4471' });
   assert.equal(full.statusCode, 200);
   /* Privasi: nama lengkap pelanggan tidak pernah keluar dari endpoint publik. */
   assert.equal((full.json() as { order: { customer: string } }).order.customer, 'Rania');
   const short = await app.inject({ method: 'GET', url: '/api/track/4471' });
   assert.equal(short.statusCode, 200);
-  assert.equal((short.json() as { order: { code: string } }).order.code, 'BUSA-4471');
-  const gone = await app.inject({ method: 'GET', url: '/api/track/BUSA-0000' });
+  assert.equal((short.json() as { order: { code: string } }).order.code, 'MD-4471');
+  const gone = await app.inject({ method: 'GET', url: '/api/track/MD-0000' });
   assert.equal(gone.statusCode, 404);
 });
 
@@ -79,7 +79,7 @@ test('pindai: naik tahap, idempoten, dan tolak aksi mustahil', async () => {
   /* 4468 di tahap 5 dipegang M-02 → naik tahap sah. */
   const ok = await app.inject({
     method: 'POST', url: '/scan',
-    payload: { id: 'EV-TEST-1', at: Date.now(), code: 'BUSA-4468', action: 'tahap', by: 'Dodo P.' },
+    payload: { id: 'EV-TEST-1', at: Date.now(), code: 'MD-4468', action: 'tahap', by: 'Dodo P.' },
   });
   assert.equal(ok.statusCode, 200, ok.body);
   const okBody = ok.json() as { ok: boolean; order: { stage: number } };
@@ -89,7 +89,7 @@ test('pindai: naik tahap, idempoten, dan tolak aksi mustahil', async () => {
   /* Kirim ulang event yang sama → tidak menggandakan efek. */
   const dup = await app.inject({
     method: 'POST', url: '/scan',
-    payload: { id: 'EV-TEST-1', at: Date.now(), code: 'BUSA-4468', action: 'tahap', by: 'Dodo P.' },
+    payload: { id: 'EV-TEST-1', at: Date.now(), code: 'MD-4468', action: 'tahap', by: 'Dodo P.' },
   });
   const dupBody = dup.json() as { duplicate: boolean };
   assert.equal(dupBody.duplicate, true);
@@ -97,7 +97,7 @@ test('pindai: naik tahap, idempoten, dan tolak aksi mustahil', async () => {
   /* Sudah diterima → terima lagi mustahil. */
   const again = await app.inject({
     method: 'POST', url: '/scan',
-    payload: { id: 'EV-TEST-2', at: Date.now(), code: 'BUSA-4471', action: 'terima', by: 'Dodo P.' },
+    payload: { id: 'EV-TEST-2', at: Date.now(), code: 'MD-4471', action: 'terima', by: 'Dodo P.' },
   });
   assert.equal(again.statusCode, 409);
   const againBody = again.json() as { ok: boolean; error: string };
@@ -107,7 +107,7 @@ test('pindai: naik tahap, idempoten, dan tolak aksi mustahil', async () => {
   /* Selesai & diserahkan → semua aksi ditolak. */
   const done = await app.inject({
     method: 'POST', url: '/scan',
-    payload: { id: 'EV-TEST-3', at: Date.now(), code: 'BUSA-4469', action: 'selesai', by: 'Dodo P.' },
+    payload: { id: 'EV-TEST-3', at: Date.now(), code: 'MD-4469', action: 'selesai', by: 'Dodo P.' },
   });
   assert.equal(done.statusCode, 409);
 });
@@ -115,7 +115,7 @@ test('pindai: naik tahap, idempoten, dan tolak aksi mustahil', async () => {
 test('muat drum yang dipakai order lain ditolak dengan alasan operator', async () => {
   const res = await app.inject({
     method: 'POST', url: '/scan',
-    payload: { id: 'EV-TEST-4', at: Date.now(), code: 'BUSA-4465', action: 'muat', machine: 'M-02', by: 'Dodo P.' },
+    payload: { id: 'EV-TEST-4', at: Date.now(), code: 'MD-4465', action: 'muat', machine: 'M-02', by: 'Dodo P.' },
   });
   assert.equal(res.statusCode, 409);
   const body = res.json() as { error: string; hint?: string };
@@ -126,13 +126,13 @@ test('muat drum yang dipakai order lain ditolak dengan alasan operator', async (
 test('terima walk-in baru di lantai menulis event dan proyeksi', async () => {
   const res = await app.inject({
     method: 'POST', url: '/scan',
-    payload: { id: 'EV-TEST-5', at: Date.now(), code: 'BUSA-4465', action: 'terima', by: 'Wulan A.' },
+    payload: { id: 'EV-TEST-5', at: Date.now(), code: 'MD-4465', action: 'terima', by: 'Wulan A.' },
   });
   assert.equal(res.statusCode, 200, res.body);
-  const events = await app.inject({ method: 'GET', url: '/api/events?code=BUSA-4465' });
+  const events = await app.inject({ method: 'GET', url: '/api/events?code=MD-4465' });
   assert.equal(events.statusCode, 401);
   const token = await login('dodo');
-  const authed = await app.inject({ method: 'GET', url: '/api/events?code=BUSA-4465', headers: { authorization: `Bearer ${token}` } });
+  const authed = await app.inject({ method: 'GET', url: '/api/events?code=MD-4465', headers: { authorization: `Bearer ${token}` } });
   const body = authed.json() as { events: unknown[] };
   assert.ok(body.events.length >= 1);
 });
@@ -161,7 +161,7 @@ test('pelanggan: profil, dompet, dan checkout server-side', async () => {
   assert.equal(coBody.quote.ship, 12_000);
   assert.equal(coBody.order.total, 56_000);
   assert.equal(coBody.order.payStatus, 'belum'); // QRIS menunggu verifikasi bukti bayar
-  assert.ok(coBody.order.code.startsWith('BUSA-'));
+  assert.ok(coBody.order.code.startsWith('MD-'));
 
   /* Promo dengan syarat yang dilanggar → alasan dalam bahasa Indonesia. */
   const bad = await app.inject({
@@ -230,7 +230,7 @@ test('batalkan hanya sebelum masuk lantai', async () => {
   assert.equal(cancel.statusCode, 200);
 
   const early = await app.inject({
-    method: 'POST', url: '/api/orders/BUSA-4471/cancel',
+    method: 'POST', url: '/api/orders/MD-4471/cancel',
     headers: { authorization: `Bearer ${token}` },
   });
   assert.equal(early.statusCode, 409);
@@ -267,7 +267,7 @@ test('reslot: pelanggan memindah jam sendiri, gugur setelah masuk lantai', async
   /* Sudah masuk lantai (tahap > 1) → ditolak, walau oleh staf. */
   const staff = await login('dodo');
   const late = await app.inject({
-    method: 'POST', url: '/api/orders/BUSA-4468/reslot',
+    method: 'POST', url: '/api/orders/MD-4468/reslot',
     headers: { authorization: `Bearer ${staff}` },
     payload: { slotTime: '10:00–12:00' },
   });
@@ -357,17 +357,17 @@ test('bukti bayar QRIS: pelanggan mengunggah, admin memverifikasi', async () => 
 
 test('staf boleh membatalkan pesanan yang sudah masuk lantai', async () => {
   const staff = await login('dodo');
-  /* BUSA-4467 sedang di lantai; pelanggan ditolak, staf boleh. */
+  /* MD-4467 sedang di lantai; pelanggan ditolak, staf boleh. */
   const token = await login('0812-7781-4402');
   const denied = await app.inject({
-    method: 'POST', url: '/api/orders/BUSA-4467/cancel',
+    method: 'POST', url: '/api/orders/MD-4467/cancel',
     headers: { authorization: `Bearer ${token}` },
   });
   /* Bukan milik pelanggan ini — ditolak sebelum aturan tahap pun berlaku. */
   assert.equal(denied.statusCode, 403);
 
   const ok = await app.inject({
-    method: 'POST', url: '/api/orders/BUSA-4467/cancel',
+    method: 'POST', url: '/api/orders/MD-4467/cancel',
     headers: { authorization: `Bearer ${staff}` },
   });
   assert.equal(ok.statusCode, 200, ok.body);
@@ -396,7 +396,7 @@ test('skema OpenAPI terpasang', async () => {
   const res = await app.inject({ method: 'GET', url: '/docs/json' });
   assert.equal(res.statusCode, 200);
   const body = res.json() as { info: { title: string } };
-  assert.equal(body.info.title, 'BUSA Laundry Ops');
+  assert.equal(body.info.title, 'MAHA Dewi Laundry Ops');
 });
 
 test('admin: patch addon dan field mesin', async () => {
@@ -657,25 +657,26 @@ test('lokasi: admin menyimpan peta & alamat, isi tidak sah ditolak', async () =>
     payload: {
       value: {
         active: true,
-        name: 'Cabang Buahbatu',
-        address: 'Jl. Buahbatu No. 108, Bandung',
-        hours: '07.00–21.00',
-        phone: '0812-7781-4402',
-        url: 'https://maps.google.com/?q=BUSA',
+        name: 'Laundry MAHA Dewi Mataram',
+        address: 'Jl. Pantai Senggigi No.43, Pagutan Bar., Kec. Mataram, Kota Mataram',
+        hours: 'Sen–Kam 09.00–17.30 · Jum 09.00–17.00 · Sab 09.00–17.30 · Min tutup',
+        pickupHours: 'Antar-jemput Sen–Sab 17.00–21.00 · Min tutup',
+        phone: '0895-3193-3194',
+        url: 'https://maps.google.com/?q=MAHA+Dewi+Mataram',
         image: { dataUrl: png },
       },
     },
   });
   assert.equal(ok.statusCode, 200, ok.body);
   const val = (ok.json() as { value: { name: string; image: { dataUrl: string } } }).value;
-  assert.equal(val.name, 'Cabang Buahbatu');
+  assert.equal(val.name, 'Laundry MAHA Dewi Mataram');
   assert.equal(val.image.dataUrl, png);
 
   /* Endpoint publik ikut membawa lokasi supaya halaman situs bisa merender. */
   const pub = await app.inject({ method: 'GET', url: '/api/content' });
   assert.equal(pub.statusCode, 200);
   const body = pub.json() as { location: { name: string } | null };
-  assert.equal(body.location?.name, 'Cabang Buahbatu');
+  assert.equal(body.location?.name, 'Laundry MAHA Dewi Mataram');
 
   const badUrl = await app.inject({
     method: 'PATCH', url: '/api/content/location',

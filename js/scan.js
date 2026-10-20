@@ -237,7 +237,7 @@ VIEWS.scan = {
       <span class="scan-lamp ${SCAN.mode === 'qc' ? 'bad' : 'good'}"></span>
       <label class="scan-in">
         <span class="mono lbl">Label ${esc(SCAN.mode)}</span>
-        <input id="scanq" class="mono" value="${esc(SCAN.draft)}" placeholder="BUSA-4471" autocomplete="off" spellcheck="false" aria-label="Nomor label">
+        <input id="scanq" class="mono" value="${esc(SCAN.draft)}" placeholder="MD-4471" autocomplete="off" spellcheck="false" aria-label="Nomor label">
       </label>
       <label class="scan-in slim">
         <span class="mono lbl">Operator</span>

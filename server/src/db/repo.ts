@@ -398,7 +398,7 @@ export async function patchOrder(db: Db, code: string, patch: Record<string, unk
 }
 
 export async function nextOrderCode(db: Db): Promise<string> {
-  return `BUSA-${await nextCounter(db, 'order_seq')}`;
+  return `MD-${await nextCounter(db, 'order_seq')}`;
 }
 
 /** Simpan bukti bayar (data URL). Tidak ikut di ORDER_COLS agar daftar tidak bengkak. */

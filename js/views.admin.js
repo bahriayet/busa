@@ -473,13 +473,15 @@ VIEWS.lokasi = {
       <header class="p-head"><h3 class="display">Alamat & tautan</h3><span class="mono note">teks yang dibaca pengunjung</span></header>
       <div class="loc-fields">
         <label class="fld"><span class="mono lbl">Nama cabang</span>
-          <input class="in" id="loc-name" maxlength="80" value="${esc(l.name || '')}" placeholder="BUSA Laundry — Cabang Buahbatu"></label>
+          <input class="in" id="loc-name" maxlength="80" value="${esc(l.name || '')}" placeholder="Laundry MAHA Dewi Mataram"></label>
         <label class="fld"><span class="mono lbl">Telepon</span>
-          <input class="in mono" id="loc-phone" maxlength="40" value="${esc(l.phone || '')}" placeholder="0812-7781-4402"></label>
+          <input class="in mono" id="loc-phone" maxlength="40" value="${esc(l.phone || '')}" placeholder="0895-3193-3194"></label>
         <label class="fld wide"><span class="mono lbl">Alamat</span>
-          <input class="in" id="loc-address" maxlength="200" value="${esc(l.address || '')}" placeholder="Jl. Buahbatu No. 108, Bandung 40286"></label>
+          <input class="in" id="loc-address" maxlength="200" value="${esc(l.address || '')}" placeholder="Jl. Pantai Senggigi No.43, Pagutan Bar., Kec. Mataram, Kota Mataram"></label>
         <label class="fld"><span class="mono lbl">Jam buka</span>
-          <input class="in" id="loc-hours" maxlength="80" value="${esc(l.hours || '')}" placeholder="07.00–21.00 setiap hari"></label>
+          <input class="in" id="loc-hours" maxlength="80" value="${esc(l.hours || '')}" placeholder="Sen–Kam 09.00–17.30 · Jum 09.00–17.00 · Sab 09.00–17.30 · Min tutup"></label>
+        <label class="fld"><span class="mono lbl">Jam antar-jemput</span>
+          <input class="in" id="loc-pickup-hours" maxlength="80" value="${esc(l.pickupHours || '')}" placeholder="Antar-jemput Sen–Sab 17.00–21.00 · Min tutup"></label>
         <label class="loc-active"><input type="checkbox" id="loc-active" ${l.active === false ? '' : 'checked'}>
           <span>${icon('eye')} Tampilkan bagian ini di halaman situs</span></label>
         <label class="fld wide"><span class="mono lbl">Tautan peta (Google Maps)</span>
@@ -520,6 +522,7 @@ function locFields() {
     name: val('#loc-name'),
     address: val('#loc-address'),
     hours: val('#loc-hours'),
+    pickupHours: val('#loc-pickup-hours'),
     phone: val('#loc-phone'),
     url: val('#loc-url'),
   };
