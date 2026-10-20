@@ -3,8 +3,10 @@ import { openDb } from '../db/client.ts';
 import { seedIfEmpty } from '../db/seed.ts';
 
 /**
- * Kosongkan database Neon lalu seed ulang dari data contoh. Untuk development —
- * jalankan: npm run db:reset
+ * Kosongkan database lalu seed ulang sesuai BUSA_SEED_MODE:
+ * - demo       → data contoh lengkap
+ * - production → katalog + area + satu akun admin, tanpa order/pelanggan contoh
+ * Jalankan: npm run db:reset
  */
 
 const TABLES = [
@@ -15,11 +17,19 @@ const TABLES = [
 ];
 
 const cfg = loadConfig();
+if (cfg.seedMode === 'production' && (!cfg.seedPassword || cfg.seedPassword === 'busa1234' || cfg.seedPassword.length < 8)) {
+  console.error('[busa] Batal: seed produksi membutuhkan BUSA_SEED_PASSWORD yang kuat (minimal 8 karakter, bukan busa1234).');
+  process.exit(1);
+}
 const db = await openDb(cfg.databaseUrl);
 await db.exec(`TRUNCATE TABLE ${TABLES.join(', ')} RESTART IDENTITY CASCADE`);
 console.log(`[busa] ${db.location} dikosongkan`);
 
 const res = await seedIfEmpty(db, cfg);
-console.log(`[busa] seed v${res.version}: ${res.orders} order, ${res.events} event, ${res.users} akun`);
-console.log(`[busa] akun demo (password: ${cfg.seedPassword}): admin / dodo / sinta / 0812-7781-4402`);
+console.log(`[busa] seed ${cfg.seedMode} v${res.version}: ${res.orders} order, ${res.events} event, ${res.users} akun`);
+if (cfg.seedMode === 'production') {
+  console.log('[busa] admin produksi: admin · password dari BUSA_SEED_PASSWORD');
+} else {
+  console.log(`[busa] akun demo (password: ${cfg.seedPassword}): admin / dodo / sinta / 0812-7781-4402`);
+}
 await db.close();

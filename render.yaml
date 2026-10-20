@@ -21,6 +21,13 @@ services:
       # tidak memakai default demo (busa1234).
       - key: BUSA_SEED_PASSWORD
         sync: false
+      # Produksi: seed hanya katalog + area + akun admin, tanpa data contoh.
+      - key: BUSA_SEED_MODE
+        value: production
+      - key: BUSA_ADMIN_NAME
+        value: Bahri
+      - key: BUSA_WHATSAPP
+        value: "6289531933194"
       # Domain frontend yang boleh memanggil API (CORS). Pisahkan dengan koma
       # bila punya domain lain, mis. custom domain Vercel.
       - key: BUSA_CORS_ORIGINS

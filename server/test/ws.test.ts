@@ -16,13 +16,13 @@ const cfg: Config = {
   host: '127.0.0.1', port: 0, databaseUrl: 'pglite:memory',
   staticRoot: '', serveStatic: false,
   jwtSecret: 'tes-rahasia-panjang-32-karakter-minimum-oke', jwtTtl: '12h',
-  seedPassword: 'busa1234', simulate: false, tickMs: 7000,
+  seedPassword: 'busa1234', seedMode: 'demo', seedAdminName: 'Bahri', simulate: false, tickMs: 7000,
   corsOrigins: [], logLevel: 'silent',
   rateLimitMax: 100_000, rateLimitLoginMax: 100_000,
   trustProxy: false, production: false,
   cacheTtlMs: 0, bodyLimit: 256 * 1024, rateLimitScanMax: 100_000,
   rateLimitTrackMax: 100_000, rateLimitLoginAccountMax: 100_000,
-  publicApiOrigin: '',
+  publicApiOrigin: '', whatsapp: '6289531933194',
 };
 
 const db = await openTestDb();

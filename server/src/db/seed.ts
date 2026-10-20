@@ -13,8 +13,10 @@ import { LAST_STAGE, STAGES, dayKey } from '../domain/constants.ts';
 import type { Config } from '../config.ts';
 import type { Order, ScanAction } from '../domain/types.ts';
 
-/** Naikkan bila isi seed berubah, supaya database lama di-seed ulang saat reset. */
+/** Versi seed demo. Naikkan bila isi seed demo berubah. */
 export const SEED_VERSION = '1';
+/** Versi baseline produksi: katalog + area + admin, tanpa order/pelanggan contoh. */
+export const PRODUCTION_SEED_VERSION = 'production-1';
 
 export interface SeedResult {
   seeded: boolean;
@@ -28,6 +30,10 @@ export async function seedVersion(db: Db): Promise<string | null> {
   return (await db.get<{ value: string }>('SELECT value FROM schema_meta WHERE key = ?', 'seeded'))?.value ?? null;
 }
 
+export function seedVersionFor(cfg: Config): string {
+  return cfg.seedMode === 'production' ? PRODUCTION_SEED_VERSION : SEED_VERSION;
+}
+
 function atTime(base: Date, dayOffset: number, hh: number, mm: number): number {
   return new Date(base.getFullYear(), base.getMonth(), base.getDate() + dayOffset, hh, mm, 0, 0).getTime();
 }
@@ -37,17 +43,32 @@ function notFuture(ms: number, now: number): number {
   return Math.min(ms, now - 60_000);
 }
 
-export async function seedIfEmpty(db: Db, cfg: Config): Promise<SeedResult> {
-  const current = await seedVersion(db);
-  if (current === SEED_VERSION) {
-    return {
-      seeded: false, version: SEED_VERSION,
-      orders: await db.scalar<number>('SELECT COUNT(*) FROM orders') ?? 0,
-      events: await db.scalar<number>('SELECT COUNT(*) FROM order_events') ?? 0,
-      users: await db.scalar<number>('SELECT COUNT(*) FROM users') ?? 0,
-    };
-  }
+async function seedCounts(db: Db, version: string): Promise<SeedResult> {
+  return {
+    seeded: false, version,
+    orders: await db.scalar<number>('SELECT COUNT(*) FROM orders') ?? 0,
+    events: await db.scalar<number>('SELECT COUNT(*) FROM order_events') ?? 0,
+    users: await db.scalar<number>('SELECT COUNT(*) FROM users') ?? 0,
+  };
+}
 
+export async function seedIfEmpty(db: Db, cfg: Config): Promise<SeedResult> {
+  const target = seedVersionFor(cfg);
+  const current = await seedVersion(db);
+  if (current === target) return seedCounts(db, target);
+  if (current && current !== target) {
+    throw new Error(
+      `Database memakai seed "${current}", sedangkan mode "${cfg.seedMode}" membutuhkan "${target}". ` +
+      'Jalankan `npm run db:reset` untuk memulai ulang database dengan baseline yang benar.',
+    );
+  }
+  return cfg.seedMode === 'production'
+    ? seedProduction(db, cfg, target)
+    : seedDemo(db, cfg, target);
+}
+
+/** Seed demo lengkap: order, pelanggan, staf, transaksi, dan konten contoh. */
+async function seedDemo(db: Db, cfg: Config, version: string): Promise<SeedResult> {
   return await db.tx(async () => {
     const now = Date.now();
     const today = new Date(now);
@@ -212,12 +233,59 @@ export async function seedIfEmpty(db: Db, cfg: Config): Promise<SeedResult> {
     await setCounter(db, 'tx_seq', 21);
     await db.run(
       'INSERT INTO schema_meta (key, value) VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value = ?',
-      'seeded', SEED_VERSION, SEED_VERSION,
+      'seeded', version, version,
     );
 
     return {
-      seeded: true, version: SEED_VERSION, orders: inserted.length, events, users,
+      seeded: true, version, orders: inserted.length, events, users,
     };
+  });
+}
+
+/**
+ * Baseline produksi: katalog dan area siap diedit, mesin awal dalam keadaan
+ * kosong, satu akun admin. Tidak ada order, pelanggan, staf, transaksi, atau
+ * testimoni contoh yang ikut masuk ke database nyata.
+ */
+async function seedProduction(db: Db, cfg: Config, version: string): Promise<SeedResult> {
+  if (!cfg.seedPassword || cfg.seedPassword === 'busa1234' || cfg.seedPassword.length < 8) {
+    throw new Error(
+      'Seed produksi membutuhkan BUSA_SEED_PASSWORD yang kuat (minimal 8 karakter, bukan busa1234). ' +
+      'Set variabel tersebut lalu jalankan `npm run db:reset`.',
+    );
+  }
+
+  return await db.tx(async () => {
+    for (const [i, s] of SEED_SERVICES.entries()) await R.upsertService(db, s, i);
+    for (const [i, a] of SEED_ADDONS.entries()) await R.upsertAddon(db, a, i);
+    for (const [i, t] of SEED_TIERS.entries()) await R.upsertTier(db, t, i);
+    for (const a of SEED_AREAS) await R.upsertArea(db, a);
+
+    /* Mesin awal: jenis & kapasitas standar, tanpa order yang menempel. */
+    for (const [i, m] of SEED_MACHINES.entries()) {
+      await R.upsertMachine(db, {
+        ...m, stage: 0, rpm: 0, temp: 26, load: 0, left: 0, ticket: '—', state: 'idle',
+      }, i);
+    }
+
+    /* Hanya lokasi yang di-seed. Galeri, slide, dan QRIS diunggah admin. */
+    await R.setContent(db, 'location', SEED_CONTENT.location);
+
+    const { salt, hash } = hashPassword(cfg.seedPassword);
+    await R.insertUser(db, {
+      id: uid('u'), role: 'admin', name: cfg.seedAdminName,
+      phone: null, username: 'admin', salt, hash, createdMs: Date.now(),
+    });
+
+    /* Nomor order pertama produksi: MD-1001. */
+    await setCounter(db, 'order_seq', 1000);
+    await setCounter(db, 'tx_seq', 0);
+    await db.run(
+      'INSERT INTO schema_meta (key, value) VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value = ?',
+      'seeded', version, version,
+    );
+
+    return { seeded: true, version, orders: 0, events: 0, users: 1 };
   });
 }
 

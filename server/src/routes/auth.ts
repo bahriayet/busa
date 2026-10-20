@@ -206,6 +206,16 @@ export function registerAuthRoutes(app: FastifyInstance, db: Db, cfg: Config): v
     const login = String(body.login ?? '').trim();
     if (!login) throw badRequest('Isi identitas (username atau nomor telepon).');
 
+    /* Di produksi belum ada layanan email/WhatsApp otomatis. Jangan membuat
+       token yang tidak pernah terkirim; arahkan pelanggan ke admin. */
+    if (cfg.production) {
+      return {
+        ok: true,
+        message: `Reset password dibantu admin. Hubungi WhatsApp +${cfg.whatsapp}.`,
+        whatsapp: `https://wa.me/${cfg.whatsapp}`,
+      };
+    }
+
     const found = await R.findUserByLogin(db, login);
     if (!found) {
       // Jangan bocorkan apakah akun ada — tetap balas ok

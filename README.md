@@ -62,6 +62,24 @@ Frontend lokal memanggil API secara relatif (lihat `js/config.js`);
 di domain online alamat backend diambil dari
 `<meta name="busa-api-base">` di `index.html`.
 
+## Inisialisasi data produksi
+
+Database produksi **jangan** memakai seed demo. Set variabel berikut, lalu reset
+satu kali pada database kosong/development:
+
+```bash
+cd server
+# Linux/macOS
+BUSA_SEED_MODE=production BUSA_SEED_PASSWORD='password-kuat-anda' BUSA_ADMIN_NAME='Bahri' npm run db:reset
+# Windows PowerShell
+$env:BUSA_SEED_MODE='production'; $env:BUSA_SEED_PASSWORD='password-kuat-anda'; $env:BUSA_ADMIN_NAME='Bahri'; npm run db:reset
+```
+
+Perintah ini menghapus seluruh data lama. Seed produksi hanya membuat katalog,
+area, mesin awal kosong, lokasi, dan **satu akun admin**. Order, pelanggan, staf,
+promo, dan testimoni contoh tidak dibuat. Ganti password admin setelah login
+pertama dan unggah QRIS/foto asli dari panel admin.
+
 ## Akun awal (seed)
 
 | Peran | Kredensial |
@@ -79,7 +97,10 @@ di domain online alamat backend diambil dari
 |---|---|
 | `BUSA_DATABASE_URL` / `DATABASE_URL` | connection string PostgreSQL (wajib) |
 | `BUSA_JWT_SECRET` | rahasia token ≥32 karakter (disarankan) |
-| `BUSA_SEED_PASSWORD` | password awal user seed (produksi: wajib diisi) |
+| `BUSA_SEED_PASSWORD` | password awal user seed (produksi: wajib diisi, minimal 8 karakter) |
+| `BUSA_SEED_MODE` | `demo` atau `production`; produksi tidak mengisi order/pelanggan contoh |
+| `BUSA_ADMIN_NAME` | nama akun admin saat seed produksi (default `Bahri`) |
+| `BUSA_WHATSAPP` | nomor WhatsApp resmi format internasional (default `6289531933194`) |
 | `BUSA_CORS_ORIGINS` | daftar origin frontend, pisahkan koma |
 | `BUSA_PORT` / `PORT` | port server (default 8080) |
 | `BUSA_SERVE_STATIC` | `true` = server ikut menyajikan frontend |

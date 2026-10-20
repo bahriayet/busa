@@ -10,13 +10,13 @@ const cfg: Config = {
   host: '127.0.0.1', port: 0, databaseUrl: 'pglite:memory',
   staticRoot: '', serveStatic: false,
   jwtSecret: 'tes-rahasia-panjang-32-karakter-minimum-oke', jwtTtl: '12h',
-  seedPassword: 'busa1234', simulate: false, tickMs: 7000,
+  seedPassword: 'busa1234', seedMode: 'demo', seedAdminName: 'Bahri', simulate: false, tickMs: 7000,
   corsOrigins: [], logLevel: 'silent',
   rateLimitMax: 100_000, rateLimitLoginMax: 100_000,
   trustProxy: false, production: false,
   cacheTtlMs: 0, bodyLimit: 256 * 1024, rateLimitScanMax: 100_000,
   rateLimitTrackMax: 100_000, rateLimitLoginAccountMax: 100_000,
-  publicApiOrigin: '',
+  publicApiOrigin: '', whatsapp: '6289531933194',
 };
 
 const db = await openTestDb();
@@ -553,6 +553,15 @@ test('produksi: /docs ditutup dan /health tanpa detail lokasi DB', async () => {
   assert.ok(csp.includes('wss://busa-api.onrender.com'), csp);
   /* Iframe peta lokasi di halaman situs — frame-src harus mengizinkan Google Maps. */
   assert.ok(csp.includes('frame-src') && csp.includes('https://www.google.com'), csp);
+  /* Reset mandiri tidak boleh menghasilkan token yang tidak pernah terkirim. */
+  const forgot = await prod.inject({
+    method: 'POST', url: '/api/auth/forgot-password', payload: { login: 'admin' },
+  });
+  assert.equal(forgot.statusCode, 200, forgot.body);
+  const forgotBody = forgot.json() as { resetToken?: string; whatsapp?: string; message?: string };
+  assert.equal(forgotBody.resetToken, undefined);
+  assert.match(String(forgotBody.whatsapp), /^https:\/\/wa\.me\//);
+  assert.match(String(forgotBody.message), /WhatsApp/);
   await prod.close();
 });
 

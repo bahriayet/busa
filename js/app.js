@@ -3,7 +3,11 @@ const KEY = 'busa.ops.v1';
 const SVC0 = CATALOG.map((s) => ({ id: s.id, price: s.price, hours: s.hours }));
 const ADDON0 = ADDONS.map((a) => ({ id: a.id, price: a.price }));
 
-const ME0 = SEED.persona.name;
+/* Data contoh hanya boleh muncul di lokal/LAN. Di domain produksi, API adalah
+   satu-satunya sumber order/pelanggan; kegagalan API tidak boleh menampilkan
+   order atau mesin fiktif. */
+const DEMO_MODE = isLocalHost();
+const ME0 = DEMO_MODE ? SEED.persona.name : '';
 let ME = ME0;
 
 const PORTALS = {
@@ -62,33 +66,40 @@ function visibleOrders() {
 
 const SLOTS = SEED.slots;
 
+/** Nomor WhatsApp resmi Laundry MAHA Dewi Mataram (format internasional). */
+const WA_NUMBER = '6289531933194';
+function waHref(text) {
+  const base = 'https://wa.me/' + WA_NUMBER;
+  return text ? base + '?text=' + encodeURIComponent(text) : base;
+}
+
 let S = {
   theme: 'bone',
   portal: 'landing',
   route: 'landing',
-  orders: SEED.orders.map((o) => ({ ...o })),
-  machines: SEED.machines.map((m) => ({ ...m })),
-  wallet: { balance: 412500, txns: SEED.txns.map((t) => ({ ...t })) },
-  stamps: 4,
-  addresses: SEED.addresses.map((a) => ({ ...a })),
-  promos: SEED.promos,
+  orders: DEMO_MODE ? SEED.orders.map((o) => ({ ...o })) : [],
+  machines: DEMO_MODE ? SEED.machines.map((m) => ({ ...m })) : [],
+  wallet: DEMO_MODE ? { balance: 412500, txns: SEED.txns.map((t) => ({ ...t })) } : { balance: 0, txns: [] },
+  stamps: DEMO_MODE ? 4 : 0,
+  addresses: DEMO_MODE ? SEED.addresses.map((a) => ({ ...a })) : [],
+  promos: DEMO_MODE ? SEED.promos : [],
   settings: { push: true, sms: false, promo: true, protect: true, sortKey: 'total', range: 14, pindaiSaja: false },
-  notifs: [
+  notifs: DEMO_MODE ? [
     { id: 'n1', tone: 'mint', icon: 'star', title: 'MD-4469 siap diambil', msg: 'Kode rak C-07 · berlaku 3 hari', at: '10:12', read: false },
     { id: 'n2', tone: 'orange', icon: 'bolt', title: 'Express MD-4467 jalan', msg: 'Didahulukan di M-03, ETA 15:20', at: '09:51', read: false },
     { id: 'n3', tone: 'red', icon: 'alert', title: 'QC menandai 1 item', msg: 'Noda kopi MD-4463 masuk treatment ulang', at: '09:33', read: false },
     { id: 'n4', tone: 'lilac', icon: 'spark', title: 'Cashback 5% masuk', msg: rp(12400) + ' kembali ke Dompet MAHA Dewi', at: 'Kemarin', read: true },
-  ],
-  chat: SEED.chat.map((c) => ({ ...c })),
+  ] : [],
+  chat: DEMO_MODE ? SEED.chat.map((c) => ({ ...c })) : [],
   cart: null,
   seq: 4472,
   events: [],
   svc: {},
-  sub: SEED.persona.member,
+  sub: DEMO_MODE ? SEED.persona.member : 'basic',
   auth: { token: null, user: null, loggedIn: false },
   apiOn: false,
   me: null,
-  persona: Object.assign({}, SEED.persona),
+  persona: DEMO_MODE ? Object.assign({}, SEED.persona) : { name: 'Pelanggan', phone: '', member: 'basic', since: '', tier: 'Pelanggan' },
   users: [],
   usersLoaded: false,
   usersLoading: false,
@@ -388,16 +399,17 @@ async function submitProof(code, file) {
 /** Foto galeri aktif: dari server/lokal, fallback contoh. Array kosong dihormati. */
 function galleryItems() {
   if (Array.isArray(S.gallery)) return S.gallery;
-  return Array.isArray(SEED.gallery) ? SEED.gallery : [];
+  return (DEMO_MODE && !S.apiOn && Array.isArray(SEED.gallery)) ? SEED.gallery : [];
 }
 /** Foto yang tampil di situs — kalau galeri kosong, pakai satu contoh. */
 function galleryShown() {
   const items = galleryItems();
-  return items.length ? items : [{ seed: 'laundry-drum-interior', label: 'Laundry MAHA Dewi Mataram' }];
+  return items.length ? items : [{ src: './img/slides/03.jpg', label: 'Drum MAHA Dewi', meta: 'Dokumentasi' }];
 }
 function gallerySrc(it) {
   return (it && it.dataUrl) ? it.dataUrl
-    : 'https://picsum.photos/seed/' + encodeURIComponent((it && it.seed) || 'mahadewi') + '/900/1100';
+    : (it && it.src) ? it.src
+      : './img/slides/03.jpg';
 }
 function galleryCaption(it) {
   const label = it && it.label ? String(it.label) : '';
@@ -609,9 +621,9 @@ VIEWS.loginC = {
           <button class="btn primary big" type="submit">${icon('lock')} Masuk</button>
         </form>
         <div class="login-foot">
-          <p class="mono fine">Demo: <b>0812-7781-4402</b> / <b>busa1234</b></p>
+          ${isLocalHost() ? `<p class="mono fine">Demo: <b>0812-7781-4402</b> / <b>busa1234</b></p>` : ''}
           <div class="login-links">
-            <button class="lnk" data-act="go" data-route="forgot">Lupa password?</button>
+            <a class="lnk" href="${esc(waHref('Halo admin MAHA Dewi, saya lupa password akun saya. Mohon bantu reset.'))}" target="_blank" rel="noopener">Lupa password? Hubungi WhatsApp</a>
             <button class="lnk" data-act="go" data-route="register">Daftar akun baru</button>
             <button class="lnk" data-act="go" data-route="loginA">Masuk sebagai admin →</button>
           </div>
@@ -655,7 +667,7 @@ VIEWS.loginA = {
         <div class="login-foot">
           ${isLocalHost() ? `<p class="mono fine">Demo: <b>admin</b> / <b>busa1234</b> &middot; <b>dodo</b> / <b>busa1234</b></p>` : ''}
           <div class="login-links">
-            <button class="lnk" data-act="go" data-route="forgot">Lupa password?</button>
+            <a class="lnk" href="${esc(waHref('Halo admin MAHA Dewi, saya lupa password akun saya. Mohon bantu reset.'))}" target="_blank" rel="noopener">Lupa password? Hubungi WhatsApp</a>
             <button class="lnk" data-act="go" data-route="loginC">Masuk sebagai pelanggan →</button>
           </div>
           <p class="mono fine login-legal">
@@ -816,16 +828,19 @@ VIEWS.floor = {
     const done = S.orders.filter((o) => o.stage === 8).length;
     const proses = S.orders.filter((o) => o.stage > 0 && o.stage < 8).length;
     const siap = S.orders.filter((o) => o.stage === 7).length;
-    const rev = (S.revenue && S.revenue.length) ? S.revenue : SEED.revenue;
-    const feed = (S.activity && S.activity.length) ? S.activity : SEED.activity;
-    const mix = (S.mix && S.mix.length) ? S.mix : SEED.mix;
-    const today = rev[rev.length - 1];
+    const demoFallback = DEMO_MODE && !S.apiOn;
+    const rev = (S.revenue && S.revenue.length) ? S.revenue : (demoFallback ? SEED.revenue : []);
+    const feed = (S.activity && S.activity.length) ? S.activity : (demoFallback ? SEED.activity : []);
+    const mix = (S.mix && S.mix.length) ? S.mix : (demoFallback ? SEED.mix : []);
+    const today = rev[rev.length - 1] || { v: 0, n: 0 };
     const pickups = S.orders.filter((o) => o.mode === 'pickup' && o.stage >= 6).slice(0, 4);
     const runs = S.orders.filter((o) => o.mode === 'delivery' && o.stage >= 5 && o.stage < 8).slice(0, 4);
+    const jam = new Date().getHours();
+    const shift = jam < 12 ? 'shift pagi' : jam < 17 ? 'shift siang' : 'shift sore';
     return `
     <section class="board-head" data-reveal>
       <div class="bh-left">
-        <p class="mono kicker">${esc(todayDateLabel())} · shift pagi · operator Wulan A.</p>
+        <p class="mono kicker">${esc(todayDateLabel())} · ${shift} · operator ${esc((S.auth.user && S.auth.user.name) || 'belum diatur')}</p>
         <h1 class="display huge">Antrean berjalan<br><span class="ink-slash">di lantai hari ini</span></h1>
         <p class="lede">Pesanan bergerak dari timbangan sampai siap diambil — pantau semuanya dari satu layar.</p>
         <div class="bh-chips">
@@ -838,8 +853,8 @@ VIEWS.floor = {
         <div class="stat-hero">
           <p class="mono lbl">Peredaran hari ini</p>
           <b class="num xl" data-scramble="${rp(today.v * 1000)}">${rp(today.v * 1000)}</b>
-          ${areaSVG(rev.slice(-10))}
-          <p class="mono fine">+18% dari rata-rata 7 hari · ${today.n} transaksi</p>
+          ${rev.length ? areaSVG(rev.slice(-10)) : '<p class="mono fine">Belum ada data peredaran.</p>'}
+          <p class="mono fine">${today.n ? today.n + ' transaksi hari ini' : 'Belum ada transaksi hari ini'}</p>
         </div>
         <div class="stat-duo">
           <div class="stat-s"><b class="num lg">${proses}</b><p class="mono lbl">Dalam proses</p></div>
@@ -878,12 +893,12 @@ VIEWS.floor = {
         <ul class="feed-list">
           ${feed.map((a, i) => `
             <li class="fe t-${a.tone}" style="--i:${i}"><span class="fe-i">${icon(a.icon)}</span>
-              <div><p>${esc(a.text)}</p><time class="mono">${esc(a.t)}</time></div></li>`).join('')}
+              <div><p>${esc(a.text)}</p><time class="mono">${esc(a.t)}</time></div></li>`).join('') || '<li class="empty">Belum ada aktivitas lantai hari ini.</li>'}
         </ul>
         <div class="mix-box">
           <p class="mono lbl">Komposisi layanan</p>
-          ${donutSVG(mix)}
-          <ul class="mix-legend">${mix.map((m) => `<li><i class="sw t-${m.tone}"></i>${esc(m.label)} <b class="mono">${m.pct}%</b></li>`).join('')}</ul>
+          ${mix.length ? `${donutSVG(mix)}
+          <ul class="mix-legend">${mix.map((m) => `<li><i class="sw t-${m.tone}"></i>${esc(m.label)} <b class="mono">${m.pct}%</b></li>`).join('')}</ul>` : '<p class="mono fine">Belum ada data layanan.</p>'}
         </div>
       </div>
     </section>`;
@@ -1047,6 +1062,9 @@ function orderStep2() {
 function orderSuccess() {
   const o = S.orders.find((x) => x.code === S.cart.created) || S.orders[0]
     || { code: S.cart.created || 'MD-0000', stage: 0, weight: 0, mode: 'pickup', slot: { date: '—', time: '—' } };
+  const waText = `Halo admin MAHA Dewi, saya sudah membuat pesanan ${o.code}. `
+    + `Jadwal ${o.slot.date} ${o.slot.time}, ${o.weight} kg, `
+    + `${o.mode === 'pickup' ? 'antar-jemput' : 'titip toko'}. Mohon konfirmasi.`;
   return `
   <div class="success" data-reveal>
     <div class="ok-drums">
@@ -1058,6 +1076,7 @@ function orderSuccess() {
     <div class="ok-tl">${timelineMarkup(o.stage, o.code)}</div>
     <div class="ok-acts">
       <button class="btn primary" data-act="go" data-route="lacak">${icon('truck')} Lacak sekarang</button>
+      <a class="btn ghost" href="${esc(waHref(waText))}" target="_blank" rel="noopener">${icon('phone')} Konfirmasi via WhatsApp</a>
       <button class="btn ghost" data-act="reset-cart">${icon('plus')} Buat order lagi</button>
     </div>
   </div>`;
@@ -1381,19 +1400,20 @@ VIEWS.laporan = {
   title: 'Laporan', kicker: 'Operasional & uang',
   render() {
     const n = S.settings.range || 14;
-    const rev = ((S.revenue && S.revenue.length) ? S.revenue : SEED.revenue).slice(-n);
-    const staffRows = (S.staff && S.staff.length) ? S.staff : SEED.staff;
+    const demoFallback = DEMO_MODE && !S.apiOn;
+    const rev = ((S.revenue && S.revenue.length) ? S.revenue : (demoFallback ? SEED.revenue : [])).slice(-n);
+    const staffRows = (S.staff && S.staff.length) ? S.staff : (demoFallback ? SEED.staff : []);
     const sum = rev.reduce((a, d) => a + d.v, 0) * 1000;
     const cnt = rev.reduce((a, d) => a + d.n, 0);
-    const avgKg = S.orders.reduce((a, o) => a + o.weight, 0) / S.orders.length;
-    const load = S.machines.reduce((a, m) => a + m.load, 0) / S.machines.length;
+    const avgKg = S.orders.length ? S.orders.reduce((a, o) => a + o.weight, 0) / S.orders.length : 0;
+    const load = S.machines.length ? S.machines.reduce((a, m) => a + m.load, 0) / S.machines.length : 0;
     const sorted = [...S.orders].sort(cmpSort);
     return `
     <div class="rep-top">
       <div class="kpi-rail">
-        <div class="kpi big t-orange" data-reveal><p class="mono lbl">Peredaran ${n} hari</p><b class="num xxl">${rp(sum)}</b>${barsSVG(rev)}</div>
+        <div class="kpi big t-orange" data-reveal><p class="mono lbl">Peredaran ${n} hari</p><b class="num xxl">${rp(sum)}</b>${rev.length ? barsSVG(rev) : '<p class="mono fine">Belum ada data peredaran.</p>'}</div>
         <div class="kpi-s"><div class="kpi" data-reveal><p class="mono lbl">Transaksi</p><b class="num xl">${cnt}</b><p class="mono fine">${Math.round(cnt / n)} /hari</p></div></div>
-        <div class="kpi-s"><div class="kpi" data-reveal><p class="mono lbl">Rata-rata order</p><b class="num xl">${rp(sum / cnt)}</b><p class="mono fine">${kg(avgKg)} kg per pesanan</p></div></div>
+        <div class="kpi-s"><div class="kpi" data-reveal><p class="mono lbl">Rata-rata order</p><b class="num xl">${rp(cnt ? sum / cnt : 0)}</b><p class="mono fine">${kg(avgKg)} kg per pesanan</p></div></div>
         <div class="kpi" data-reveal><p class="mono lbl">Utilisasi mesin</p>${gaugeSVG(load, 'blue')}</div>
       </div>
       <div class="range-chips">${[7, 14, 30].map((r) => `<button class="fchip ${(S.settings.range || 14) === r ? 'on' : ''}" data-act="range" data-v="${r}">${r} hari</button>`).join('')}
@@ -1411,7 +1431,7 @@ VIEWS.laporan = {
         <header class="p-head"><h3 class="display">Tim terbaik</h3><span class="mono note">minggu ini</span></header>
         <ul class="staff">${staffRows.map((s, i) => `<li style="--i:${i}" data-reveal>
           <i class="av">${esc(initials(s.name))}</i><div><b>${esc(s.name)}</b><p class="mono fine">${esc(s.role)} · ${esc(s.tag)}</p></div>
-          <b class="num">${s.done}</b><span class="mono rate">${icon('star')}${s.rating}</span></li>`).join('')}</ul>
+          <b class="num">${s.done}</b><span class="mono rate">${icon('star')}${s.rating}</span></li>`).join('') || '<li class="empty">Belum ada data operator.</li>'}</ul>
       </div>
     </section>
     <section class="panel tbl-wrap" data-reveal>
@@ -1451,7 +1471,7 @@ function exportCSV() {
 /** Ekspor omzet harian sesuai rentang laporan yang sedang dipilih. */
 function exportRevenueCSV() {
   const n = S.settings.range || 14;
-  const rev = ((S.revenue && S.revenue.length) ? S.revenue : SEED.revenue).slice(-n);
+  const rev = ((S.revenue && S.revenue.length) ? S.revenue : ((DEMO_MODE && !S.apiOn) ? SEED.revenue : [])).slice(-n);
   const sum = rev.reduce((a, d) => a + d.v, 0) * 1000;
   const cnt = rev.reduce((a, d) => a + d.n, 0);
   const head = ['hari', 'omzet_rupiah', 'transaksi'];
@@ -2347,6 +2367,14 @@ document.addEventListener('submit', async (e) => {
         okEl.textContent = data.resetToken
           ? 'Token reset (mode dev): ' + data.resetToken + ' (salin dan gunakan di halaman reset)'
           : (data.message || 'Instruksi reset password telah diproses.');
+        if (data.whatsapp && /^https:\/\/wa\.me\//.test(String(data.whatsapp))) {
+          const a = document.createElement('a');
+          a.href = String(data.whatsapp);
+          a.target = '_blank';
+          a.rel = 'noopener';
+          a.textContent = ' Buka WhatsApp';
+          okEl.append(a);
+        }
       }
     } catch (err) { if (errEl) { errEl.hidden = false; errEl.textContent = err.message; } }
     return;
@@ -2527,7 +2555,7 @@ function boot() {
      bidang yang hilang/rusak dengan nilai aman, dan kembalikan seed bila
      kosong. */
   const padCode = (n) => String(n).padStart(4, '0');
-  if (!Array.isArray(S.orders)) S.orders = SEED.orders.map((o) => ({ ...o }));
+  if (!Array.isArray(S.orders)) S.orders = DEMO_MODE ? SEED.orders.map((o) => ({ ...o })) : [];
   S.orders = S.orders.filter((o) => o && typeof o === 'object').map((o, i) => Object.assign({
     code: 'MD-' + padCode(1000 + i),
     customer: 'Pelanggan',
@@ -2549,9 +2577,9 @@ function boot() {
     addons: {},
     protect: false,
   }, o));
-  if (!S.orders.length) S.orders = SEED.orders.map((o) => ({ ...o }));
+  if (!S.orders.length && DEMO_MODE) S.orders = SEED.orders.map((o) => ({ ...o }));
 
-  if (!Array.isArray(S.machines)) S.machines = SEED.machines.map((m) => ({ ...m }));
+  if (!Array.isArray(S.machines)) S.machines = DEMO_MODE ? SEED.machines.map((m) => ({ ...m })) : [];
   S.machines = S.machines.filter((m) => m && typeof m === 'object').map((m, i) => Object.assign({
     id: 'M-0' + ((i % 8) + 1),
     model: 'Front Load 8 kg',
@@ -2565,7 +2593,7 @@ function boot() {
     cap: 8,
     ticket: '—',
   }, m));
-  if (!S.machines.length) S.machines = SEED.machines.map((m) => ({ ...m }));
+  if (!S.machines.length && DEMO_MODE) S.machines = SEED.machines.map((m) => ({ ...m }));
 
   const base = nowMs();
   S.orders.forEach((o, i) => { if (!o.stageAt) o.stageAt = base - (i + 1) * 4 * 60000; });

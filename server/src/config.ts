@@ -18,6 +18,10 @@ export interface Config {
   jwtSecret: string;
   jwtTtl: string;
   seedPassword: string;
+  /** Mode seed: `demo` mengisi data contoh, `production` hanya baseline usaha. */
+  seedMode: 'demo' | 'production';
+  /** Nama admin yang dibuat saat seed produksi pertama. */
+  seedAdminName: string;
   simulate: boolean;
   tickMs: number;
   corsOrigins: string[];
@@ -40,6 +44,8 @@ export interface Config {
   rateLimitTrackMax: number;
   /** Origin publik API untuk CSP produksi (mis. Render RENDER_EXTERNAL_URL). */
   publicApiOrigin: string;
+  /** Nomor WhatsApp resmi dalam format internasional tanpa + (mis. 6289...). */
+  whatsapp: string;
 }
 
 function int(v: string | undefined, fallback: number): number {
@@ -89,6 +95,12 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
      bahwa server berjalan di balik reverse proxy: bind ke 0.0.0.0 dan
      percayai X-Forwarded-* supaya pembatasan per-IP tetap akurat. */
   const onPaaS = Boolean(env.PORT);
+  const production = env.NODE_ENV === 'production';
+  const rawSeedMode = (env.BUSA_SEED_MODE ?? '').toLowerCase();
+  if (rawSeedMode && rawSeedMode !== 'demo' && rawSeedMode !== 'production') {
+    throw new Error('BUSA_SEED_MODE harus bernilai demo atau production.');
+  }
+  const seedMode = (rawSeedMode || (production ? 'production' : 'demo')) as 'demo' | 'production';
 
   return {
     host: env.BUSA_HOST ?? (onPaaS ? '0.0.0.0' : '127.0.0.1'),
@@ -99,6 +111,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     jwtSecret: resolveJwtSecret(env.BUSA_JWT_SECRET, dataDir),
     jwtTtl: env.BUSA_JWT_TTL ?? '12h',
     seedPassword: env.BUSA_SEED_PASSWORD ?? 'busa1234',
+    seedMode,
+    seedAdminName: env.BUSA_ADMIN_NAME ?? 'Bahri',
     /* Simulasi lantai mati secara default — di produksi tahap hanya boleh
        bergerak lewat /scan operator. Nyalakan sadar-sadar untuk demo lokal:
        BUSA_SIMULATE=true. */
@@ -110,11 +124,12 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     rateLimitLoginMax: int(env.BUSA_RATE_LIMIT_LOGIN_MAX, 20),
     rateLimitLoginAccountMax: int(env.BUSA_RATE_LIMIT_LOGIN_ACCOUNT_MAX, 10),
     trustProxy: bool(env.BUSA_TRUST_PROXY, onPaaS),
-    production: env.NODE_ENV === 'production',
+    production,
     cacheTtlMs: int(env.BUSA_CACHE_TTL_MS, 30_000),
     bodyLimit: int(env.BUSA_BODY_LIMIT, 256 * 1024),
     rateLimitScanMax: int(env.BUSA_RATE_LIMIT_SCAN_MAX, 300),
     rateLimitTrackMax: int(env.BUSA_RATE_LIMIT_TRACK_MAX, 60),
     publicApiOrigin: (env.BUSA_PUBLIC_ORIGIN ?? env.RENDER_EXTERNAL_URL ?? '').replace(/\/+$/, ''),
+    whatsapp: (env.BUSA_WHATSAPP ?? '6289531933194').replace(/\D/g, ''),
   };
 }

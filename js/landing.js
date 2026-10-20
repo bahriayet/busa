@@ -363,12 +363,8 @@ VIEWS.landing = {
           <ul class="proof-list">
             <li><b class="num lg">${S.orders.length}</b><span>pesanan tercatat di panel ini, masing-masing dengan label dan jam</span></li>
             <li><b class="num lg">${Math.round(S.orders.reduce((a, o) => a + o.total, 0) / 1000)}</b><span>ribu rupiah nilai cucian berjalan, bukan proyeksi</span></li>
-            <li><b class="num lg">${SEED.staff.length}</b><span>operator yang namanya muncul di kartu QC</span></li>
+            <li><b class="num lg">${pad(STAGES.length)}</b><span>tahap yang dicatat dengan nama operator di kartu QC</span></li>
           </ul>
-          <blockquote class="quote">
-            <p>“Dulu saya cuci sendiri tiap Minggu. Sekarang 26 kg naik kurir tiap Selasa, balik sudah rapi.”</p>
-            <footer class="mono">Kirana Buana · pemilik kos 14 pintu · pelanggan contoh</footer>
-          </blockquote>
           <details class="q"><summary><b class="display lg">Berapa lama cycle standar, dan kalau noda tidak hilang?</b><span class="q-i">${icon('plus')}</span></summary>
             <p>Cuci + Setrika 48 jam sejak diterima; express 6 jam dengan antrean didahulukan. Untuk noda: kami foto sebelum-sesudah, dan bila tetap ada setelah dua kali treatment, biaya treatment dikembalikan seratus persen.</p></details>
         </div>
@@ -417,7 +413,10 @@ VIEWS.landing = {
             ${(loc.pickupHours && loc.phone) ? '<i>·</i>' : ''}
             ${loc.phone ? `${icon('phone')}<a href="${esc(locTel)}">${esc(loc.phone)}</a>` : ''}
           </p>` : ''}
-          <a class="btn primary" href="${esc(locHref)}" target="_blank" rel="noopener">${icon('pin')} Buka di Google Maps</a>
+          <div class="find-acts">
+            <a class="btn primary" href="${esc(locHref)}" target="_blank" rel="noopener">${icon('pin')} Buka di Google Maps</a>
+            <a class="btn ghost" href="${esc(waHref('Halo MAHA Dewi, saya ingin bertanya soal layanan laundry.'))}" target="_blank" rel="noopener">${icon('phone')} WhatsApp</a>
+          </div>
         </div>
         ${locImg ? `
         <a class="find-map" href="${esc(locHref)}" target="_blank" rel="noopener" aria-label="Buka lokasi di peta (tab baru)">

@@ -2495,6 +2495,8 @@ body[data-theme="night"] .quote footer { color: var(--muted); }
 
 .find-copy { display: grid; gap: 10px; justify-items: start; }
 
+.find-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+
 .find-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; color: var(--ink-2); letter-spacing: .04em; }
 
 .find-meta .ico { width: 15px; height: 15px; color: var(--orange); }

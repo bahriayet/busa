@@ -186,7 +186,14 @@ API.init = async function () {
   API.busy = false;
   if (ok) render();
   else if (!API.lastError || API.lastError.status !== 401) {
-    toast({ title: 'Mode lokal', msg: 'Server tidak terjangkau — data contoh dipakai. Klik status di kanan atas untuk sambung ulang.', tone: 'amber', icon: 'info', ms: 5200 });
+    const local = typeof isLocalHost === 'function' && isLocalHost();
+    toast({
+      title: local ? 'Mode lokal' : 'Server tidak terjangkau',
+      msg: local
+        ? 'Server tidak terjangkau — data contoh dipakai. Klik status di kanan atas untuk sambung ulang.'
+        : 'Data belum bisa dimuat. Klik status di kanan atas untuk mencoba lagi.',
+      tone: 'amber', icon: 'info', ms: 5200,
+    });
   }
   API.paintConn();
   return ok;
@@ -254,9 +261,12 @@ API.paintConn = function () {
     el.title = 'Server aktif — data tersinkron. Klik untuk menyegarkan.';
     if (label) label.textContent = 'Server aktif';
   } else {
+    const local = typeof isLocalHost === 'function' && isLocalHost();
     el.dataset.state = 'off';
-    el.title = 'Server tidak terjangkau — mode lokal. Klik untuk sambung ulang.';
-    if (label) label.textContent = 'Mode lokal · sambung';
+    el.title = local
+      ? 'Server tidak terjangkau - mode lokal. Klik untuk sambung ulang.'
+      : 'Server tidak terjangkau - data belum dimuat. Klik untuk mencoba lagi.';
+    if (label) label.textContent = local ? 'Mode lokal · sambung' : 'Server terputus · sambung';
   }
 };
 

@@ -1,6 +1,6 @@
 import { loadConfig } from './config.ts';
 import { openDb } from './db/client.ts';
-import { seedIfEmpty, SEED_VERSION } from './db/seed.ts';
+import { seedIfEmpty } from './db/seed.ts';
 import * as R from './db/repo.ts';
 import { buildApp } from './app.ts';
 import { startSim, type SimHandle } from './sim.ts';
@@ -17,15 +17,12 @@ const seed = await seedIfEmpty(db, cfg);
 
 if (seed.seeded) {
   console.log(
-    `[busa] seed v${seed.version}: ${seed.orders} order, ${seed.events} event, ${seed.users} akun → ${db.location}`,
+    `[busa] seed ${cfg.seedMode} v${seed.version}: ${seed.orders} order, ${seed.events} event, ${seed.users} akun → ${db.location}`,
   );
 } else {
   console.log(
-    `[busa] database terpakai v${seed.version} (${seed.orders} order, ${seed.events} event) → ${db.location}`,
+    `[busa] database terpakai ${cfg.seedMode} v${seed.version} (${seed.orders} order, ${seed.events} event) → ${db.location}`,
   );
-}
-if (seed.version !== SEED_VERSION) {
-  console.warn(`[busa] SEED_VERSION berubah (${seed.version} → ${SEED_VERSION}); jalankan db:reset untuk seed ulang.`);
 }
 
 if (cfg.production && cfg.seedPassword === 'busa1234') {

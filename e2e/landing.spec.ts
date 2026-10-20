@@ -141,6 +141,7 @@ test.describe('Landing slider', () => {
     await expect(page.locator('#a6 .find-us')).toContainText('Laundry MAHA Dewi Mataram');
     await expect(page.locator('#a6 .find-us')).toContainText('0895-3193-3194');
     await expect(page.locator('#a6 .find-us')).toContainText(/antar-jemput/i);
+    await expect(page.locator('#a6 .find-us a[href^="https://wa.me/6289531933194"]')).toBeVisible();
 
     const mapBox = await map.boundingBox();
     const formBox = await page.locator('#a6 .signup').boundingBox();
