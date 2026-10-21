@@ -1518,7 +1518,7 @@ VIEWS.setelan = {
       <div class="panel" data-reveal>
         <header class="p-head"><h3 class="display">Wajah aplikasi</h3><span class="mono note">tersimpan di perangkat</span></header>
         <div class="theme-pick">
-          ${[['bone', 'Pastel Sorbet', 'Krem lembut, sorbet oranye'], ['night', 'Slate & Spice', 'Slate kebiruan, rempah hangat']].map(([id, l, d]) => `
+          ${[['bone', 'Bone', 'Krem sabun, siang laundromat'], ['night', 'Slate & Spice', 'Slate kebiruan, rempah hangat']].map(([id, l, d]) => `
             <button class="tp t-${id} ${S.theme === id ? 'on' : ''}" data-act="theme-pick" data-v="${id}">
               <span class="tp-sw"><i></i><i></i><i></i></span><b class="display">${l}</b><p class="mono fine">${d}</p>
               ${S.theme === id ? `<span class="tp-on">${icon('check')}</span>` : ''}</button>`).join('')}
@@ -1658,11 +1658,11 @@ function paintTheme() {
   const themeIcon = S.theme === 'bone' ? 'moon' : 'sun';
   qsa('[data-act="theme"]').forEach((el) => {
     el.innerHTML = icon(themeIcon);
-    el.setAttribute('aria-label', S.theme === 'bone' ? 'Aktifkan tema Slate & Spice' : 'Aktifkan tema Pastel Sorbet');
-    el.setAttribute('title', S.theme === 'bone' ? 'Ganti ke Slate & Spice (T)' : 'Ganti ke Pastel Sorbet (T)');
+    el.setAttribute('aria-label', S.theme === 'bone' ? 'Aktifkan tema Slate & Spice' : 'Aktifkan tema Bone');
+    el.setAttribute('title', S.theme === 'bone' ? 'Ganti ke Slate & Spice (T)' : 'Ganti ke tema terang Bone (T)');
   });
   const meta = qs('meta[name="theme-color"]');
-  if (meta) meta.setAttribute('content', S.theme === 'bone' ? '#FDF3E7' : '#2B323A');
+  if (meta) meta.setAttribute('content', S.theme === 'bone' ? '#F8F4F1' : '#2B323A');
 }
 
 function toggleTheme() {
@@ -1670,7 +1670,7 @@ function toggleTheme() {
   paintTheme();
   save();
   toast({
-    title: 'Tema ' + (S.theme === 'bone' ? 'Pastel Sorbet' : 'Slate & Spice'),
+    title: 'Tema ' + (S.theme === 'bone' ? 'Bone' : 'Slate & Spice'),
     msg: S.theme === 'bone' ? 'Mode terang aktif' : 'Mode gelap aktif',
     icon: S.theme === 'bone' ? 'sun' : 'moon',
     tone: S.theme === 'bone' ? 'orange' : 'lilac',

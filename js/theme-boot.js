@@ -8,6 +8,6 @@
     var theme = data && data.theme === 'night' ? 'night' : 'bone';
     if (document.body) document.body.dataset.theme = theme;
     var meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', theme === 'night' ? '#2B323A' : '#FDF3E7');
+    if (meta) meta.setAttribute('content', theme === 'night' ? '#2B323A' : '#F8F4F1');
   } catch (e) { /* preferensi tema tidak tersedia */ }
 })();

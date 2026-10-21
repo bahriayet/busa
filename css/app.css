@@ -1,34 +1,34 @@
 @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400;12..96,75..100,600;12..96,75..100,800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
-/* ── TEMA TERANG: PASTEL SORBET ───────────────────────
-   Krem hangat, peach lembut, dan sorbet oranye. */
+/* ── TEMA TERANG: BONE (tampilan asli) ────────────────
+   Krem sabun, kartu putih, aksen oranye laundromat. */
 :root {
   color-scheme: light;
-  --bone: #FDF3E7;
-  --paper: #FFE6D3;
-  --paper-2: #FDEFE1;
-  --ink: #4A3E3D;
-  --ink-2: #6A5A56;
-  --muted: #8A7B77;
-  --line: #F0D8C6;
-  --line-2: #E5C2AB;
-  --brand: #FFA372;
-  --brand-2: #FF8A5B;
-  --on-brand: #4A2E24;
-  --orange: #FF8A5B;
-  --orange-soft: #FFA372;
-  --blue: #3358C8;
-  --cyan: #0B7B8C;
-  --mint: #2C7E5C;
-  --lilac: #6548C0;
-  --amber: #9C6A0A;
-  --red: #B5382D;
-  --steel: #C9B5A9;
-  --dark: #2B323A;
-  --chrome: #4A3E3D;
-  --chrome-ink: #FDF3E7;
+  --bone: #F8F4F1;
+  --paper: #FFFFFF;
+  --paper-2: #F3EDE9;
+  --ink: #111111;
+  --ink-2: #3A3836;
+  --muted: #8B8580;
+  --line: #E8DFDA;
+  --line-2: #D9CCC5;
+  --brand: #FF8550;
+  --brand-2: #FF8550;
+  --on-brand: #FFFFFF;
+  --orange: #FF8550;
+  --orange-soft: #FF8550;
+  --blue: #2747C8;
+  --cyan: #1096AC;
+  --mint: #3E9E76;
+  --lilac: #6E56C8;
+  --amber: #C98A12;
+  --red: #C6362B;
+  --steel: #B9BEC6;
+  --dark: #0D1017;
+  --chrome: #111111;
+  --chrome-ink: #F8F4F1;
   --c: var(--blue);
-  --shadow: 0 18px 40px -28px rgba(74, 46, 36, .38);
+  --shadow: 0 18px 40px -28px rgba(25, 15, 10, .45);
   --r: 14px;
   --r-lg: 26px;
   --gutter: clamp(18px, 3.2vw, 46px);
@@ -138,12 +138,12 @@ body::before {
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(46% 38% at 12% 8%, color-mix(in oklab, var(--orange-soft) 22%, transparent), transparent 70%),
-    radial-gradient(40% 34% at 88% 22%, color-mix(in oklab, var(--orange-soft) 16%, transparent), transparent 70%),
-    radial-gradient(38% 30% at 60% 96%, color-mix(in oklab, #FFFFFF 62%, transparent) 30%, transparent 72%),
-    radial-gradient(30% 26% at 30% 60%, color-mix(in oklab, var(--orange) 14%, transparent), transparent 70%);
+    radial-gradient(46% 38% at 12% 8%, color-mix(in oklab, var(--orange) 12%, transparent), transparent 70%),
+    radial-gradient(40% 34% at 88% 22%, color-mix(in oklab, var(--orange) 8%, transparent), transparent 70%),
+    radial-gradient(38% 30% at 60% 96%, #ffffff 30%, transparent 72%),
+    radial-gradient(30% 26% at 30% 60%, color-mix(in oklab, var(--orange) 10%, transparent), transparent 70%);
   filter: blur(30px);
-  opacity: .55;
+  opacity: .45;
   animation: caustic 26s ease-in-out infinite alternate;
 }
 
@@ -157,7 +157,7 @@ body[data-theme="night"]::before {
   animation: caustic 26s ease-in-out infinite alternate;
 }
 
-::selection { background: color-mix(in oklab, var(--brand) 55%, transparent); color: var(--ink); }
+body[data-theme="night"] ::selection { background: color-mix(in oklab, var(--brand) 55%, transparent); color: var(--ink); }
 
 @keyframes caustic {
   0% { transform: translate3d(-2%, -1%, 0) scale(1); }
@@ -535,9 +535,9 @@ body[data-theme="night"] .topbar {
 [data-reveal].in { opacity: 1; transform: none; }
 
 /* ── motif: ubin lantai ──────────────────────────── */
-.tiles { height: 54px; border-top: 1px solid var(--line); background-image: conic-gradient(var(--line-2) 0 25%, transparent 0 50%, var(--line-2) 0 75%, transparent 0); background-size: 22px 22px; opacity: .45; transform: perspective(320px) rotateX(52deg); transform-origin: bottom; }
+.tiles { height: 54px; border-top: 1px solid var(--line); background-image: conic-gradient(var(--ink) 0 25%, transparent 0 50%, var(--ink) 0 75%, transparent 0); background-size: 22px 22px; opacity: .1; transform: perspective(320px) rotateX(52deg); transform-origin: bottom; }
 
-body[data-theme="night"] .tiles { opacity: .28; }
+body[data-theme="night"] .tiles { background-image: conic-gradient(var(--line-2) 0 25%, transparent 0 50%, var(--line-2) 0 75%, transparent 0); opacity: .28; }
 
 /* ── DRUM ────────────────────────────────────────── */
 .drum { position: relative; width: var(--sz, 120px); aspect-ratio: 1; flex: none; }
@@ -1491,9 +1491,9 @@ body[data-theme="night"] .est-rows li { border-bottom-color: var(--line-2); }
 
 .tp-sw i { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--line-2); }
 
-.tp.t-bone .tp-sw i:nth-child(1) { background: #FDF3E7; }
-.tp.t-bone .tp-sw i:nth-child(2) { background: #FFA372; }
-.tp.t-bone .tp-sw i:nth-child(3) { background: #4A3E3D; }
+.tp.t-bone .tp-sw i:nth-child(1) { background: #F8F4F1; }
+.tp.t-bone .tp-sw i:nth-child(2) { background: #FF8550; }
+.tp.t-bone .tp-sw i:nth-child(3) { background: #111111; }
 .tp.t-night .tp-sw i:nth-child(1) { background: #2B323A; }
 .tp.t-night .tp-sw i:nth-child(2) { background: #D75C37; }
 .tp.t-night .tp-sw i:nth-child(3) { background: #ECF0F1; }
@@ -2139,8 +2139,8 @@ body.gsap-on [data-reveal] { opacity: 1; transform: none; transition: none; }
 
 .act-peak {
   /* Panggung drum selalu gelap, jadi warna teksnya dikunci lokal agar tetap
-     terang di mode Pastel Sorbet maupun Slate & Spice. */
-  --bone: #FDF3E7;
+     terang di mode terang maupun gelap. */
+  --bone: #F8F4F1;
   background: var(--dark); color: var(--bone); border-bottom: 0; overflow: hidden;
 }
 
@@ -3140,35 +3140,80 @@ body[data-portal="landing"] .ld-brand:focus-visible { outline-color: var(--bone)
 
 .slide-drop:hover, .slide-drop.on { border-color: var(--orange); background: color-mix(in oklab, var(--orange) 8%, var(--paper)); color: var(--ink-2); }
 
+/* ── KOREKSI TEMA TERANG ASLI (BONE) ──────────────────
+   Beberapa komponen kini memakai token brand/chrome agar tema gelap
+   konsisten. Di mode terang, kembalikan ke perilaku desain awal. */
+body[data-theme="bone"] .brand-monogram {
+  color: var(--ink);
+  box-shadow: inset 0 0 0 2px color-mix(in oklab, var(--ink) 16%, transparent);
+}
+
+body[data-theme="bone"] .nav-i.on { color: var(--ink); background: var(--orange); }
+
+body[data-theme="bone"] .btn.primary:hover { background: var(--orange); }
+
+body[data-theme="bone"] .btn-icon.primary { background: var(--ink); color: var(--bone); border-color: var(--ink); }
+
+body[data-theme="bone"] .stepper button:hover { background: var(--ink); color: var(--bone); }
+
+body[data-theme="bone"] .seg button.on { background: var(--ink); color: var(--bone); }
+
+body[data-theme="bone"] .dchip.on,
+body[data-theme="bone"] .schip.on { background: var(--c, var(--orange)); color: #fff; }
+
+body[data-theme="bone"] .gal-nav { background: color-mix(in oklab, var(--ink) 70%, transparent); color: var(--bone); }
+
+body[data-theme="bone"] .gal-nav:hover { background: var(--orange); color: var(--bone); }
+
+body[data-theme="bone"] .fchip.on { background: var(--ink); color: var(--bone); }
+
+body[data-theme="bone"] .fchip.on b { color: var(--orange); }
+
+body[data-theme="bone"] .pal-i.on,
+body[data-theme="bone"] .pal-i:hover { background: var(--ink); color: var(--bone); }
+
+body[data-theme="bone"] .pal-i.on .ico,
+body[data-theme="bone"] .pal-i:hover .ico { color: var(--orange); }
+
+body[data-theme="bone"] .ps-i.on { background: var(--ink); color: var(--bone); }
+
+body[data-theme="bone"] .mode.on { background: var(--ink); color: var(--bone); border-color: var(--ink); }
+
+body[data-theme="bone"] .tli.now .tli-dot { box-shadow: 0 0 0 5px color-mix(in oklab, var(--orange) 20%, transparent); }
+
+body[data-theme="bone"] .track.big i { background: linear-gradient(90deg, var(--orange), #FFB894); }
+
+body[data-theme="bone"] .slide-tag { background: color-mix(in oklab, #0b0d12 72%, transparent); color: var(--bone); }
+
 /* ═══════════════════════════════════════════════════════
-   LANDING — ikut mode terang (Pastel Sorbet) & gelap (Slate & Spice)
-   Foto tetap menjadi latar, tetapi diberi selubung warna tema agar
-   teks selalu terbaca dan nuansa pastel/slate terasa menyeluruh.
+   LANDING — mode gelap Slate & Spice.
+   Mode terang sengaja memakai desain landing asli (gelap sinematik),
+   sama seperti sebelum tema Pastel Sorbet diperkenalkan.
    ═══════════════════════════════════════════════════════ */
 
-body[data-portal="landing"] .ld-slider { background: var(--bone); }
+body[data-theme="night"][data-portal="landing"] .ld-slider { background: var(--bone); }
 
-body[data-portal="landing"] .ld-nav {
+body[data-theme="night"][data-portal="landing"] .ld-nav {
   background: color-mix(in oklab, var(--bone) 78%, transparent);
   border-bottom-color: var(--line);
   color: var(--ink);
 }
 
-body[data-portal="landing"] .ld-brand,
-body[data-portal="landing"] .ld-brand b { color: var(--ink); }
+body[data-theme="night"][data-portal="landing"] .ld-brand,
+body[data-theme="night"][data-portal="landing"] .ld-brand b { color: var(--ink); }
 
-body[data-portal="landing"] .ld-clock { color: var(--orange); border-right-color: var(--line-2); }
+body[data-theme="night"][data-portal="landing"] .ld-clock { color: var(--orange); border-right-color: var(--line-2); }
 
-body[data-portal="landing"] .ld-nav .btn.sm:not(.primary) {
+body[data-theme="night"][data-portal="landing"] .ld-nav .btn.sm:not(.primary) {
   background: color-mix(in oklab, var(--paper) 84%, transparent);
 }
 
-body[data-portal="landing"] .ld-slider .act {
+body[data-theme="night"][data-portal="landing"] .ld-slider .act {
   background: var(--bone);
   color: var(--ink);
 }
 
-body[data-portal="landing"] .ld-slider .act::after {
+body[data-theme="night"][data-portal="landing"] .ld-slider .act::after {
   background:
     linear-gradient(90deg,
       color-mix(in srgb, var(--bone) 96%, transparent) 0%,
@@ -3179,7 +3224,7 @@ body[data-portal="landing"] .ld-slider .act::after {
       color-mix(in srgb, var(--bone) 14%, transparent) 52%);
 }
 
-body[data-portal="landing"] .ld-slider #a2::after {
+body[data-theme="night"][data-portal="landing"] .ld-slider #a2::after {
   background:
     linear-gradient(90deg,
       color-mix(in srgb, var(--bone) 96%, transparent) 0%,
@@ -3192,7 +3237,7 @@ body[data-portal="landing"] .ld-slider #a2::after {
 
 /* Babak puncak tetap dramatis: cokelat tua hangat di mode terang,
    slate paling dalam di mode gelap. */
-body[data-portal="landing"] .ld-slider #a3.act-peak {
+body[data-theme="night"][data-portal="landing"] .ld-slider #a3.act-peak {
   --bone: #FDF3E7;
   --ink: #FDF3E7;
   --ink-2: #F0DCCF;
@@ -3223,9 +3268,9 @@ body[data-theme="night"][data-portal="landing"] .ld-slider #a3.act-peak {
   background: linear-gradient(145deg, #232A31, #171C22 72%);
 }
 
-body[data-portal="landing"] .ld-slider #a3.on::before { opacity: .08; }
+body[data-theme="night"][data-portal="landing"] .ld-slider #a3.on::before { opacity: .08; }
 
-body[data-portal="landing"] .ld-slider #a3::after {
+body[data-theme="night"][data-portal="landing"] .ld-slider #a3::after {
   background:
     radial-gradient(50% 50% at 68% 48%, color-mix(in oklab, var(--orange) 16%, transparent), transparent 72%),
     linear-gradient(90deg, rgba(35, 25, 22, .94) 0%, rgba(35, 25, 22, .86) 52%, rgba(35, 25, 22, .78) 100%),
@@ -3240,7 +3285,7 @@ body[data-theme="night"][data-portal="landing"] .ld-slider #a3::after {
 }
 
 /* Babak angka: kolom teks diberi panel kaca agar tetap terbaca di atas foto. */
-body[data-portal="landing"] .ld-slider #a5 .proof-grid > div:last-child {
+body[data-theme="night"][data-portal="landing"] .ld-slider #a5 .proof-grid > div:last-child {
   padding: clamp(20px, 2.6vw, 34px);
   background: color-mix(in srgb, var(--bone) 76%, transparent);
   border: 1px solid var(--line);
@@ -3249,65 +3294,65 @@ body[data-portal="landing"] .ld-slider #a5 .proof-grid > div:last-child {
   backdrop-filter: blur(12px);
 }
 
-body[data-portal="landing"] .ld-slider .act :is(.display, h1, h2, h3, h4) { color: var(--ink); }
-body[data-portal="landing"] .ld-slider .act :is(.lede, .sb-lede, .q p, blockquote p) { color: var(--ink-2); }
-body[data-portal="landing"] .ld-slider .act .act-name { color: var(--orange); }
-body[data-portal="landing"] .ld-slider .act :is(.fine, .colophon .mono) { color: var(--muted); }
-body[data-portal="landing"] .ld-slider .act .live-facts { border-top-color: var(--line); border-bottom-color: var(--line); }
-body[data-portal="landing"] .ld-slider .act .live-facts li { border-right-color: var(--line); }
-body[data-portal="landing"] .ld-slider .act .live-facts span { color: var(--ink-2); }
-body[data-portal="landing"] .ld-slider .act .ll { border-bottom-color: var(--line); }
-body[data-portal="landing"] .ld-slider .act .ll-b p { color: var(--ink-2); }
-body[data-portal="landing"] .ld-slider .act .ll-eta { color: var(--muted); }
-body[data-portal="landing"] .ld-slider .act .proof-list span { color: var(--ink-2); }
-body[data-portal="landing"] .ld-slider .act .q { border-color: var(--line); }
-body[data-portal="landing"] .ld-slider .act .q summary b { color: var(--ink); }
-body[data-portal="landing"] .ld-slider .act .q-i { color: var(--ink-2); }
-body[data-portal="landing"] .ld-slider .act .find-meta { color: var(--muted); }
-body[data-portal="landing"] .ld-slider .act .hold { color: var(--muted); }
+body[data-theme="night"][data-portal="landing"] .ld-slider .act :is(.display, h1, h2, h3, h4) { color: var(--ink); }
+body[data-theme="night"][data-portal="landing"] .ld-slider .act :is(.lede, .sb-lede, .q p, blockquote p) { color: var(--ink-2); }
+body[data-theme="night"][data-portal="landing"] .ld-slider .act .act-name { color: var(--orange); }
+body[data-theme="night"][data-portal="landing"] .ld-slider .act :is(.fine, .colophon .mono) { color: var(--muted); }
+body[data-theme="night"][data-portal="landing"] .ld-slider .act .live-facts { border-top-color: var(--line); border-bottom-color: var(--line); }
+body[data-theme="night"][data-portal="landing"] .ld-slider .act .live-facts li { border-right-color: var(--line); }
+body[data-theme="night"][data-portal="landing"] .ld-slider .act .live-facts span { color: var(--ink-2); }
+body[data-theme="night"][data-portal="landing"] .ld-slider .act .ll { border-bottom-color: var(--line); }
+body[data-theme="night"][data-portal="landing"] .ld-slider .act .ll-b p { color: var(--ink-2); }
+body[data-theme="night"][data-portal="landing"] .ld-slider .act .ll-eta { color: var(--muted); }
+body[data-theme="night"][data-portal="landing"] .ld-slider .act .proof-list span { color: var(--ink-2); }
+body[data-theme="night"][data-portal="landing"] .ld-slider .act .q { border-color: var(--line); }
+body[data-theme="night"][data-portal="landing"] .ld-slider .act .q summary b { color: var(--ink); }
+body[data-theme="night"][data-portal="landing"] .ld-slider .act .q-i { color: var(--ink-2); }
+body[data-theme="night"][data-portal="landing"] .ld-slider .act .find-meta { color: var(--muted); }
+body[data-theme="night"][data-portal="landing"] .ld-slider .act .hold { color: var(--muted); }
 
-body[data-portal="landing"] .ld-slider .act :is(.console, .signup, .rail-wrap .rail-i, .gal-carousel, .quiet-strip, .quick-out, .find-map, .chip, .schip) { color: var(--ink-2); }
-body[data-portal="landing"] .ld-slider .act :is(.console, .signup, .rail-wrap .rail-i, .gal-carousel, .quiet-strip, .quick-out, .find-map) :is(.display, h1, h2, h3, h4) { color: var(--ink); }
-body[data-portal="landing"] .ld-slider .act .quiet-strip .fine { color: var(--muted); }
-body[data-portal="landing"] .ld-slider .act .signup .hold { color: var(--muted); }
-body[data-portal="landing"] .ld-slider .act .console .num { color: var(--ink); }
+body[data-theme="night"][data-portal="landing"] .ld-slider .act :is(.console, .signup, .rail-wrap .rail-i, .gal-carousel, .quiet-strip, .quick-out, .find-map, .chip, .schip) { color: var(--ink-2); }
+body[data-theme="night"][data-portal="landing"] .ld-slider .act :is(.console, .signup, .rail-wrap .rail-i, .gal-carousel, .quiet-strip, .quick-out, .find-map) :is(.display, h1, h2, h3, h4) { color: var(--ink); }
+body[data-theme="night"][data-portal="landing"] .ld-slider .act .quiet-strip .fine { color: var(--muted); }
+body[data-theme="night"][data-portal="landing"] .ld-slider .act .signup .hold { color: var(--muted); }
+body[data-theme="night"][data-portal="landing"] .ld-slider .act .console .num { color: var(--ink); }
 
-body[data-portal="landing"] .ld-slider .act .live-col { color: var(--ink-2); }
-body[data-portal="landing"] .ld-slider .act .live-col :is(.display, h1, h2, h3, h4) { color: var(--ink); }
-body[data-portal="landing"] .ld-slider .act .live-col .ll-b p { color: var(--ink-2); }
-body[data-portal="landing"] .ld-slider .act .live-col .ll-eta { color: var(--muted); }
-body[data-portal="landing"] .ld-slider .act .live-col .sb-lede { color: var(--ink-2); }
+body[data-theme="night"][data-portal="landing"] .ld-slider .act .live-col { color: var(--ink-2); }
+body[data-theme="night"][data-portal="landing"] .ld-slider .act .live-col :is(.display, h1, h2, h3, h4) { color: var(--ink); }
+body[data-theme="night"][data-portal="landing"] .ld-slider .act .live-col .ll-b p { color: var(--ink-2); }
+body[data-theme="night"][data-portal="landing"] .ld-slider .act .live-col .ll-eta { color: var(--muted); }
+body[data-theme="night"][data-portal="landing"] .ld-slider .act .live-col .sb-lede { color: var(--ink-2); }
 
-body[data-portal="landing"] .ld-slider .act .find-us { color: var(--ink-2); }
-body[data-portal="landing"] .ld-slider .act .find-us :is(.display, h1, h2, h3, h4) { color: var(--ink); }
-body[data-portal="landing"] .ld-slider .act .find-us .lede { color: var(--ink-2); }
-body[data-portal="landing"] .ld-slider .act .find-us .find-meta { color: var(--muted); }
+body[data-theme="night"][data-portal="landing"] .ld-slider .act .find-us { color: var(--ink-2); }
+body[data-theme="night"][data-portal="landing"] .ld-slider .act .find-us :is(.display, h1, h2, h3, h4) { color: var(--ink); }
+body[data-theme="night"][data-portal="landing"] .ld-slider .act .find-us .lede { color: var(--ink-2); }
+body[data-theme="night"][data-portal="landing"] .ld-slider .act .find-us .find-meta { color: var(--muted); }
 
-body[data-portal="landing"] .ld-slider .act .colophon a { color: var(--ink-2); text-decoration-color: color-mix(in oklab, var(--orange) 60%, transparent); }
-body[data-portal="landing"] .ld-slider .act .colophon a:hover { color: var(--orange); }
+body[data-theme="night"][data-portal="landing"] .ld-slider .act .colophon a { color: var(--ink-2); text-decoration-color: color-mix(in oklab, var(--orange) 60%, transparent); }
+body[data-theme="night"][data-portal="landing"] .ld-slider .act .colophon a:hover { color: var(--orange); }
 
-body[data-portal="landing"] .ld-thumbs {
+body[data-theme="night"][data-portal="landing"] .ld-thumbs {
   background: color-mix(in oklab, var(--bone) 74%, transparent);
   border-color: var(--line-2);
 }
 
-body[data-portal="landing"] .ld-thumb {
+body[data-theme="night"][data-portal="landing"] .ld-thumb {
   background: var(--paper-2);
   border-color: var(--line-2);
 }
 
-body[data-portal="landing"] .ld-thumb.on {
+body[data-theme="night"][data-portal="landing"] .ld-thumb.on {
   border-color: var(--brand);
   box-shadow: 0 0 0 2px color-mix(in oklab, var(--brand) 42%, transparent), 0 10px 22px -14px rgba(0, 0, 0, .6);
 }
 
-body[data-portal="landing"] .ld-thumb-l {
+body[data-theme="night"][data-portal="landing"] .ld-thumb-l {
   color: var(--ink);
   background: linear-gradient(180deg, transparent, color-mix(in oklab, var(--bone) 90%, transparent));
 }
 
-body[data-portal="landing"] .ld-count { color: var(--ink); }
+body[data-theme="night"][data-portal="landing"] .ld-count { color: var(--ink); }
 
-body[data-portal="landing"] .ld-arrow { background: var(--brand); color: var(--on-brand); }
-body[data-portal="landing"] .ld-arrow:hover { background: color-mix(in oklab, var(--brand) 82%, var(--ink)); }
-body[data-portal="landing"] .ld-arrow:focus-visible { outline-color: var(--ink); }
+body[data-theme="night"][data-portal="landing"] .ld-arrow { background: var(--brand); color: var(--on-brand); }
+body[data-theme="night"][data-portal="landing"] .ld-arrow:hover { background: color-mix(in oklab, var(--brand) 82%, var(--ink)); }
+body[data-theme="night"][data-portal="landing"] .ld-arrow:focus-visible { outline-color: var(--ink); }
