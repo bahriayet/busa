@@ -6,12 +6,12 @@
   color-scheme: light;
   --bone: #FDF3E7;
   --paper: #FFE6D3;
-  --paper-2: #FBE9D8;
+  --paper-2: #FDEFE1;
   --ink: #4A3E3D;
-  --ink-2: #5F504C;
-  --muted: #7F706C;
-  --line: #EAD0BC;
-  --line-2: #DDB79E;
+  --ink-2: #6A5A56;
+  --muted: #8A7B77;
+  --line: #F0D8C6;
+  --line-2: #E5C2AB;
   --brand: #FFA372;
   --brand-2: #FF8A5B;
   --on-brand: #4A2E24;
@@ -138,11 +138,13 @@ body::before {
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(46% 38% at 12% 8%, color-mix(in oklab, var(--orange-soft) 14%, transparent), transparent 70%),
-    radial-gradient(40% 34% at 88% 22%, color-mix(in oklab, var(--orange-soft) 10%, transparent), transparent 70%);
-  filter: blur(40px);
-  opacity: .22;
-  animation: none;
+    radial-gradient(46% 38% at 12% 8%, color-mix(in oklab, var(--orange-soft) 22%, transparent), transparent 70%),
+    radial-gradient(40% 34% at 88% 22%, color-mix(in oklab, var(--orange-soft) 16%, transparent), transparent 70%),
+    radial-gradient(38% 30% at 60% 96%, color-mix(in oklab, #FFFFFF 62%, transparent) 30%, transparent 72%),
+    radial-gradient(30% 26% at 30% 60%, color-mix(in oklab, var(--orange) 14%, transparent), transparent 70%);
+  filter: blur(30px);
+  opacity: .55;
+  animation: caustic 26s ease-in-out infinite alternate;
 }
 
 body[data-theme="night"]::before {
@@ -168,7 +170,7 @@ body[data-theme="night"]::before {
   inset: 0;
   z-index: 900;
   pointer-events: none;
-  opacity: .1;
+  opacity: .3;
   mix-blend-mode: multiply;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
 }
@@ -339,9 +341,13 @@ body[data-theme="night"] .grain { mix-blend-mode: screen; opacity: .08; }
   align-items: center;
   gap: 14px;
   padding: 12px var(--gutter);
-  background: color-mix(in oklab, var(--bone) 94%, transparent);
+  background: color-mix(in oklab, var(--bone) 88%, transparent);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--line);
+}
+
+body[data-theme="night"] .topbar {
+  background: color-mix(in oklab, var(--bone) 94%, transparent);
 }
 
 .tb-title b { display: block; font-family: var(--display); font-size: 17px; letter-spacing: -.02em; }
@@ -529,7 +535,9 @@ body[data-theme="night"] .grain { mix-blend-mode: screen; opacity: .08; }
 [data-reveal].in { opacity: 1; transform: none; }
 
 /* ── motif: ubin lantai ──────────────────────────── */
-.tiles { height: 54px; border-top: 1px solid var(--line); background-image: conic-gradient(var(--line-2) 0 25%, transparent 0 50%, var(--line-2) 0 75%, transparent 0); background-size: 22px 22px; opacity: .28; transform: perspective(320px) rotateX(52deg); transform-origin: bottom; }
+.tiles { height: 54px; border-top: 1px solid var(--line); background-image: conic-gradient(var(--line-2) 0 25%, transparent 0 50%, var(--line-2) 0 75%, transparent 0); background-size: 22px 22px; opacity: .45; transform: perspective(320px) rotateX(52deg); transform-origin: bottom; }
+
+body[data-theme="night"] .tiles { opacity: .28; }
 
 /* ── DRUM ────────────────────────────────────────── */
 .drum { position: relative; width: var(--sz, 120px); aspect-ratio: 1; flex: none; }
@@ -3303,37 +3311,3 @@ body[data-portal="landing"] .ld-count { color: var(--ink); }
 body[data-portal="landing"] .ld-arrow { background: var(--brand); color: var(--on-brand); }
 body[data-portal="landing"] .ld-arrow:hover { background: color-mix(in oklab, var(--brand) 82%, var(--ink)); }
 body[data-portal="landing"] .ld-arrow:focus-visible { outline-color: var(--ink); }
-
-/* Mode terang: kanvas krem lebih bersih. Foto hanya menjadi tekstur samar,
-   bukan selubung susu yang membuat seluruh layar terasa berasap. */
-body[data-theme="bone"][data-portal="landing"] .ld-nav {
-  background: color-mix(in oklab, var(--bone) 94%, transparent);
-}
-
-body[data-theme="bone"][data-portal="landing"] .ld-slider .act.on::before {
-  opacity: .06;
-  filter: saturate(.9) contrast(1.04);
-}
-
-body[data-theme="bone"][data-portal="landing"] .ld-slider .act::after {
-  background: linear-gradient(180deg,
-    color-mix(in oklab, var(--bone) 24%, transparent) 0%,
-    color-mix(in oklab, var(--bone) 8%, transparent) 100%);
-}
-
-body[data-theme="bone"][data-portal="landing"] .ld-slider #a2::after {
-  background: linear-gradient(180deg,
-    color-mix(in oklab, var(--bone) 28%, transparent) 0%,
-    color-mix(in oklab, var(--bone) 10%, transparent) 100%);
-}
-
-body[data-theme="bone"][data-portal="landing"] .ld-slider #a5 .proof-grid > div:last-child {
-  background: var(--paper);
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  box-shadow: var(--shadow);
-}
-
-body[data-theme="bone"][data-portal="landing"] .ld-thumbs {
-  background: color-mix(in oklab, var(--bone) 94%, transparent);
-}
