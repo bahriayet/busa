@@ -190,8 +190,8 @@ body.legal {
   margin-top: 22px;
   padding: 18px 20px;
   border-radius: var(--r, 14px);
-  background: var(--ink);
-  color: var(--bone);
+  background: var(--chrome);
+  color: var(--chrome-ink);
 }
 
 .legal-contact b {
@@ -201,7 +201,7 @@ body.legal {
 }
 
 .legal-contact p {
-  color: color-mix(in oklab, var(--bone) 74%, transparent);
+  color: color-mix(in oklab, var(--chrome-ink) 74%, transparent);
   margin: 0;
   font-size: 13.5px;
 }

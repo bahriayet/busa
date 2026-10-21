@@ -1518,7 +1518,7 @@ VIEWS.setelan = {
       <div class="panel" data-reveal>
         <header class="p-head"><h3 class="display">Wajah aplikasi</h3><span class="mono note">tersimpan di perangkat</span></header>
         <div class="theme-pick">
-          ${[['bone', 'Bone', 'Krem sabun, siang laundromat'], ['night', 'Night', 'Biru arang, neon coin-op']].map(([id, l, d]) => `
+          ${[['bone', 'Pastel Sorbet', 'Krem lembut, sorbet oranye'], ['night', 'Slate & Spice', 'Slate kebiruan, rempah hangat']].map(([id, l, d]) => `
             <button class="tp t-${id} ${S.theme === id ? 'on' : ''}" data-act="theme-pick" data-v="${id}">
               <span class="tp-sw"><i></i><i></i><i></i></span><b class="display">${l}</b><p class="mono fine">${d}</p>
               ${S.theme === id ? `<span class="tp-on">${icon('check')}</span>` : ''}</button>`).join('')}
@@ -1598,7 +1598,7 @@ function openPalette() {
     ...(!adminOn ? [{ t: 'Buka panel Admin', i: 'sliders', run: () => switchPortal('a') }] : []),
     ...(customerOn ? [{ t: 'Order baru', i: 'plus', run: () => { S.cart = newCart(); go('order', 'c'); } }] : []),
     { t: 'Buka halaman situs', i: 'store', run: () => go('landing') },
-    { t: 'Ganti tema bone/night', i: 'moon', run: toggleTheme },
+    { t: 'Ganti tema terang/gelap', i: 'moon', run: toggleTheme },
     { t: 'Buka bantuan', i: 'mail', run: openChat },
     ...visibleOrders().slice(0, 6).map((o) => ({ t: `${o.code} · ${o.customer}`, i: 'truck', run: () => { trackCode = o.code; go('lacak', S.portal); } })),
   ];
@@ -1653,12 +1653,29 @@ function paintChat() {
 
 /* ── ACTIONS ──────────────────────────────────────────── */
 
+function paintTheme() {
+  document.body.dataset.theme = S.theme;
+  const themeIcon = S.theme === 'bone' ? 'moon' : 'sun';
+  qsa('[data-act="theme"]').forEach((el) => {
+    el.innerHTML = icon(themeIcon);
+    el.setAttribute('aria-label', S.theme === 'bone' ? 'Aktifkan tema Slate & Spice' : 'Aktifkan tema Pastel Sorbet');
+    el.setAttribute('title', S.theme === 'bone' ? 'Ganti ke Slate & Spice (T)' : 'Ganti ke Pastel Sorbet (T)');
+  });
+  const meta = qs('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', S.theme === 'bone' ? '#FDF3E7' : '#2B323A');
+}
+
 function toggleTheme() {
   S.theme = S.theme === 'bone' ? 'night' : 'bone';
-  document.body.dataset.theme = S.theme;
-  qs('#theme-btn').innerHTML = icon(S.theme === 'bone' ? 'moon' : 'sun');
+  paintTheme();
   save();
-  toast({ title: 'Tema ' + (S.theme === 'bone' ? 'Bone' : 'Night'), icon: S.theme === 'bone' ? 'sun' : 'moon', tone: 'lilac', ms: 1800 });
+  toast({
+    title: 'Tema ' + (S.theme === 'bone' ? 'Pastel Sorbet' : 'Slate & Spice'),
+    msg: S.theme === 'bone' ? 'Mode terang aktif' : 'Mode gelap aktif',
+    icon: S.theme === 'bone' ? 'sun' : 'moon',
+    tone: S.theme === 'bone' ? 'orange' : 'lilac',
+    ms: 2200,
+  });
 }
 
 function advanceStage(code, quiet) {
@@ -2598,8 +2615,7 @@ function boot() {
   const base = nowMs();
   S.orders.forEach((o, i) => { if (!o.stageAt) o.stageAt = base - (i + 1) * 4 * 60000; });
   if (!Array.isArray(S.events)) S.events = [];
-  document.body.dataset.theme = S.theme;
-  qs('#theme-btn').innerHTML = icon(S.theme === 'bone' ? 'moon' : 'sun');
+  paintTheme();
   const r = parseHash();
   let view = VIEWS[r.view] ? r.view : 'landing';
   let portal = VIEWS[r.view] ? r.portal : 'landing';
