@@ -2,7 +2,25 @@
   "name": "busa-laundry-ops",
   "version": "1.0.0",
   "private": true,
-  "description": "MAHA Dewi Laundry Ops — situs publik, portal pelanggan, dan dasbor operasional Laundry MAHA Dewi Mataram.",
+  "description": "MAHA Dewi Laundry Ops — public storefront, customer portal, and real-time operations dashboard for a laundry business in Mataram, Indonesia.",
+  "license": "MIT",
+  "homepage": "https://github.com/bahriayet/busa#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bahriayet/busa.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bahriayet/busa/issues"
+  },
+  "keywords": [
+    "laundry",
+    "operations",
+    "fastify",
+    "postgresql",
+    "vanilla-javascript",
+    "playwright",
+    "indonesia"
+  ],
   "scripts": {
     "serve": "node e2e/serve.mjs",
     "test:e2e": "playwright test",

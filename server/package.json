@@ -4,7 +4,16 @@
   "private": true,
   "type": "module",
   "description": "Backend MAHA Dewi Laundry Ops — Fastify + Neon PostgreSQL, event-sourced floor state",
-  "license": "UNLICENSED",
+  "license": "MIT",
+  "homepage": "https://github.com/bahriayet/busa#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bahriayet/busa.git",
+    "directory": "server"
+  },
+  "bugs": {
+    "url": "https://github.com/bahriayet/busa/issues"
+  },
   "engines": {
     "node": ">=24.0.0"
   },

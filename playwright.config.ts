@@ -1,9 +1,14 @@
 import { defineConfig } from '@playwright/test';
 
 /**
- * E2E memakai Microsoft Edge yang sudah terpasang (channel 'msedge'),
+ * Default E2E memakai Microsoft Edge yang sudah terpasang (channel 'msedge'),
  * jadi tidak perlu mengunduh browser Chromium tambahan.
+ *
+ * Di Linux/macOS atau CI, pasang Chromium lalu set:
+ *   PLAYWRIGHT_CHANNEL=chromium npm run test:e2e
  */
+const channel = process.env.PLAYWRIGHT_CHANNEL ?? 'msedge';
+
 export default defineConfig({
   testDir: './e2e',
   timeout: 60_000,
@@ -13,7 +18,7 @@ export default defineConfig({
   reporter: [['list']],
   use: {
     baseURL: 'http://127.0.0.1:4173',
-    channel: 'msedge',
+    channel,
     headless: true,
     viewport: { width: 1366, height: 700 },
     actionTimeout: 10_000,

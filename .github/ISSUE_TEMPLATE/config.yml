@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security report
+    url: https://github.com/bahriayet/busa/security/policy
+    about: Please report vulnerabilities privately, not as a public issue.
+  - name: Live site
+    url: https://busa-alpha.vercel.app
+    about: Check the deployed application before reporting a UI issue.

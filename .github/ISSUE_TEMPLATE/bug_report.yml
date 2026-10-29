@@ -1,0 +1,75 @@
+name: Bug report
+description: Something is broken or behaves differently than expected.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Please remove passwords, tokens, customer
+        data, and other secrets from logs and screenshots before submitting.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Public landing page
+        - Customer portal
+        - Admin / staff dashboard
+        - API
+        - Database / seeding
+        - Deployment
+        - Accessibility
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the actual behavior and what you expected instead.
+      placeholder: When I ..., the page ...; I expected ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open ...
+        2. Sign in as ...
+        3. Click ...
+        4. See ...
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser, OS, Node.js version, and whether you use the hosted site or a local build.
+      placeholder: Edge 131 on Windows 11; Node.js 24; local full stack
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs or screenshots
+      description: Paste only the relevant lines. Do not include secrets or personal data.
+      render: shell
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and did not find a duplicate.
+          required: true
+        - label: This report does not contain passwords, tokens, or customer data.
+          required: true
